@@ -1,0 +1,294 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.formCard,
+.accounts {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: white;
+}
+
+.formCard {
+  padding: 26px;
+}
+
+.heading span,
+.listHeading span {
+  color: #788087;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.heading h2,
+.listHeading h2 {
+  margin: 6px 0 0;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.heading p {
+  margin: 9px 0 24px;
+  color: #6b7379;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.formCard form {
+  display: grid;
+  gap: 16px;
+}
+
+.formCard label {
+  display: grid;
+  gap: 7px;
+  color: #343a3f;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.formCard input,
+.formCard select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #dce1e4;
+  border-radius: 11px;
+  outline: none;
+  padding: 0 13px;
+  color: #111315;
+  background: white;
+}
+
+.formCard input:focus,
+.formCard select:focus {
+  border-color: #8d959b;
+  box-shadow: 0 0 0 3px rgba(17, 19, 21, 0.06);
+}
+
+.methodNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border-radius: 11px;
+  padding: 12px;
+  color: #466052;
+  background: #eef7f1;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.formCard form > button,
+.toggle {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+.formCard form > button {
+  color: white;
+  background: #111315;
+}
+
+.formCard button:disabled {
+  opacity: 0.6;
+}
+
+.success,
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.success {
+  color: #176c42;
+  background: #eaf7ef;
+}
+
+.error {
+  color: #a52b2b;
+  background: #fff0f0;
+}
+
+.accounts {
+  overflow: hidden;
+}
+
+.listHeading {
+  padding: 24px 26px;
+  border-bottom: 1px solid var(--border);
+}
+
+.list {
+  display: grid;
+}
+
+.account {
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account:last-child {
+  border-bottom: 0;
+}
+
+.accountTop {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+}
+
+.brokerIcon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  color: white;
+  background: #111315;
+  font-weight: 850;
+}
+
+.account h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.accountTop div:nth-child(2) > span {
+  display: block;
+  margin-top: 4px;
+  color: #747c82;
+  font-size: 11px;
+}
+
+.active,
+.paused {
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.active {
+  color: #176c42;
+  background: #eaf7ef;
+}
+
+.paused {
+  color: #7a5a1b;
+  background: #fff4dc;
+}
+
+.accountMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0;
+  border-radius: 12px;
+  padding: 13px;
+  background: #f4f6f7;
+}
+
+.accountMeta > div,
+.accountMeta a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.accountMeta span {
+  display: grid;
+  gap: 2px;
+}
+
+.accountMeta small {
+  color: #7a8288;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.accountMeta strong,
+.accountMeta a {
+  font-size: 11px;
+}
+
+.toggle {
+  min-height: 38px;
+  border: 1px solid #dce1e4;
+  padding: 0 13px;
+  background: white;
+  font-size: 11px;
+}
+
+.empty {
+  padding: 80px 28px;
+  color: #717980;
+  text-align: center;
+}
+
+.empty h3 {
+  margin: 18px 0 7px;
+  color: #111315;
+}
+
+.empty p {
+  max-width: 420px;
+  margin: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .formCard,
+  .account,
+  .listHeading {
+    padding: 20px 16px;
+  }
+
+  .accountTop {
+    grid-template-columns: auto 1fr;
+  }
+
+  .accountTop > span {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .accountMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

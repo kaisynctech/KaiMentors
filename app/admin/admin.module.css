@@ -1,0 +1,90 @@
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.panel {
+  min-height: 330px;
+  padding: 24px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.empty {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty strong {
+  margin-top: 14px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.empty p {
+  max-width: 400px;
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.health {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f2f7f3;
+}
+
+.health > span {
+  width: 9px;
+  height: 9px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: #168b52;
+}
+
+.health div {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.health p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 1080px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,95 @@
+.page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 0.8fr 1.2fr;
+  background: white;
+}
+
+.aside {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 38px 48px;
+  background:
+    radial-gradient(circle at 30% 75%, rgba(216, 255, 89, 0.28), transparent 28%),
+    #f2f4f5;
+}
+
+.aside h1 {
+  max-width: 520px;
+  margin: 0;
+  font-size: clamp(42px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+}
+
+.aside div > p:last-child {
+  max-width: 500px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.aside small {
+  color: #757d83;
+}
+
+.content {
+  display: grid;
+  place-items: center;
+  padding: 40px;
+}
+
+.card {
+  width: min(430px, 100%);
+}
+
+.wide {
+  width: min(680px, 100%);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.04em;
+}
+
+.card > p:nth-of-type(2) {
+  margin: 9px 0 30px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.footer a {
+  color: #111315;
+  font-weight: 800;
+}
+
+@media (max-width: 880px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .aside {
+    min-height: auto;
+    gap: 60px;
+    padding: 28px 24px 48px;
+  }
+
+  .aside small {
+    display: none;
+  }
+
+  .content {
+    padding: 50px 22px 70px;
+  }
+}

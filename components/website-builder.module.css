@@ -1,0 +1,524 @@
+.builder,
+.stack {
+  display: grid;
+  gap: 22px;
+}
+
+.toolbar,
+.panel,
+.success,
+.error {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: white;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+}
+
+.toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #196942;
+  background: #eaf7ef;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewButton,
+.saveButton {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.previewButton {
+  border: 1px solid var(--border);
+}
+
+.saveButton {
+  border: 0;
+  color: white;
+  background: #111315;
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+}
+
+.panel {
+  padding: 26px;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.panelHeading span {
+  color: #7a8288;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.panelHeading h2 {
+  margin: 5px 0 0;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+}
+
+.panelHeading p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.templateGrid article {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.selectedTemplate {
+  border-color: #111315 !important;
+  box-shadow: 0 0 0 2px #111315;
+}
+
+.templateVisual {
+  display: flex;
+  min-height: 150px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 75% 30%, rgba(216, 255, 89, 0.75), transparent 32%),
+    #f0f2f3;
+}
+
+.templateGrid article:nth-child(2) .templateVisual {
+  color: #f5ead4;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(200, 169, 107, 0.45), transparent 34%),
+    #191713;
+}
+
+.templateGrid article:nth-child(3) .templateVisual {
+  color: white;
+  background:
+    linear-gradient(135deg, rgba(62, 230, 168, 0.24), transparent),
+    #0c1821;
+}
+
+.templateVisual span {
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.templateVisual strong {
+  max-width: 200px;
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.templateGrid article > div:last-child {
+  padding: 18px;
+}
+
+.templateGrid article > div:last-child > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.templateGrid h3 {
+  margin: 8px 0;
+  font-size: 17px;
+}
+
+.templateGrid p {
+  min-height: 55px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.templateGrid button {
+  width: 100%;
+  min-height: 39px;
+  border: 0;
+  border-radius: 9px;
+  color: white;
+  background: #111315;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.templateGrid button:disabled {
+  color: #466050;
+  background: #eaf7ef;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 0.38fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.panel label {
+  display: grid;
+  gap: 7px;
+  color: #343a3f;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.panel input,
+.panel textarea,
+.panel select {
+  width: 100%;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+  outline: none;
+  background: white;
+}
+
+.panel input,
+.panel select {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.panel textarea {
+  resize: vertical;
+  padding: 11px 12px;
+  line-height: 1.55;
+}
+
+.twoColumns,
+.threeColumns,
+.colorGrid,
+.mediaGrid {
+  display: grid;
+  gap: 13px;
+}
+
+.twoColumns,
+.mediaGrid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.threeColumns {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.colorGrid {
+  grid-template-columns: repeat(5, 1fr);
+  margin-bottom: 16px;
+}
+
+.slugInput,
+.colorInput {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+}
+
+.slugInput small {
+  padding-left: 11px;
+  color: var(--muted);
+}
+
+.slugInput input,
+.colorInput input {
+  border: 0;
+}
+
+.slugInput input {
+  padding-left: 4px;
+}
+
+.colorInput input[type="color"] {
+  width: 38px;
+  min-height: 34px;
+  padding: 3px;
+}
+
+.mediaGrid {
+  margin-top: 16px;
+}
+
+.mediaUpload {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 95px 1fr;
+  align-items: center;
+  overflow: hidden;
+  border: 1px dashed #cdd3d7;
+  border-radius: 14px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.mediaUpload > div {
+  position: relative;
+  display: grid;
+  width: 95px;
+  height: 75px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 10px;
+  background: #f0f2f3;
+}
+
+.mediaUpload img {
+  object-fit: cover;
+}
+
+.mediaUpload span {
+  display: grid;
+  gap: 4px;
+}
+
+.mediaUpload small {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.mediaUpload > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.publishToggle {
+  display: flex !important;
+  align-items: flex-start;
+  grid-template-columns: auto 1fr;
+  gap: 10px !important;
+}
+
+.publishToggle input,
+.checkboxLabel input,
+.compactList input[type="checkbox"],
+.sectionEditor header input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: #111315;
+}
+
+.publishToggle span {
+  display: grid;
+  gap: 4px;
+}
+
+.publishToggle small {
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.compactList {
+  display: grid;
+  gap: 9px;
+}
+
+.compactList > div {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.compactList input:last-child {
+  min-height: 38px;
+}
+
+.pageEditor {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 25px;
+}
+
+.pageTabs {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.pageTabs button {
+  min-height: 41px;
+  border: 0;
+  border-radius: 9px;
+  padding: 0 12px;
+  color: #5e666c;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pageTabs .activePage {
+  color: #111315;
+  background: #f0f2f3;
+}
+
+.pageSettings,
+.sectionList {
+  display: grid;
+  gap: 16px;
+}
+
+.checkboxLabel {
+  display: flex !important;
+  align-items: center;
+  grid-template-columns: auto 1fr;
+  padding-top: 22px;
+}
+
+.sectionEditor {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  background: #fafbfb;
+}
+
+.sectionEditor header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionEditor header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.sectionEditor header span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sectionEditor header label {
+  display: flex;
+  align-items: center;
+  grid-template-columns: auto 1fr;
+}
+
+.success,
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.success {
+  color: #176c42;
+  background: #eaf7ef;
+}
+
+.error {
+  color: #a52b2b;
+  background: #fff0f0;
+}
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+  .columns,
+  .pageEditor {
+    grid-template-columns: 1fr;
+  }
+
+  .pageTabs {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .pageTabs button {
+    flex: 0 0 auto;
+  }
+
+  .colorGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .toolbar,
+  .toolbar > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .templateGrid,
+  .twoColumns,
+  .threeColumns,
+  .mediaGrid,
+  .colorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 20px 15px;
+  }
+}

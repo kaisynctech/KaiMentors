@@ -1,0 +1,418 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  createDomainProvider,
+  DomainProviderError,
+} from "@/lib/domains/provider";
+import { isPlatformHostname, normalizeHostname } from "@/lib/domains/hostnames";
+import type { DomainProviderState, WebsiteDomain } from "@/lib/domains/types";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getMentorWorkspace } from "@/lib/workspace";
+
+const requestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("add"),
+    hostname: z.string().trim().min(4).max(253),
+  }),
+  z.object({
+    action: z.literal("refresh"),
+    domainId: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal("set_primary"),
+    domainId: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal("remove"),
+    domainId: z.string().uuid(),
+  }),
+]);
+
+function lifecycleFromProvider(state: DomainProviderState) {
+  if (state.verified && !state.misconfigured) {
+    return {
+      ownership_status: "verified",
+      dns_status: "configured",
+      ssl_status: "ready",
+      auth_status: "configured",
+      status: "active",
+      activated_at: new Date().toISOString(),
+    } as const;
+  }
+
+  if (!state.verified) {
+    return {
+      ownership_status: "pending",
+      dns_status: state.misconfigured ? "misconfigured" : "pending",
+      ssl_status: "pending",
+      auth_status: "configured",
+      status: "verification_required",
+      activated_at: null,
+    } as const;
+  }
+
+  return {
+    ownership_status: "verified",
+    dns_status: "misconfigured",
+    ssl_status: "provisioning",
+    auth_status: "configured",
+    status: "configuring",
+    activated_at: null,
+  } as const;
+}
+
+async function writeEvent(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  input: {
+    domainId: string | null;
+    traderId: string;
+    portalId: string;
+    actorUserId: string;
+    eventType: string;
+    hostname: string;
+    previousStatus?: string | null;
+    nextStatus?: string | null;
+    details?: Record<string, unknown>;
+  },
+) {
+  await admin.from("website_domain_events").insert({
+    domain_id: input.domainId,
+    trader_id: input.traderId,
+    portal_id: input.portalId,
+    actor_user_id: input.actorUserId,
+    event_type: input.eventType,
+    hostname: input.hostname,
+    previous_status: input.previousStatus ?? null,
+    next_status: input.nextStatus ?? null,
+    details: input.details ?? {},
+  });
+}
+
+async function loadOwnedDomain(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  domainId: string,
+  traderId: string,
+) {
+  const { data } = await admin
+    .from("website_domains")
+    .select("*")
+    .eq("id", domainId)
+    .eq("trader_id", traderId)
+    .maybeSingle();
+  return data as WebsiteDomain | null;
+}
+
+async function persistProviderState(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  domain: WebsiteDomain,
+  state: DomainProviderState,
+) {
+  const lifecycle = lifecycleFromProvider(state);
+  const { data, error } = await admin
+    .from("website_domains")
+    .update({
+      provider_domain_id: state.providerDomainId,
+      ...lifecycle,
+      verification_records: state.verificationRecords,
+      provider_metadata: state.metadata,
+      failure_code: null,
+      failure_message: null,
+      last_checked_at: new Date().toISOString(),
+    })
+    .eq("id", domain.id)
+    .eq("trader_id", domain.trader_id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as WebsiteDomain;
+}
+
+export async function POST(request: Request) {
+  const workspace = await getMentorWorkspace();
+  if (!workspace) {
+    return NextResponse.json(
+      { error: "Please sign in to your mentor workspace." },
+      { status: 401 },
+    );
+  }
+
+  const parsed = requestSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "The domain request is invalid." },
+      { status: 400 },
+    );
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    return NextResponse.json(
+      { error: "Server-side domain management is not configured." },
+      { status: 503 },
+    );
+  }
+
+  let provider;
+  try {
+    provider = createDomainProvider();
+  } catch (error) {
+    const status = error instanceof DomainProviderError ? error.status : 503;
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Custom-domain automation is not configured.",
+      },
+      { status },
+    );
+  }
+
+  const input = parsed.data;
+
+  if (input.action === "add") {
+    let hostname: string;
+    try {
+      hostname = normalizeHostname(input.hostname);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Invalid domain." },
+        { status: 400 },
+      );
+    }
+
+    if (isPlatformHostname(hostname)) {
+      return NextResponse.json(
+        { error: "The KaiMentors platform domain cannot be assigned to a tenant." },
+        { status: 400 },
+      );
+    }
+
+    const { data: created, error: reserveError } = await admin
+      .from("website_domains")
+      .insert({
+        trader_id: workspace.traderId,
+        portal_id: workspace.portal.id,
+        hostname,
+        provider: "vercel",
+        status: "requested",
+      })
+      .select("*")
+      .single();
+
+    if (reserveError || !created) {
+      return NextResponse.json(
+        {
+          error:
+            reserveError?.code === "23505"
+              ? "That domain is already connected to a KaiMentors website."
+              : "The domain could not be reserved.",
+        },
+        { status: reserveError?.code === "23505" ? 409 : 400 },
+      );
+    }
+
+    const domain = created as WebsiteDomain;
+    await writeEvent(admin, {
+      domainId: domain.id,
+      traderId: workspace.traderId,
+      portalId: workspace.portal.id,
+      actorUserId: workspace.user.id,
+      eventType: "domain_reserved",
+      hostname,
+      nextStatus: "requested",
+    });
+
+    try {
+      const state = await provider.add(hostname);
+      const updated = await persistProviderState(admin, domain, state);
+      await writeEvent(admin, {
+        domainId: domain.id,
+        traderId: workspace.traderId,
+        portalId: workspace.portal.id,
+        actorUserId: workspace.user.id,
+        eventType: "provider_domain_added",
+        hostname,
+        previousStatus: domain.status,
+        nextStatus: updated.status,
+        details: state.metadata,
+      });
+
+      if (updated.status === "active") {
+        const { data: primary } = await workspace.supabase
+          .from("website_domains")
+          .select("id")
+          .eq("portal_id", workspace.portal.id)
+          .eq("is_primary", true)
+          .maybeSingle();
+        if (!primary) {
+          await workspace.supabase.rpc("set_primary_website_domain", {
+            target_domain_id: updated.id,
+          });
+        }
+      }
+
+      return NextResponse.json({ domain: updated }, { status: 201 });
+    } catch (error) {
+      const providerError =
+        error instanceof DomainProviderError
+          ? error
+          : new DomainProviderError(
+              "The deployment provider could not add this domain.",
+              "provider_request_failed",
+              502,
+            );
+      await admin
+        .from("website_domains")
+        .update({
+          status: "failed",
+          ownership_status: "failed",
+          dns_status: "failed",
+          ssl_status: "failed",
+          failure_code: providerError.code,
+          failure_message: providerError.message,
+          last_checked_at: new Date().toISOString(),
+        })
+        .eq("id", domain.id);
+      await writeEvent(admin, {
+        domainId: domain.id,
+        traderId: workspace.traderId,
+        portalId: workspace.portal.id,
+        actorUserId: workspace.user.id,
+        eventType: "provider_domain_failed",
+        hostname,
+        previousStatus: "requested",
+        nextStatus: "failed",
+        details: { code: providerError.code, message: providerError.message },
+      });
+      return NextResponse.json(
+        { error: providerError.message },
+        { status: providerError.status >= 500 ? 502 : providerError.status },
+      );
+    }
+  }
+
+  const domain = await loadOwnedDomain(admin, input.domainId, workspace.traderId);
+  if (!domain) {
+    return NextResponse.json({ error: "Domain not found." }, { status: 404 });
+  }
+
+  if (input.action === "set_primary") {
+    if (domain.status !== "active") {
+      return NextResponse.json(
+        { error: "Only an active domain can be made primary." },
+        { status: 409 },
+      );
+    }
+    const { error } = await workspace.supabase.rpc(
+      "set_primary_website_domain",
+      { target_domain_id: domain.id },
+    );
+    if (error) {
+      return NextResponse.json(
+        { error: "The primary domain could not be changed." },
+        { status: 400 },
+      );
+    }
+    await writeEvent(admin, {
+      domainId: domain.id,
+      traderId: workspace.traderId,
+      portalId: workspace.portal.id,
+      actorUserId: workspace.user.id,
+      eventType: "primary_domain_changed",
+      hostname: domain.hostname,
+      previousStatus: domain.status,
+      nextStatus: domain.status,
+    });
+    return NextResponse.json({ status: "primary_updated" });
+  }
+
+  if (input.action === "refresh") {
+    try {
+      const state =
+        domain.status === "verification_required"
+          ? await provider.verify(domain.hostname)
+          : await provider.inspect(domain.hostname);
+      const updated = await persistProviderState(admin, domain, state);
+      await writeEvent(admin, {
+        domainId: domain.id,
+        traderId: workspace.traderId,
+        portalId: workspace.portal.id,
+        actorUserId: workspace.user.id,
+        eventType: "domain_status_refreshed",
+        hostname: domain.hostname,
+        previousStatus: domain.status,
+        nextStatus: updated.status,
+        details: state.metadata,
+      });
+      return NextResponse.json({ domain: updated });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "The domain status could not be refreshed.";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
+  }
+
+  try {
+    await provider.remove(domain.hostname);
+  } catch (error) {
+    if (!(error instanceof DomainProviderError && error.status === 404)) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "The domain could not be removed from the deployment provider.",
+        },
+        { status: 502 },
+      );
+    }
+  }
+
+  await writeEvent(admin, {
+    domainId: domain.id,
+    traderId: workspace.traderId,
+    portalId: workspace.portal.id,
+    actorUserId: workspace.user.id,
+    eventType: "domain_removed",
+    hostname: domain.hostname,
+    previousStatus: domain.status,
+    nextStatus: "disabled",
+  });
+  const { error: deleteError } = await admin
+    .from("website_domains")
+    .delete()
+    .eq("id", domain.id)
+    .eq("trader_id", workspace.traderId);
+  if (deleteError) {
+    return NextResponse.json(
+      { error: "The provider domain was removed, but the local record needs review." },
+      { status: 500 },
+    );
+  }
+
+  if (domain.is_primary) {
+    const { data: replacement } = await admin
+      .from("website_domains")
+      .select("id")
+      .eq("portal_id", workspace.portal.id)
+      .eq("status", "active")
+      .order("created_at")
+      .limit(1)
+      .maybeSingle();
+    if (replacement) {
+      await workspace.supabase.rpc("set_primary_website_domain", {
+        target_domain_id: replacement.id,
+      });
+    } else {
+      await admin
+        .from("portals")
+        .update({ custom_domain: null })
+        .eq("id", workspace.portal.id);
+    }
+  }
+
+  return NextResponse.json({ status: "removed" });
+}

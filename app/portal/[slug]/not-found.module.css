@@ -1,0 +1,63 @@
+.page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(216, 255, 89, 0.28), transparent 28%),
+    #f4f6f7;
+}
+
+.card {
+  width: min(600px, 100%);
+  border: 1px solid #e0e4e6;
+  border-radius: 26px;
+  padding: 50px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(17, 19, 21, 0.09);
+  text-align: center;
+}
+
+.icon {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 25px;
+  place-items: center;
+  border-radius: 18px;
+  color: white;
+  background: #111315;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 50px);
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+}
+
+.card > p:not(.eyebrow) {
+  max-width: 470px;
+  margin: 18px auto 28px;
+  color: #6b7379;
+  line-height: 1.7;
+}
+
+.card a {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 18px;
+  color: white;
+  background: #111315;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .card {
+    padding: 38px 22px;
+  }
+}

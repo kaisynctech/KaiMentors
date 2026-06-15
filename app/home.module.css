@@ -1,0 +1,214 @@
+.header {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  width: 100%;
+}
+
+.nav {
+  display: flex;
+  min-height: 78px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.brand span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  color: white;
+  background: #111315;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.hero {
+  overflow: hidden;
+  padding: 158px 0 90px;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(216, 255, 89, 0.55), transparent 28%),
+    linear-gradient(180deg, #fff 0%, #f5f6f7 100%);
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  align-items: center;
+  gap: 80px;
+}
+
+.hero h1 {
+  max-width: 720px;
+  margin: 0;
+  font-size: clamp(48px, 6vw, 78px);
+  line-height: 0.99;
+  letter-spacing: -0.06em;
+}
+
+.heroCopy {
+  max-width: 640px;
+  margin: 28px 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.productCard {
+  padding: 22px;
+  border: 1px solid rgba(17, 19, 21, 0.12);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+  transform: rotate(1.5deg);
+}
+
+.productTop,
+.profile,
+.lesson {
+  display: flex;
+  align-items: center;
+}
+
+.productTop {
+  justify-content: space-between;
+  padding-bottom: 20px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.profile {
+  gap: 14px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+}
+
+.profile p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.avatar {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 15px;
+  color: white;
+  background: #111315;
+  font-weight: 800;
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 4px 0 22px;
+}
+
+.progress span {
+  height: 4px;
+  border-radius: 4px;
+  background: #d8ff59;
+}
+
+.lesson {
+  gap: 12px;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f4f5f6;
+}
+
+.lesson > div {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #181b1d, #737a80);
+}
+
+.lesson span {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.lesson small {
+  color: var(--muted);
+}
+
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  padding: 64px 0 90px;
+}
+
+.benefits article {
+  padding: 26px;
+}
+
+.benefits h2 {
+  margin: 30px 0 9px;
+  font-size: 18px;
+}
+
+.benefits p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+@media (max-width: 860px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .productCard {
+    transform: none;
+  }
+
+  .benefits {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .navActions > a:first-child {
+    display: none;
+  }
+
+  .hero {
+    padding-top: 132px;
+  }
+
+  .hero h1 {
+    font-size: 48px;
+  }
+}

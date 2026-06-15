@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;background:#f4f6f7;font-family:Arial,sans-serif;color:#111315">
+    <table role="presentation" style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="padding:40px 20px">
+          <table
+            role="presentation"
+            style="width:100%;max-width:520px;margin:auto;border:1px solid #e2e5e8;border-radius:18px;background:#ffffff"
+          >
+            <tr>
+              <td style="padding:36px">
+                <p style="margin:0 0 18px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#687078">
+                  KaiMentors email verification
+                </p>
+                <h1 style="margin:0;font-size:30px;line-height:1.1">
+                  Verify your email
+                </h1>
+                <p style="margin:18px 0;color:#687078;line-height:1.6">
+                  Enter this six-digit code to activate your KaiMentors account.
+                </p>
+                <div style="border-radius:14px;padding:20px;background:#f0f2f4;text-align:center;font-size:34px;font-weight:800;letter-spacing:.18em">
+                  {{ .Token }}
+                </div>
+                <p style="margin:20px 0 0;color:#7a8288;font-size:12px;line-height:1.6">
+                  If you did not request this code, you can safely ignore this
+                  email. Do not share the code with anyone.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

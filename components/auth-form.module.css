@@ -1,0 +1,165 @@
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.form label {
+  display: grid;
+  gap: 8px;
+  color: #2e3438;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.form label small {
+  color: #7b8389;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.form input {
+  width: 100%;
+  min-height: 47px;
+  border: 1px solid #dde1e4;
+  border-radius: 11px;
+  outline: none;
+  padding: 0 13px;
+}
+
+.form input:focus {
+  border-color: #8b9298;
+  box-shadow: 0 0 0 3px rgba(17, 19, 21, 0.06);
+}
+
+.form button {
+  display: flex;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  background: #111315;
+  font-weight: 800;
+}
+
+.form button:disabled {
+  opacity: 0.6;
+}
+
+.form .backButton {
+  min-height: 40px;
+  color: #4f575d;
+  background: transparent;
+}
+
+.codeIntro {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border-radius: 12px;
+  padding: 14px;
+  color: #275a3d;
+  background: #eef8f2;
+}
+
+.codeIntro div {
+  display: grid;
+  gap: 4px;
+}
+
+.codeIntro strong {
+  font-size: 12px;
+}
+
+.codeIntro span {
+  color: #5f7768;
+  font-size: 11px;
+}
+
+.form .codeInput {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-align: center;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.slugField {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #dde1e4;
+  border-radius: 11px;
+}
+
+.slugField small {
+  padding-left: 13px;
+  color: #7b8389;
+  white-space: nowrap;
+}
+
+.slugField input {
+  border: 0;
+  padding-left: 4px;
+}
+
+.error {
+  margin: 0;
+  color: #b42f2f;
+  font-size: 12px;
+}
+
+.success {
+  padding: 30px 0;
+  color: #1f7a48;
+  text-align: center;
+}
+
+.success h2 {
+  color: #111315;
+}
+
+.success p {
+  color: #687078;
+}
+
+.success button {
+  display: inline-flex;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 11px;
+  padding: 0 24px;
+  color: white;
+  background: #111315;
+  font-weight: 800;
+}
+
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 620px) {
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .slugField small {
+    display: none;
+  }
+}

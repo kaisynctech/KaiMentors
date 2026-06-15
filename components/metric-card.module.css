@@ -1,0 +1,33 @@
+.card {
+  display: grid;
+  min-height: 168px;
+  align-content: start;
+  padding: 20px;
+}
+
+.icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 22px;
+  place-items: center;
+  border-radius: 10px;
+  background: #eef0f1;
+}
+
+.card > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.card > strong {
+  margin: 7px 0 5px;
+  font-size: 29px;
+  letter-spacing: -0.04em;
+}
+
+.card > small {
+  color: #8a9197;
+  font-size: 11px;
+}

@@ -1,0 +1,363 @@
+.page {
+  min-height: 100vh;
+  background: #fff;
+}
+
+.nav {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.portalBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.portalBrand span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 11px;
+  color: white;
+}
+
+.portalBrand img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logoImage {
+  border: 1px solid #e2e5e8;
+  background: white !important;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.navActions a:last-child {
+  border-radius: 999px;
+  padding: 9px 13px;
+  background: #f0f2f3;
+}
+
+.hero {
+  display: grid;
+  min-height: 620px;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 90px;
+  padding-block: 70px 100px;
+}
+
+.heroCopy h1 {
+  max-width: 740px;
+  margin: 20px 0;
+  font-size: clamp(48px, 6vw, 78px);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.heroCopy > p {
+  max-width: 650px;
+  color: #687078;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--portal-accent) 38%, white);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.primaryCta,
+.brokerCta {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 22px;
+  font-weight: 800;
+}
+
+.primaryCta {
+  color: white;
+}
+
+.brokerCta {
+  color: #111315;
+}
+
+.accessCard {
+  padding: 34px;
+  border: 1px solid #e2e5e8;
+  border-radius: 26px;
+  background: #f7f8f9;
+  box-shadow: 0 25px 70px rgba(17, 19, 21, 0.09);
+}
+
+.lock {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 30px;
+  place-items: center;
+  border-radius: 16px;
+  color: white;
+  background: var(--portal-primary);
+}
+
+.accessCard h2 {
+  max-width: 400px;
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+
+.accessCard ul {
+  display: grid;
+  gap: 18px;
+  margin: 30px 0 0;
+  padding: 26px 0 0;
+  border-top: 1px solid #e0e3e6;
+  list-style: none;
+}
+
+.accessCard li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #51585e;
+  font-size: 14px;
+}
+
+.welcomeSection {
+  padding: 85px 0;
+  border-top: 1px solid #eceff1;
+  background: white;
+}
+
+.welcomeGrid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 80px;
+}
+
+.welcomeCard {
+  border-radius: 24px;
+  padding: 34px;
+  background: #f2f4f5;
+}
+
+.welcomeCard h2 {
+  max-width: 430px;
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+}
+
+.welcomeCopy {
+  align-self: center;
+}
+
+.welcomeCopy > p {
+  margin: 0;
+  color: #4f575d;
+  font-size: 20px;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.socialLinks a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dde1e4;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: white;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.registrationSection {
+  padding: 100px 0;
+  background: #f3f5f6;
+}
+
+.registrationAccent {
+  display: grid;
+  max-width: 580px;
+  gap: 4px;
+  margin-top: 24px;
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: #111315;
+}
+
+.registrationAccent strong {
+  font-size: 13px;
+}
+
+.registrationAccent span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.registrationGrid {
+  display: grid;
+  grid-template-columns: 1fr 0.85fr;
+  gap: 100px;
+}
+
+.registrationGrid h2 {
+  max-width: 500px;
+  margin: 0 0 18px;
+  font-size: 48px;
+  letter-spacing: -0.05em;
+}
+
+.registrationGrid > div:first-child > p {
+  max-width: 580px;
+  color: #687078;
+  line-height: 1.7;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 22px 14px;
+  margin-top: 40px;
+}
+
+.steps > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: var(--portal-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.steps p {
+  margin: 5px 0 0;
+  color: #7a8288;
+  font-size: 13px;
+}
+
+.formCard {
+  align-self: start;
+  padding: 30px;
+  border: 1px solid #e0e3e5;
+  border-radius: 22px;
+  background: white;
+}
+
+.formCard h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.formCard > p {
+  margin: 7px 0 25px;
+  color: #7a8288;
+  font-size: 13px;
+}
+
+@media (max-width: 880px) {
+  .hero,
+  .registrationGrid,
+  .welcomeGrid {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+
+  .hero {
+    padding-top: 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .nav {
+    min-height: 68px;
+  }
+
+  .navActions a:first-child {
+    display: none;
+  }
+
+  .navActions {
+    gap: 8px;
+  }
+
+  .heroCopy h1 {
+    font-size: 44px;
+  }
+
+  .heroActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryCta,
+  .brokerCta {
+    width: 100%;
+  }
+
+  .accessCard,
+  .welcomeCard,
+  .formCard {
+    padding: 24px 20px;
+  }
+
+  .welcomeCopy > p {
+    font-size: 17px;
+  }
+
+  .registrationGrid h2 {
+    font-size: 38px;
+  }
+
+  .registrationSection {
+    padding: 70px 0;
+  }
+}

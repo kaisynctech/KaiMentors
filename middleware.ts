@@ -1,0 +1,164 @@
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import {
+  isPlatformHostname,
+  normalizeRequestHostname,
+} from "@/lib/domains/hostnames";
+
+function customDomainDestination(request: NextRequest, hostname: string) {
+  const path = request.nextUrl.pathname;
+  const destination = request.nextUrl.clone();
+
+  if (path === "/login") {
+    destination.pathname = `/domain-sites/${hostname}/login`;
+    return destination;
+  }
+  if (path === "/academy" || path.startsWith("/academy/")) {
+    destination.pathname = path.replace(/^\/academy/, "/student");
+    return destination;
+  }
+
+  destination.pathname = `/domain-sites/${hostname}${path === "/" ? "" : path}`;
+  return destination;
+}
+
+function copyCookies(source: NextResponse, target: NextResponse) {
+  source.cookies.getAll().forEach((cookie) => target.cookies.set(cookie));
+  return target;
+}
+
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const hostname = normalizeRequestHostname(
+    request.headers.get("x-forwarded-host") ??
+      request.headers.get("host") ??
+      request.nextUrl.hostname,
+  );
+  const customDomain = !isPlatformHostname(hostname);
+
+  if (!customDomain && path.startsWith("/domain-sites/")) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/";
+    return NextResponse.redirect(destination);
+  }
+
+  if (
+    customDomain &&
+    (path.startsWith("/dashboard") ||
+      path.startsWith("/admin") ||
+      path.startsWith("/onboarding"))
+  ) {
+    const platformUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (platformUrl) {
+      return NextResponse.redirect(new URL(path, platformUrl));
+    }
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/login";
+    return NextResponse.redirect(destination);
+  }
+
+  if (
+    customDomain &&
+    (path === "/student" || path.startsWith("/student/"))
+  ) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = path.replace(/^\/student/, "/academy");
+    return NextResponse.redirect(destination);
+  }
+
+  const makeResponse = () =>
+    customDomain
+      ? NextResponse.rewrite(customDomainDestination(request, hostname), {
+          request,
+        })
+      : NextResponse.next({ request });
+
+  let response = makeResponse();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return response;
+
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(
+        cookiesToSet: Array<{
+          name: string;
+          value: string;
+          options: CookieOptions;
+        }>,
+      ) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        response = makeResponse();
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
+      },
+    },
+  });
+
+  const logicalPath =
+    customDomain && (path === "/academy" || path.startsWith("/academy/"))
+      ? path.replace(/^\/academy/, "/student")
+      : path;
+  const protectedRoute =
+    logicalPath.startsWith("/dashboard") ||
+    logicalPath.startsWith("/admin") ||
+    logicalPath.startsWith("/student");
+
+  if (!protectedRoute) return response;
+
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("next", path);
+    return copyCookies(response, NextResponse.redirect(loginUrl));
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  if (logicalPath.startsWith("/admin") && profile?.role !== "super_admin") {
+    return copyCookies(
+      response,
+      NextResponse.redirect(new URL("/dashboard", request.url)),
+    );
+  }
+  if (logicalPath.startsWith("/dashboard") && profile?.role !== "trader") {
+    const destination =
+      profile?.role === "student"
+        ? customDomain
+          ? "/academy"
+          : "/student"
+        : "/login";
+    return copyCookies(
+      response,
+      NextResponse.redirect(new URL(destination, request.url)),
+    );
+  }
+  if (logicalPath.startsWith("/student") && profile?.role !== "student") {
+    const platformUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+    const destination =
+      profile?.role === "super_admin" ? "/admin" : "/dashboard";
+    return copyCookies(
+      response,
+      NextResponse.redirect(new URL(destination, platformUrl)),
+    );
+  }
+
+  return response;
+}
+
+export const config = {
+  matcher: [
+    "/((?!api/|auth/|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
