@@ -1,0 +1,119 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--custom-accent) 22%, transparent), transparent 30%),
+    #f4f6f7;
+  color: #111315;
+  padding: 28px;
+}
+
+.shell {
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #5d666d;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 22px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.7fr) minmax(0, 1.3fr);
+  gap: 22px;
+}
+
+.intro,
+.formCard {
+  border: 1px solid #dfe4e7;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(17, 19, 21, 0.08);
+}
+
+.intro {
+  padding: 34px;
+}
+
+.packageLabel,
+.eyebrow {
+  color: #69737b;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  font-size: clamp(42px, 7vw, 74px);
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+  margin: 24px 0 18px;
+}
+
+.intro p,
+.formCard > p {
+  color: #5d666d;
+  line-height: 1.65;
+}
+
+.assurance {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 13px;
+  border-top: 1px solid #edf0f2;
+  margin-top: 22px;
+  padding-top: 22px;
+}
+
+.assurance svg {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--custom-primary) 10%, #f3f5f6);
+  color: var(--custom-primary);
+  padding: 10px;
+  box-sizing: content-box;
+}
+
+.assurance strong {
+  display: block;
+  font-size: 14px;
+}
+
+.assurance span {
+  color: #77818a;
+  display: block;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.formCard {
+  padding: 28px;
+}
+
+.formCard h2 {
+  font-size: clamp(28px, 4vw, 46px);
+  letter-spacing: -0.06em;
+  margin: 8px 0;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .intro,
+  .formCard {
+    border-radius: 22px;
+    padding: 22px;
+  }
+}

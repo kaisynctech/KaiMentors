@@ -1,0 +1,284 @@
+.manager {
+  display: grid;
+  gap: 22px;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.panelHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.panelHeading span {
+  color: #77818a;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panelHeading h2 {
+  font-size: 26px;
+  letter-spacing: -0.05em;
+  margin: 8px 0;
+}
+
+.panelHeading p {
+  color: #62707a;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.panelHeading a {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #111315;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 8px;
+  height: fit-content;
+  padding: 12px 16px;
+  white-space: nowrap;
+}
+
+.modeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modeGrid button {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #f6f8f9;
+  color: #111315;
+  padding: 18px;
+  text-align: left;
+}
+
+.modeGrid strong,
+.modeGrid span {
+  display: block;
+}
+
+.modeGrid strong {
+  font-size: 14px;
+}
+
+.modeGrid span {
+  color: #6c767e;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.modeGrid .activeMode {
+  background: #111315;
+  border-color: #111315;
+  color: #fff;
+}
+
+.modeGrid .activeMode span {
+  color: #cad1d5;
+}
+
+.tableWrap {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow-x: auto;
+}
+
+.tableWrap table {
+  border-collapse: collapse;
+  min-width: 860px;
+  width: 100%;
+}
+
+.tableWrap th,
+.tableWrap td {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.tableWrap th {
+  background: #f5f7f8;
+  color: #68727a;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tableWrap tr:last-child td {
+  border-bottom: 0;
+}
+
+.selectedRow td {
+  background: #f9fbfb;
+}
+
+.packageName {
+  background: transparent;
+  border: 0;
+  color: #111315;
+  display: grid;
+  gap: 5px;
+  padding: 0;
+  text-align: left;
+}
+
+.packageName strong {
+  font-size: 14px;
+}
+
+.packageName span {
+  color: #6c767e;
+  font-size: 12px;
+  max-width: 520px;
+}
+
+.tableWrap td > button:not(.packageName),
+.saveButton {
+  align-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #111315;
+  color: #fff;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 8px;
+  padding: 11px 15px;
+}
+
+.badge,
+.activeBadge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 7px 10px;
+  text-transform: capitalize;
+}
+
+.badge {
+  background: #eef1f3;
+  color: #58636b;
+}
+
+.activeBadge {
+  background: #e8f7ee;
+  color: #14743d;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.formGrid label,
+.poweredBy {
+  color: #111315;
+  display: grid;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.formGrid input,
+.formGrid textarea {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: #111315;
+  font: inherit;
+  font-weight: 700;
+  padding: 13px 14px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.poweredBy {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  grid-template-columns: auto 1fr;
+  margin: 18px 0;
+  padding: 14px;
+}
+
+.poweredBy small {
+  color: #6f7981;
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.empty {
+  color: #6b747c;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.success,
+.error {
+  align-items: center;
+  border-radius: 18px;
+  display: flex;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  padding: 15px 17px;
+}
+
+.success {
+  background: #e9f8ef;
+  color: #136c39;
+}
+
+.error {
+  background: #fdecec;
+  color: #a82121;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .panel {
+    padding: 18px;
+  }
+
+  .panelHeading,
+  .modeGrid,
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeading {
+    display: grid;
+  }
+}

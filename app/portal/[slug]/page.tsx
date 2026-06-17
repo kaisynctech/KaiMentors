@@ -11,9 +11,11 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
+import { CustomSiteRenderer } from "@/components/custom-site-renderer";
 import { StudentRegistrationForm } from "@/components/student-registration-form";
 import { WebsiteRenderer } from "@/components/website/website-renderer";
 import type { PublicBrokerOption } from "@/lib/database.types";
+import { loadCustomSiteBySlug } from "@/lib/custom-sites";
 import { getPortalBrandingUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
@@ -58,6 +60,13 @@ export async function generateMetadata({
   params,
 }: PortalPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const customSite = await loadCustomSiteBySlug(slug);
+  if (customSite) {
+    return {
+      title: customSite.title,
+      description: customSite.description ?? customSite.portal.hero_subtitle,
+    };
+  }
   const website = await loadWebsiteBySlug(slug);
   if (website) {
     const home = website.pages.find((page) => page.is_home);
@@ -72,6 +81,11 @@ export async function generateMetadata({
 
 export default async function PortalPage({ params }: PortalPageProps) {
   const { slug } = await params;
+  const customSite = await loadCustomSiteBySlug(slug);
+  if (customSite) {
+    return <CustomSiteRenderer site={customSite} />;
+  }
+
   const website = await loadWebsiteBySlug(slug);
   if (website) {
     const homeSlug =

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Sign Up | Traders Confidence</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="index.html#home">
+        <img src="assets/tc-logo.png" alt="Traders Confidence logo" />
+        <span><strong>Traders Confidence</strong><small>Student Onboarding</small></span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" data-nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="signals.html">Signals</a>
+        <a href="mentorship.html">Mentorship</a>
+        <a href="events.html">Events</a>
+        <a href="xm.html">Open XM</a>
+        <a href="signup.html" aria-current="page">Sign Up</a>
+        <a class="nav-login" href="login.html">Login</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="signup-hero">
+        <div class="section-heading reveal">
+          <p class="eyebrow">New Student Portal</p>
+          <h1>Apply, onboard and prepare your trading account.</h1>
+          <p>
+            This onboarding cycle collects your goals, trading level, broker readiness and preferred
+            mentorship path so the team can place you correctly from day one.
+          </p>
+        </div>
+      </section>
+
+      <section class="section onboarding-shell">
+        <aside class="onboarding-sidebar reveal">
+          <img src="assets/tc-logo.png" alt="" />
+          <div class="mini-chart onboarding-chart" aria-hidden="true">
+            <span class="candle down" style="--h: 48%; --y: 30%; --x: 8%"></span>
+            <span class="candle up" style="--h: 70%; --y: 12%; --x: 20%"></span>
+            <span class="candle up" style="--h: 52%; --y: 24%; --x: 32%"></span>
+            <span class="candle down" style="--h: 66%; --y: 18%; --x: 44%"></span>
+            <span class="candle up" style="--h: 84%; --y: 4%; --x: 56%"></span>
+            <span class="candle down" style="--h: 42%; --y: 34%; --x: 68%"></span>
+            <span class="candle up" style="--h: 62%; --y: 16%; --x: 80%"></span>
+            <span class="candle up" style="--h: 76%; --y: 8%; --x: 92%"></span>
+          </div>
+          <h2>Onboarding Cycle</h2>
+          <ol class="step-list" data-step-list>
+            <li class="is-active">Profile</li>
+            <li>Experience</li>
+            <li>Program</li>
+            <li>XM Setup</li>
+            <li>Review</li>
+          </ol>
+          <p>After submission, the team can verify details, activate portal access and send the first class schedule.</p>
+        </aside>
+
+        <form class="onboarding-form reveal delay-1" data-onboarding-form>
+          <div class="form-step is-active" data-step="0">
+            <p class="eyebrow">Step 01</p>
+            <h2>Student profile</h2>
+            <label>Full name<input type="text" placeholder="Your full name" required /></label>
+            <label>Email address<input type="email" placeholder="you@example.com" required /></label>
+            <label>WhatsApp number<input type="tel" placeholder="+27 ..." required /></label>
+          </div>
+
+          <div class="form-step" data-step="1">
+            <p class="eyebrow">Step 02</p>
+            <h2>Trading experience</h2>
+            <label>Current level<select><option>Beginner</option><option>Intermediate</option><option>Advanced</option><option>Funded account trader</option></select></label>
+            <label>Biggest challenge<textarea rows="4" placeholder="Risk, entries, psychology, consistency..."></textarea></label>
+          </div>
+
+          <div class="form-step" data-step="2">
+            <p class="eyebrow">Step 03</p>
+            <h2>Choose your path</h2>
+            <div class="choice-grid">
+              <label class="choice"><input type="radio" name="program" checked /> Foundation</label>
+              <label class="choice"><input type="radio" name="program" /> Elite Mentorship</label>
+              <label class="choice"><input type="radio" name="program" /> One-on-One</label>
+            </div>
+            <label>Preferred class format<select><option>Online</option><option>In person seminar</option><option>Hybrid</option></select></label>
+          </div>
+
+          <div class="form-step" data-step="3">
+            <p class="eyebrow">Step 04</p>
+            <h2>Broker readiness</h2>
+            <label>Do you have an XM account?<select><option>No, I need to open one</option><option>Yes, but not verified</option><option>Yes, verified and ready</option></select></label>
+            <label>XM account ID if available<input type="text" placeholder="Optional" /></label>
+            <a class="inline-link" href="xm.html">Need help opening XM? View setup guide.</a>
+          </div>
+
+          <div class="form-step" data-step="4">
+            <p class="eyebrow">Step 05</p>
+            <h2>Final review</h2>
+            <div class="review-box">
+              <strong>What happens next</strong>
+              <p>Team reviews your application, confirms payment or event details, activates portal access and sends your first trading checklist.</p>
+            </div>
+            <label class="check"><input type="checkbox" required /> I understand trading involves risk and mentorship is educational.</label>
+          </div>
+
+          <div class="form-controls">
+            <button class="btn ghost form-back" type="button" data-prev>Back</button>
+            <button class="btn primary" type="button" data-next>Next Step</button>
+            <button class="btn primary form-submit" type="submit">Submit Application</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div><img src="assets/tc-logo.png" alt="" /><strong>Traders Confidence</strong></div>
+      <p>Trading involves risk. Student applications are reviewed before portal activation.</p>
+      <nav><a href="index.html">Home</a><a href="about.html">About</a><a href="signals.html">Signals</a><a href="mentorship.html">Mentorship</a><a href="events.html">Events</a><a href="signup.html">Sign Up</a><a href="login.html">Login</a><a href="xm.html">XM Setup</a></nav>
+    </footer>
+    <script src="app.js"></script>
+  </body>
+</html>

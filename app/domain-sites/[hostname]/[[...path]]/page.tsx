@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { CustomSiteJoinPage } from "@/components/custom-site-join-page";
+import { CustomSiteRenderer } from "@/components/custom-site-renderer";
 import { WebsiteRenderer } from "@/components/website/website-renderer";
+import {
+  loadCustomSiteByResolution,
+  loadCustomSiteJoinByResolution,
+} from "@/lib/custom-sites";
 import { resolveWebsiteDomain } from "@/lib/domains/resolution";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
 
@@ -16,6 +22,20 @@ async function loadCustomDomainWebsite(
   const resolution = await resolveWebsiteDomain(hostname);
   if (!resolution) return null;
 
+  if (path?.[0] === "join-academy") {
+    const joinData = await loadCustomSiteJoinByResolution(resolution);
+    if (joinData) return { resolution, joinData, pageSlug: "join-academy" };
+  }
+
+  const customSite = await loadCustomSiteByResolution(resolution, path);
+  if (customSite) {
+    return {
+      resolution,
+      customSite,
+      pageSlug: path?.[0] ?? customSite.page.slug,
+    };
+  }
+
   const pageSlug = path?.[0];
   const website = await loadWebsiteBySlug(resolution.portal_slug, { pageSlug });
   if (!website) return null;
@@ -28,6 +48,26 @@ export async function generateMetadata({
   const { hostname, path } = await params;
   const result = await loadCustomDomainWebsite(hostname, path);
   if (!result) return { title: "Academy website" };
+  if ("joinData" in result && result.joinData) {
+    return {
+      title: `Join ${result.joinData.portal.portal_name}`,
+      description: "Apply for private academy access.",
+      alternates: {
+        canonical: `https://${result.resolution.canonical_hostname}/join-academy`,
+      },
+    };
+  }
+  if ("customSite" in result && result.customSite) {
+    return {
+      title: result.customSite.title,
+      description: result.customSite.description,
+      alternates: {
+        canonical: `https://${result.resolution.canonical_hostname}${
+          result.customSite.page.path === "/" ? "" : result.customSite.page.path
+        }`,
+      },
+    };
+  }
   const page = result.pageSlug
     ? result.website.pages.find((entry) => entry.slug === result.pageSlug)
     : result.website.pages.find((entry) => entry.is_home);
@@ -58,6 +98,14 @@ export default async function CustomDomainWebsitePage({
         result.pageSlug ? `/${result.pageSlug}` : ""
       }`,
     );
+  }
+
+  if ("joinData" in result && result.joinData) {
+    return <CustomSiteJoinPage data={result.joinData} />;
+  }
+
+  if ("customSite" in result && result.customSite) {
+    return <CustomSiteRenderer site={result.customSite} />;
   }
 
   const currentPageSlug =
