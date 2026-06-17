@@ -1,34 +1,32 @@
 import { Activity, Building2, CreditCard, Users } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MetricCard } from "@/components/metric-card";
-import { createClient } from "@/lib/supabase/server";
+import { requirePlatformAdmin } from "@/lib/admin-access";
 import styles from "./admin.module.css";
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
+  const { supabase, userLabel } = await requirePlatformAdmin();
   let stats = { traders: 0, students: 0, brokers: 0, subscriptions: 0 };
 
-  if (supabase) {
-    const [traders, students, brokers, subscriptions] = await Promise.all([
-      supabase.from("traders").select("*", { count: "exact", head: true }),
-      supabase.from("student_applications").select("*", { count: "exact", head: true }),
-      supabase.from("brokers").select("*", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("subscriptions").select("*", { count: "exact", head: true }).in("status", ["active", "trialing"]),
-    ]);
-    stats = {
-      traders: traders.count ?? 0,
-      students: students.count ?? 0,
-      brokers: brokers.count ?? 0,
-      subscriptions: subscriptions.count ?? 0,
-    };
-  }
+  const [traders, students, brokers, subscriptions] = await Promise.all([
+    supabase.from("traders").select("*", { count: "exact", head: true }),
+    supabase.from("student_applications").select("*", { count: "exact", head: true }),
+    supabase.from("brokers").select("*", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("subscriptions").select("*", { count: "exact", head: true }).in("status", ["active", "trialing"]),
+  ]);
+  stats = {
+    traders: traders.count ?? 0,
+    students: students.count ?? 0,
+    brokers: brokers.count ?? 0,
+    subscriptions: subscriptions.count ?? 0,
+  };
 
   return (
     <DashboardShell
       description="Platform health, tenant activity, and operational controls."
       mode="admin"
       title="Platform overview"
-      userLabel="Super Admin"
+      userLabel={userLabel}
     >
       <section className={styles.metrics}>
         <MetricCard icon={Building2} label="Mentor tenants" note="Across all statuses" value={stats.traders} />

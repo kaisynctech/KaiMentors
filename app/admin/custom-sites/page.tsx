@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { AdminCustomSiteManager } from "@/components/admin-custom-site-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
 import type {
@@ -6,7 +5,7 @@ import type {
   CustomSitePackage,
   WebsiteDeliveryMode,
 } from "@/lib/custom-sites";
-import { createClient } from "@/lib/supabase/server";
+import { requirePlatformAdmin } from "@/lib/admin-access";
 
 interface TraderRow {
   id: string;
@@ -40,18 +39,7 @@ function normalizePackage(sitePackage: CustomSitePackage): CustomSitePackage {
 }
 
 export default async function AdminCustomSitesPage() {
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role,full_name")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (profile?.role !== "super_admin") redirect("/dashboard");
+  const { supabase, userLabel } = await requirePlatformAdmin();
 
   const [tradersResult, portalsResult, packagesResult, assignmentsResult, studentsResult] =
     await Promise.all([
@@ -114,7 +102,7 @@ export default async function AdminCustomSitesPage() {
       description="Assign bespoke website packages to the correct mentor tenant and keep ownership controlled by KaiMentors."
       mode="admin"
       title="Custom Site Assignments"
-      userLabel={profile.full_name || "Super Admin"}
+      userLabel={userLabel}
     >
       <AdminCustomSiteManager
         packages={((packagesResult.data ?? []) as CustomSitePackage[]).map(
