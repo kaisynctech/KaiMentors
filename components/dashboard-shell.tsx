@@ -54,6 +54,7 @@ const adminNavigation = [
   ["Subscriptions", "/admin/subscriptions", FileText],
   ["Audit logs", "/admin/audit-logs", ScrollText],
   ["Platform settings", "/admin/settings", Settings],
+  ["My mentor workspace", "/dashboard", LayoutDashboard],
 ] as const;
 
 export function DashboardShell({
