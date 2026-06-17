@@ -49,6 +49,7 @@ const traderNavigation = [
 const adminNavigation = [
   ["Overview", "/admin", LayoutDashboard],
   ["Mentors", "/admin/traders", Users],
+  ["Custom sites", "/admin/custom-sites", WandSparkles],
   ["Brokers", "/admin/brokers", Building2],
   ["Subscriptions", "/admin/subscriptions", FileText],
   ["Audit logs", "/admin/audit-logs", ScrollText],

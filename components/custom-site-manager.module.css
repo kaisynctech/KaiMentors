@@ -93,6 +93,39 @@
   color: #cad1d5;
 }
 
+.assignmentSummary {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: auto 1fr;
+  padding: 18px;
+}
+
+.assignmentSummary svg {
+  border-radius: 14px;
+  background: #111315;
+  box-sizing: content-box;
+  color: #fff;
+  padding: 10px;
+}
+
+.assignmentSummary strong,
+.assignmentSummary span {
+  display: block;
+}
+
+.assignmentSummary strong {
+  font-size: 15px;
+}
+
+.assignmentSummary span {
+  color: #6c767e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .tableWrap {
   border: 1px solid var(--border);
   border-radius: 18px;

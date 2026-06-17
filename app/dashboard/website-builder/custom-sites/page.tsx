@@ -29,18 +29,12 @@ export default async function CustomWebsitePackagesPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
 
-  const [portalResult, packagesResult, assignmentResult] = await Promise.all([
+  const [portalResult, assignmentResult] = await Promise.all([
     workspace.supabase
       .from("portals")
       .select("website_delivery_mode")
       .eq("id", workspace.portal.id)
       .maybeSingle(),
-    workspace.supabase
-      .from("custom_site_packages")
-      .select("*")
-      .eq("is_active", true)
-      .order("category")
-      .order("name"),
     workspace.supabase
       .from("custom_site_assignments")
       .select("*,package:custom_site_packages(*)")
@@ -65,6 +59,11 @@ export default async function CustomWebsitePackagesPage() {
         activated_at: assignmentRow.activated_at,
       } satisfies CustomSiteAssignment)
     : null;
+  const assignedPackage = assignmentRow?.package
+    ? Array.isArray(assignmentRow.package)
+      ? assignmentRow.package[0]
+      : assignmentRow.package
+    : null;
 
   return (
     <DashboardShell
@@ -80,9 +79,7 @@ export default async function CustomWebsitePackagesPage() {
           ((portalResult.data?.website_delivery_mode ??
             "builder_template") as WebsiteDeliveryMode)
         }
-        packages={((packagesResult.data ?? []) as CustomSitePackage[]).map(
-          normalizePackage,
-        )}
+        packages={assignedPackage ? [normalizePackage(assignedPackage)] : []}
         portalSlug={workspace.portal.slug}
       />
     </DashboardShell>

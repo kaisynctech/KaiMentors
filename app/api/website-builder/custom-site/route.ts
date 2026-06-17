@@ -2,17 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getMentorWorkspace } from "@/lib/workspace";
 
-const modeSchema = z.object({
-  action: z.literal("set_mode"),
-  mode: z.enum(["builder_template", "custom_package", "external_website"]),
-});
-
-const assignSchema = z.object({
-  action: z.literal("assign_package"),
-  packageId: z.string().uuid(),
-  showPoweredBy: z.boolean(),
-});
-
 const overridesSchema = z.object({
   action: z.literal("save_overrides"),
   assignmentId: z.string().uuid(),
@@ -20,11 +9,7 @@ const overridesSchema = z.object({
   overrides: z.record(z.string().trim().max(1000)),
 });
 
-const requestSchema = z.discriminatedUnion("action", [
-  modeSchema,
-  assignSchema,
-  overridesSchema,
-]);
+const requestSchema = overridesSchema;
 
 export async function POST(request: Request) {
   const workspace = await getMentorWorkspace();
@@ -44,42 +29,6 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data;
-
-  if (input.action === "set_mode") {
-    const { error } = await workspace.supabase.rpc(
-      "set_website_delivery_mode",
-      {
-        target_portal_id: workspace.portal.id,
-        target_mode: input.mode,
-      },
-    );
-    if (error) {
-      return NextResponse.json(
-        { error: "The website delivery mode could not be changed." },
-        { status: 400 },
-      );
-    }
-    return NextResponse.json({ status: "mode_updated" });
-  }
-
-  if (input.action === "assign_package") {
-    const { data, error } = await workspace.supabase.rpc(
-      "assign_custom_site_package",
-      {
-        target_portal_id: workspace.portal.id,
-        target_package_id: input.packageId,
-        target_status: "active",
-        target_show_powered_by: input.showPoweredBy,
-      },
-    );
-    if (error) {
-      return NextResponse.json(
-        { error: "The custom website package could not be assigned." },
-        { status: 400 },
-      );
-    }
-    return NextResponse.json({ status: "package_assigned", assignmentId: data });
-  }
 
   const { data: assignment } = await workspace.supabase
     .from("custom_site_assignments")

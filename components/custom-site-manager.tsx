@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckCircle2, ExternalLink, Loader2, PackageCheck, Save } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CheckCircle2, ExternalLink, Loader2, LockKeyhole, Save } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   CustomSiteAssignment,
@@ -26,10 +26,6 @@ export function CustomSiteManager({
 }: CustomSiteManagerProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
-  const [mode, setMode] = useState(deliveryMode);
-  const [selectedPackageId, setSelectedPackageId] = useState(
-    assignment?.package_id ?? packages[0]?.id ?? "",
-  );
   const [showPoweredBy, setShowPoweredBy] = useState(
     assignment?.show_powered_by ?? true,
   );
@@ -39,14 +35,10 @@ export function CustomSiteManager({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const selectedPackage = useMemo(
-    () => packages.find((sitePackage) => sitePackage.id === selectedPackageId),
-    [packages, selectedPackageId],
-  );
   const activePackage = packages.find(
     (sitePackage) => sitePackage.id === assignment?.package_id,
   );
-  const fields = selectedPackage?.editable_schema ?? [];
+  const fields = activePackage?.editable_schema ?? [];
 
   async function post(body: Record<string, unknown>, busyKey: string) {
     setBusy(busyKey);
@@ -60,13 +52,7 @@ export function CustomSiteManager({
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Action failed.");
-      setMessage(
-        body.action === "assign_package"
-          ? "Custom website package assigned and activated."
-          : body.action === "set_mode"
-            ? "Website delivery mode updated."
-            : "Custom website content saved.",
-      );
+      setMessage("Custom website content saved.");
       router.refresh();
     } catch (actionError) {
       setError(
@@ -77,11 +63,6 @@ export function CustomSiteManager({
     } finally {
       setBusy(null);
     }
-  }
-
-  async function updateMode(nextMode: WebsiteDeliveryMode) {
-    setMode(nextMode);
-    await post({ action: "set_mode", mode: nextMode }, "mode");
   }
 
   return (
@@ -96,117 +77,32 @@ export function CustomSiteManager({
       <section className={styles.panel}>
         <div className={styles.panelHeading}>
           <div>
-            <span>Delivery model</span>
-            <h2>Choose how this academy website is served</h2>
+            <span>Managed assignment</span>
+            <h2>Custom website package</h2>
             <p>
-              Template websites and custom website packages share the same
-              tenant, domain, authentication, courses, groups, and messaging
-              engine.
+              KaiMentors assigns bespoke client websites from the platform
+              console. Mentors can edit approved content fields only after a
+              package is assigned to their workspace.
             </p>
           </div>
           <a href={`/portal/${portalSlug}`} target="_blank">
             Open public site <ExternalLink size={15} />
           </a>
         </div>
-        <div className={styles.modeGrid}>
-          {([
-            ["builder_template", "Website Builder", "Use KaiMentors templates and reusable sections."],
-            ["custom_package", "Custom Package", "Serve a bespoke client website through KaiMentors."],
-            ["external_website", "External Website", "Track a separately hosted website while keeping portal routes."],
-          ] as const).map(([value, title, description]) => (
-            <button
-              className={mode === value ? styles.activeMode : ""}
-              disabled={busy === "mode"}
-              key={value}
-              onClick={() => updateMode(value)}
-              type="button"
-            >
-              <strong>{title}</strong>
-              <span>{description}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.panel}>
-        <div className={styles.panelHeading}>
+        <div className={styles.assignmentSummary}>
+          <LockKeyhole size={18} />
           <div>
-            <span>Package library</span>
-            <h2>Custom websites created for clients</h2>
-            <p>
-              Select a package to make it the public website for this tenant.
-              Reserved paths remain controlled by KaiMentors.
-            </p>
+            <strong>
+              {activePackage
+                ? `${activePackage.name} v${activePackage.version}`
+                : "No custom package assigned"}
+            </strong>
+            <span>
+              {activePackage
+                ? `${activePackage.category} · ${deliveryMode.replace("_", " ")}`
+                : "KaiMentors will assign a custom package from the platform admin portal."}
+            </span>
           </div>
-        </div>
-        <div className={styles.tableWrap}>
-          <table>
-            <thead>
-              <tr>
-                <th>Package</th>
-                <th>Category</th>
-                <th>Version</th>
-                <th>Status</th>
-                <th aria-label="Actions" />
-              </tr>
-            </thead>
-            <tbody>
-              {packages.map((sitePackage) => {
-                const selected = sitePackage.id === selectedPackageId;
-                const assigned = sitePackage.id === assignment?.package_id;
-                return (
-                  <tr
-                    className={selected ? styles.selectedRow : ""}
-                    key={sitePackage.id}
-                  >
-                    <td>
-                      <button
-                        className={styles.packageName}
-                        onClick={() => {
-                          setSelectedPackageId(sitePackage.id);
-                          setOverrides(assignment?.content_overrides ?? {});
-                        }}
-                        type="button"
-                      >
-                        <strong>{sitePackage.name}</strong>
-                        <span>{sitePackage.description}</span>
-                      </button>
-                    </td>
-                    <td>{sitePackage.category}</td>
-                    <td>v{sitePackage.version}</td>
-                    <td>
-                      <span className={assigned ? styles.activeBadge : styles.badge}>
-                        {assigned ? "Assigned" : "Available"}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        disabled={busy === `assign-${sitePackage.id}`}
-                        onClick={() =>
-                          post(
-                            {
-                              action: "assign_package",
-                              packageId: sitePackage.id,
-                              showPoweredBy,
-                            },
-                            `assign-${sitePackage.id}`,
-                          )
-                        }
-                        type="button"
-                      >
-                        {busy === `assign-${sitePackage.id}` ? (
-                          <Loader2 className={styles.spin} size={15} />
-                        ) : (
-                          <PackageCheck size={15} />
-                        )}
-                        {assigned ? "Re-activate" : "Assign"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       </section>
 
@@ -214,7 +110,7 @@ export function CustomSiteManager({
         <div className={styles.panelHeading}>
           <div>
             <span>Safe client edits</span>
-            <h2>{selectedPackage?.name ?? activePackage?.name ?? "Custom package"}</h2>
+            <h2>{activePackage?.name ?? "No package assigned"}</h2>
             <p>
               These fields are exposed by the package manifest. Clients can
               change content without touching the custom design files.
@@ -249,7 +145,7 @@ export function CustomSiteManager({
             type="checkbox"
           />
           <span>
-            <strong>Show “Powered by KaiMentors”</strong>
+            <strong>Show &quot;Powered by KaiMentors&quot;</strong>
             <small>Keep KaiMentors visible while the client owns the website brand.</small>
           </span>
         </label>
