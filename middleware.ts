@@ -131,6 +131,21 @@ export async function middleware(request: NextRequest) {
     );
   }
   if (logicalPath.startsWith("/dashboard") && profile?.role !== "trader") {
+    if (profile?.role === "super_admin") {
+      const { data: membership } = await supabase
+        .from("trader_members")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) return response;
+
+      return copyCookies(
+        response,
+        NextResponse.redirect(new URL("/admin", request.url)),
+      );
+    }
+
     const destination =
       profile?.role === "student"
         ? customDomain
