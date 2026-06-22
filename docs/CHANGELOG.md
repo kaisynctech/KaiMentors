@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-22 - Protected Courses Phase 1 (Application Deployed)
+
+- Deployed commit `6828fb679121d9f186de8ad62ad0abb2e5b66246` to the existing `kaimentors` Vercel production project as deployment `dpl_7v2ywrcHmZqy4vCWDg54HUKUUZP4`, promoted at `https://kaimentors.vercel.app`.
+- Verified the deployment is `Ready`, targets production, belongs to the authenticated `kaisynctech@gmail.com` account, and uses the intended Supabase and canonical-site environment variable names without exposing their values.
+- Verified live `200` responses for the platform home, login, KaiTrades portal, Join Academy and branded login routes; unauthenticated dashboard, course, media, student and admin routes return login redirects; anonymous `/api/course-media` access returns `401`.
+- Re-ran migration parity through `025`, the protected-course production verifier and the multi-academy audit. Private storage, anonymous denial, media-session service-role denial and unchanged KaiTrades, Traders Confidence and Milkers FX ownership/package assignments all pass.
+- Production currently contains no courses or protected media and has no configured academy domains. Authenticated role, upload/playback/progress, responsive visual and custom-domain acceptance therefore remain open; Protected Courses Phase 1 remains `Partially Complete` rather than recording unobserved tests as passed.
+- `npm test`, `npm run typecheck` and `npm run build` pass for the deployed source revision.
+
 ## 2026-06-21 - Protected Courses Phase 1 (Database Deployed)
 
 - Added Course -> Module -> Lesson structured curriculum while preserving existing course, lesson, resource and storage identities.
@@ -10,7 +19,7 @@
 - Rebuilt mentor course management into an enterprise table plus Overview, Curriculum, Resources, Access, Students and Settings tabs; added responsive mixed-media student playback and watermarking.
 - Applied migration `202606210025_protected_courses_curriculum_media_progress.sql`; local and remote migration history now match through `025`.
 - Added `scripts/verify-protected-courses-production.mjs`. Remote verification confirms all new tables, a private 500 MB course bucket, anonymous protected-read denial, service-role media-session bypass denial, false access for unknown courses, three intact academy tenants, and zero pre-existing course/media/progress records.
-- Protected-course regression tests, TypeScript checking, and the production build pass. Application deployment and live role/browser acceptance remain pending.
+- Protected-course regression tests, TypeScript checking, and the production build pass. Application deployment was completed on 2026-06-22; live authenticated role/browser acceptance remains pending.
 
 ## 2026-06-20 - Unified Resume Account Setup (Production Deployed)
 

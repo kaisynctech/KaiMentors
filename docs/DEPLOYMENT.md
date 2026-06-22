@@ -111,7 +111,7 @@ Both commands should pass before production deployment.
 
 ## Supabase Setup
 
-Migration `202606210025_protected_courses_curriculum_media_progress.sql` introduces structured curriculum, normalized course media, gallery media, progress, short-lived media sessions, access RPCs, composite tenant constraints, indexes, triggers and RLS. It was remotely applied on 2026-06-21. `supabase migration list` confirms local/remote parity through `025`; `node scripts/verify-protected-courses-production.mjs` verifies deployed tables, the private bucket contract, anonymous denial, service-role media-session denial, authorization behavior, and tenant/course counts. Application promotion and live browser acceptance remain separate deployment steps.
+Migration `202606210025_protected_courses_curriculum_media_progress.sql` introduces structured curriculum, normalized course media, gallery media, progress, short-lived media sessions, access RPCs, composite tenant constraints, indexes, triggers and RLS. It was remotely applied on 2026-06-21. `supabase migration list` confirms local/remote parity through `025`; `node scripts/verify-protected-courses-production.mjs` verifies deployed tables, the private bucket contract, anonymous denial, service-role media-session denial, authorization behavior, and tenant/course counts. The matching application commit `6828fb679121d9f186de8ad62ad0abb2e5b66246` was promoted on 2026-06-22 as Vercel deployment `dpl_7v2ywrcHmZqy4vCWDg54HUKUUZP4` at `https://kaimentors.vercel.app`. Live authenticated role, media workflow, responsive visual and custom-domain acceptance remain separate release gates.
 
 Large course assets upload directly through the Supabase Storage TUS endpoint. Production must allow authenticated resumable uploads to the private `course-content` bucket; the service-role key remains server-only and is used only to sign a path already authorized by `issue_course_media_session`.
 
@@ -154,6 +154,8 @@ KaiMentors is deployed on Vercel. Production deployment should include:
 - `npm run typecheck` and `npm run build` passing locally or in CI.
 
 Verified production target (2026-06-22): Vercel account `kaisynctech@gmail.com`, project `kaimentors`, project ID `prj_v5pFoUa3OhLwKOMY4dUC8TZstyvs`, owner team `team_Deabz0eyNfw8iDJDBmmdAnMg`, and canonical alias `https://kaimentors.vercel.app`. Production configuration contains `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL`; values remain encrypted or local and are never documented.
+
+Protected Courses Phase 1 production release (2026-06-22): deployment `dpl_7v2ywrcHmZqy4vCWDg54HUKUUZP4` is `Ready` and serves the canonical alias. Public academy routes, protected-route redirects and anonymous course-media denial passed live HTTP checks. Production has no courses or protected media and `website_domains` is empty, so release completion still requires a controlled KaiTrades course/media fixture, authenticated role acceptance, desktop/mobile visual acceptance, and a verified academy domain.
 
 ## Custom Domains
 

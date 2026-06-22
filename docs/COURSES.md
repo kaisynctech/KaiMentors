@@ -1,10 +1,10 @@
 # Courses
 
-Last updated: 2026-06-21
+Last updated: 2026-06-22
 
 ## Status
 
-The protected courses Phase 1 application is implemented and migration `202606210025_protected_courses_curriculum_media_progress.sql` is deployed remotely. Migration parity, table availability, private storage, anonymous denial, service-role media-session denial, tenant integrity, tests, typecheck, and production build pass. Application deployment and live role/browser acceptance remain pending.
+The protected courses Phase 1 application is implemented and migration `202606210025_protected_courses_curriculum_media_progress.sql` is deployed remotely. Application commit `6828fb679121d9f186de8ad62ad0abb2e5b66246` is deployed at `https://kaimentors.vercel.app`. Migration parity, table availability, private storage, anonymous denial, service-role media-session denial, tenant integrity, public/protected route checks, tests, typecheck, and production build pass. Authenticated role, upload/playback/progress, responsive visual and custom-domain acceptance remain pending because production currently has no course/media fixture or configured academy domain.
 
 ## Curriculum Model
 
