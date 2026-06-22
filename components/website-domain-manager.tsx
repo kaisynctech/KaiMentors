@@ -40,11 +40,13 @@ export function WebsiteDomainManager({
   events,
   releases,
   portalSlug,
+  portalId,
 }: {
   domains: WebsiteDomain[];
   events: DomainEvent[];
   releases: WebsiteRelease[];
   portalSlug: string;
+  portalId: string;
 }) {
   const router = useRouter();
   const [domains, setDomains] = useState(initialDomains);
@@ -74,7 +76,7 @@ export function WebsiteDomainManager({
       const response = await fetch("/api/website-builder/domains", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body.action === "add" ? { ...body, portalId } : body),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Domain action failed.");

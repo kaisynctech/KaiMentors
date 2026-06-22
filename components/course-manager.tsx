@@ -7,7 +7,6 @@ import {
   Clock3,
   ImagePlus,
   Loader2,
-  PlayCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,9 +50,9 @@ export function CourseManager({ courses }: { courses: CourseListItem[] }) {
       <section className={styles.createCard}>
         <div className={styles.heading}>
           <span>New course</span>
-          <h2>Create a video course</h2>
+          <h2>Create a course</h2>
           <p>
-            Start with the course details, then upload and order video lessons.
+            Start with the course details, then build modules, lessons, and mixed-media content.
           </p>
         </div>
         <form action={createCourse}>
@@ -109,48 +108,19 @@ export function CourseManager({ courses }: { courses: CourseListItem[] }) {
           </div>
         </div>
         {courses.length ? (
-          <div className={styles.courseGrid}>
-            {courses.map((course) => (
-              <Link
-                className={styles.course}
-                href={`/dashboard/courses/${course.id}`}
-                key={course.id}
-              >
-                <div className={styles.thumbnail}>
-                  {course.thumbnailUrl ? (
-                    <Image
-                      alt=""
-                      fill
-                      sizes="(max-width: 900px) 100vw, 360px"
-                      src={course.thumbnailUrl}
-                      unoptimized
-                    />
-                  ) : (
-                    <BookOpen size={28} />
-                  )}
-                  <span className={styles[course.status]}>
-                    {course.status === "published" ? (
-                      <CheckCircle2 size={12} />
-                    ) : (
-                      <Clock3 size={12} />
-                    )}
-                    {course.status}
-                  </span>
-                </div>
-                <div className={styles.courseBody}>
-                  <small>Order {course.sort_order}</small>
-                  <h3>{course.title}</h3>
-                  <p>
-                    {course.description ||
-                      "Add a description from the course editor."}
-                  </p>
-                  <span>
-                    <PlayCircle size={15} /> {course.lessonCount} video lesson
-                    {course.lessonCount === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </Link>
-            ))}
+          <div className={styles.tableWrap}>
+            <table>
+              <thead><tr><th>Course</th><th>Status</th><th>Lessons</th><th>Order</th><th>Action</th></tr></thead>
+              <tbody>{courses.map((course) => (
+                <tr key={course.id}>
+                  <td><div className={styles.courseIdentity}><div className={styles.thumbnail}>{course.thumbnailUrl ? <Image alt="" fill sizes="48px" src={course.thumbnailUrl} unoptimized /> : <BookOpen size={19} />}</div><div><strong>{course.title}</strong><span>{course.description || "No description added."}</span></div></div></td>
+                  <td><span className={`${styles.status} ${styles[course.status]}`}>{course.status === "published" ? <CheckCircle2 size={12} /> : <Clock3 size={12} />}{course.status}</span></td>
+                  <td>{course.lessonCount}</td>
+                  <td>{course.sort_order}</td>
+                  <td><Link className={styles.manage} href={`/dashboard/courses/${course.id}`}>Manage</Link></td>
+                </tr>
+              ))}</tbody>
+            </table>
           </div>
         ) : (
           <div className={styles.empty}>

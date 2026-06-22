@@ -8,26 +8,41 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { createClient } from "@/lib/supabase/server";
-import { getStudentBasePath } from "@/lib/student-routing";
+import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./student.module.css";
 
-export default async function StudentPage() {
-  const studentBasePath = await getStudentBasePath();
+interface StudentPageProps {
+  searchParams?: Promise<{ portal?: string }>;
+}
+
+export default async function StudentPage({ searchParams }: StudentPageProps) {
+  const query = await searchParams;
+  const academyContext = await getStudentAcademyContext(query?.portal);
+  const studentBasePath = academyContext.basePath;
   const supabase = await createClient();
   const { data: userData } = supabase
     ? await supabase.auth.getUser()
     : { data: { user: null } };
 
-  const { data: application } =
+  let applicationQuery =
     supabase && userData.user
-      ? await supabase
+      ? supabase
           .from("student_applications")
-          .select("status,status_reason,submitted_at,portal:portals(portal_name,slug)")
+          .select("status,status_reason,submitted_at,portal_id,portal:portals!inner(portal_name,slug)")
           .eq("student_user_id", userData.user.id)
-          .order("submitted_at", { ascending: false })
-          .limit(1)
-          .maybeSingle()
-      : { data: null };
+      : null;
+  if (applicationQuery && academyContext.portalId) {
+    applicationQuery = applicationQuery.eq("portal_id", academyContext.portalId);
+  }
+  if (applicationQuery && academyContext.portalSlug) {
+    applicationQuery = applicationQuery.eq("portal.slug", academyContext.portalSlug);
+  }
+  const { data: application } = applicationQuery
+    ? await applicationQuery
+        .order("submitted_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
 
   const verified = application?.status === "verified";
   const rejected = application?.status === "rejected";
@@ -40,11 +55,15 @@ export default async function StudentPage() {
     studentBasePath === "/academy"
       ? portal?.portal_name ?? "Academy"
       : "KaiMentors";
+  const suffix = academyContext.querySuffix;
+  const pendingReview =
+    application?.status === "pending" || application?.status === "manual_review";
+  const processing = application?.status === "processing";
 
   return (
     <main className={styles.page}>
       <nav className={styles.nav}>
-        <BrandMark href={studentBasePath} label={brandLabel} />
+        <BrandMark href={`${studentBasePath}${suffix}`} label={brandLabel} />
         <Link href="/auth/signout">Sign out</Link>
       </nav>
       <section className={styles.card}>
@@ -60,23 +79,29 @@ export default async function StudentPage() {
         <p className="eyebrow">Student access</p>
         <h1>
           {verified
-            ? "Your access is verified"
+            ? "You're approved. You can now access your academy."
             : rejected
-              ? "Your application was not approved"
+              ? "Your application could not be approved."
               : needsMoreInformation
-                ? "More information is required"
-                : "Verification in progress"}
+                ? "More information is needed before your access can be approved."
+                : processing
+                  ? "We're checking your verification details."
+                  : pendingReview
+                    ? "Your academy access is being reviewed."
+                    : "Your academy access is being reviewed."}
         </h1>
         <p className={styles.lead}>
           {verified
             ? `You can now enter ${portal?.portal_name ?? "your mentor portal"}.`
             : rejected
               ? application?.status_reason ??
-                "Your mentor could not verify the submitted broker details."
+                "Your application could not be approved. Please contact the academy for support."
               : needsMoreInformation
                 ? application?.status_reason ??
-                  "Your mentor needs additional details before completing verification."
-                : "Your broker details are being checked. Access remains locked until verification is complete."}
+                  "More information is needed before your access can be approved."
+                : processing
+                  ? "We're checking your verification details."
+                  : "Your academy access is being reviewed."}
         </p>
         <div className={styles.timeline}>
           <div className={styles.complete}>
@@ -94,15 +119,15 @@ export default async function StudentPage() {
         </div>
         {verified && portal?.slug ? (
           <>
-            <Link className="button button-primary" href={`${studentBasePath}/courses`}>
+            <Link className="button button-primary" href={`${studentBasePath}/courses${suffix}`}>
               View video courses
             </Link>
-            <Link className="button button-secondary" href={`${studentBasePath}/messages`}>
+            <Link className="button button-secondary" href={`${studentBasePath}/messages${suffix}`}>
               Open academy messages
             </Link>
             <Link
               className="button button-secondary"
-              href={`/portal/${portal.slug}`}
+              href={studentBasePath === "/academy" ? "/" : `/portal/${portal.slug}`}
             >
               Enter mentor portal
             </Link>

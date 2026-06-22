@@ -46,7 +46,9 @@ export async function middleware(request: NextRequest) {
     customDomain &&
     (path.startsWith("/dashboard") ||
       path.startsWith("/admin") ||
-      path.startsWith("/onboarding"))
+      path.startsWith("/onboarding") ||
+      path.startsWith("/account-setup") ||
+      path.startsWith("/recover"))
   ) {
     const platformUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (platformUrl) {

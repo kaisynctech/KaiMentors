@@ -4,11 +4,19 @@ import { BrandMark } from "@/components/brand-mark";
 import { MessagesWorkspace } from "@/components/messages-workspace";
 import { loadConversationWorkspace } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
-import { getStudentBasePath } from "@/lib/student-routing";
+import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./messages.module.css";
 
-export default async function StudentMessagesPage() {
-  const studentBasePath = await getStudentBasePath();
+interface StudentMessagesPageProps {
+  searchParams?: Promise<{ portal?: string }>;
+}
+
+export default async function StudentMessagesPage({
+  searchParams,
+}: StudentMessagesPageProps) {
+  const query = await searchParams;
+  const academyContext = await getStudentAcademyContext(query?.portal);
+  const studentBasePath = academyContext.basePath;
   const supabase = await createClient();
   if (!supabase) redirect("/login");
   const {
@@ -16,15 +24,22 @@ export default async function StudentMessagesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: application } = await supabase
+  let applicationQuery = supabase
     .from("student_applications")
-    .select("trader_id,status,portal:portals(portal_name)")
+    .select("trader_id,status,portal_id,portal:portals!inner(portal_name,slug)")
     .eq("student_user_id", user.id)
-    .eq("status", "verified")
+    .eq("status", "verified");
+  if (academyContext.portalId) {
+    applicationQuery = applicationQuery.eq("portal_id", academyContext.portalId);
+  }
+  if (academyContext.portalSlug) {
+    applicationQuery = applicationQuery.eq("portal.slug", academyContext.portalSlug);
+  }
+  const { data: application } = await applicationQuery
     .order("verified_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!application) redirect(studentBasePath);
+  if (!application) redirect(`${studentBasePath}${academyContext.querySuffix}`);
 
   const { conversations } = await loadConversationWorkspace(
     supabase,
@@ -38,14 +53,15 @@ export default async function StudentMessagesPage() {
     studentBasePath === "/academy"
       ? portal?.portal_name ?? "Academy"
       : "KaiMentors";
+  const suffix = academyContext.querySuffix;
 
   return (
     <main className={styles.page}>
       <nav className={styles.nav}>
-        <BrandMark href={studentBasePath} label={brandLabel} />
+        <BrandMark href={`${studentBasePath}${suffix}`} label={brandLabel} />
         <div>
-          <Link href={`${studentBasePath}/courses`}>Courses</Link>
-          <Link href={studentBasePath}>Access status</Link>
+          <Link href={`${studentBasePath}/courses${suffix}`}>Courses</Link>
+          <Link href={`${studentBasePath}${suffix}`}>Access status</Link>
           <Link href="/auth/signout">Sign out</Link>
         </div>
       </nav>

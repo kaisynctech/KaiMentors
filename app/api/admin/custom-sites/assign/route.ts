@@ -12,7 +12,7 @@ const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("set_mode"),
     portalId: z.string().uuid(),
-    mode: z.enum(["builder_template", "custom_package", "external_website"]),
+    mode: z.enum(["core_page", "builder_template", "custom_package", "external_website"]),
   }),
 ]);
 

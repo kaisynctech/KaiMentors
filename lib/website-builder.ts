@@ -178,13 +178,14 @@ export async function loadWebsiteBySlug(
   let portalQuery = supabase
     .from("portals")
     .select(
-      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,whatsapp_number,telegram_url,instagram_url,primary_color,accent_color,logo_path,cta_label,broker_cta_label,is_published",
+      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,whatsapp_number,telegram_url,instagram_url,primary_color,accent_color,logo_path,cta_label,broker_cta_label,is_published,website_delivery_mode",
     )
     .eq("slug", slug);
   if (!options.includeDraft) portalQuery = portalQuery.eq("is_published", true);
 
   const { data: portal } = await portalQuery.maybeSingle();
   if (!portal) return null;
+  if (portal.website_delivery_mode !== "builder_template") return null;
 
   const snapshot = options.includeDraft
     ? await loadDraftSnapshot(supabase, portal as WebsitePortal)

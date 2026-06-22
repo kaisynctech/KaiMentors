@@ -23,11 +23,17 @@ interface PortalBrandingFormProps {
     cta_label: string;
     broker_cta_label: string;
     is_published: boolean;
+    academy_description: string | null;
+    contact_email: string | null;
+    risk_disclosure_template_id: string;
+    risk_disclosure_enabled: boolean;
   };
+  riskTemplates: Array<{ id: string; title: string; message: string }>;
 }
 
 export function PortalBrandingForm({
   initialPortal,
+  riskTemplates,
 }: PortalBrandingFormProps) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
@@ -52,6 +58,10 @@ export function PortalBrandingForm({
     ctaLabel: initialPortal.cta_label,
     brokerCtaLabel: initialPortal.broker_cta_label,
     isPublished: initialPortal.is_published,
+    academyDescription: initialPortal.academy_description ?? "",
+    contactEmail: initialPortal.contact_email ?? "",
+    riskDisclosureTemplateId: initialPortal.risk_disclosure_template_id,
+    riskDisclosureEnabled: initialPortal.risk_disclosure_enabled,
   });
 
   const portalUrl = useMemo(
@@ -96,7 +106,6 @@ export function PortalBrandingForm({
     if (payload.logoPath) {
       setLogoPreview(getPortalBrandingUrl(payload.logoPath));
     }
-    setValues((current) => ({ ...current, slug: payload.slug }));
     setState("saved");
     setMessage("Portal branding saved successfully.");
     router.refresh();
@@ -171,16 +180,12 @@ export function PortalBrandingForm({
               />
             </label>
             <label>
-              Portal slug
+              Academy address
               <span className={styles.slugField}>
                 <small>/portal/</small>
                 <input
-                  maxLength={80}
-                  minLength={3}
-                  name="slug"
-                  onChange={updateValue}
-                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  required
+                  aria-readonly="true"
+                  readOnly
                   value={values.slug}
                 />
               </span>
@@ -247,6 +252,10 @@ export function PortalBrandingForm({
             </div>
           </div>
           <label>
+            Academy description
+            <textarea maxLength={800} name="academyDescription" onChange={updateValue} rows={4} value={values.academyDescription} />
+          </label>
+          <label>
             Hero title
             <input
               maxLength={180}
@@ -309,6 +318,10 @@ export function PortalBrandingForm({
             </div>
           </div>
           <label>
+            Contact email
+            <input maxLength={320} name="contactEmail" onChange={updateValue} type="email" value={values.contactEmail} />
+          </label>
+          <label>
             WhatsApp number
             <input
               maxLength={32}
@@ -342,6 +355,21 @@ export function PortalBrandingForm({
               />
             </label>
           </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}><div><span>Compliance</span><h2>Approved trading-risk message</h2></div></div>
+          <label>
+            <input checked={values.riskDisclosureEnabled} name="riskDisclosureEnabled" onChange={(event) => setValues((current) => ({ ...current, riskDisclosureEnabled: event.target.checked }))} type="checkbox" />
+            Show risk disclosure
+          </label>
+          <label>
+            Approved message
+            <select name="riskDisclosureTemplateId" onChange={(event) => setValues((current) => ({ ...current, riskDisclosureTemplateId: event.target.value }))} value={values.riskDisclosureTemplateId}>
+              {riskTemplates.map((template) => <option key={template.id} value={template.id}>{template.title}</option>)}
+            </select>
+          </label>
+          <p>{riskTemplates.find((template) => template.id === values.riskDisclosureTemplateId)?.message}</p>
         </section>
 
         {message ? (

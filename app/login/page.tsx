@@ -24,6 +24,8 @@ export default function LoginPage() {
           <h2>Sign in to KaiMentors</h2>
           <p>Use the email address and password for your KaiMentors account.</p>
           <LoginForm />
+          <div className={styles.footer}><Link href="/recover">Forgot your password?</Link></div>
+          <div className={styles.footer}><Link href="/account-setup">Resume account setup</Link></div>
           <div className={styles.footer}>
             New mentor? <Link href="/onboarding">Create a workspace</Link>
           </div>

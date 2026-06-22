@@ -104,6 +104,7 @@ export interface WebsitePortal {
   cta_label: string;
   broker_cta_label: string;
   is_published: boolean;
+  website_delivery_mode?: "builder_template";
 }
 
 export interface WebsiteCourse {

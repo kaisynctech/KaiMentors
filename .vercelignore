@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+Milkers-Fx
+tests
+*.log
+*.tsbuildinfo
+.env
+.env.*
+supabase/.temp

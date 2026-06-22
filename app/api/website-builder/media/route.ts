@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { requirePlatformAdminApi } from "@/lib/admin-api";
 
 const mediaType = z.enum(["logo", "hero", "image"]);
 const allowedTypes = new Map([
@@ -11,6 +12,9 @@ const allowedTypes = new Map([
 ]);
 
 export async function POST(request: Request) {
+  if (!(await requirePlatformAdminApi())) {
+    return NextResponse.json({ error: "Super admin access is required." }, { status: 403 });
+  }
   const supabase = await createClient();
   if (!supabase) {
     return NextResponse.json(

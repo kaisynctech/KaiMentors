@@ -8,17 +8,20 @@ const updateSchema = z
     description: z.string().trim().max(1200).nullable(),
     status: z.enum(["draft", "published", "archived"]),
     sortOrder: z.coerce.number().int().min(0).max(100000),
-    accessScope: z.enum(["all_verified", "restricted"]),
+    accessMode: z.enum(["all_verified", "restricted", "one_to_one"]),
     groupIds: z.array(z.string().uuid()).max(100),
+    studentIds: z.array(z.string().uuid()).max(100),
+    acknowledgeImpact: z.boolean(),
   })
   .superRefine((value, context) => {
-    if (value.accessScope === "restricted" && value.groupIds.length === 0) {
+    if (value.accessMode === "restricted" && value.groupIds.length + value.studentIds.length === 0) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Restricted courses require a group.",
-        path: ["groupIds"],
+        path: ["accessMode"],
       });
     }
+    if (value.accessMode === "one_to_one" && value.studentIds.length !== 1) context.addIssue({ code: z.ZodIssueCode.custom, message: "One-to-one courses require exactly one student.", path: ["studentIds"] });
   });
 
 const thumbnailTypes = new Map([
@@ -61,7 +64,7 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
 
   const { data: existing } = await supabase
     .from("courses")
-    .select("id,cover_path")
+    .select("id,cover_path,status,sort_order,access_mode")
     .eq("id", courseId)
     .eq("trader_id", membership.trader_id)
     .maybeSingle();
@@ -75,14 +78,22 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
     description: formData.get("description") || null,
     status: formData.get("status"),
     sortOrder: formData.get("sortOrder"),
-    accessScope: formData.get("accessScope"),
+    accessMode: formData.get("accessMode") ?? formData.get("accessScope"),
     groupIds: formData.getAll("groupIds"),
+    studentIds: formData.getAll("studentIds"),
+    acknowledgeImpact: formData.get("acknowledgeImpact") === "true",
   });
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Please check the course details." },
       { status: 400 },
     );
+  }
+
+  const materialChange = existing.status !== parsed.data.status || existing.sort_order !== parsed.data.sortOrder || existing.access_mode !== parsed.data.accessMode;
+  if (materialChange && !parsed.data.acknowledgeImpact) {
+    const { count } = await supabase.from("lesson_progress").select("*", { count: "exact", head: true }).eq("course_id", courseId);
+    if ((count ?? 0) > 0) return NextResponse.json({ error: "This change affects active learners. Confirm the impact before continuing.", requiresConfirmation: true }, { status: 409 });
   }
 
   if (parsed.data.groupIds.length) {
@@ -127,15 +138,16 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
     coverPath = nextPath;
   }
 
-  const { error } = await supabase.rpc("update_course_with_access", {
+  const { error } = await supabase.rpc("update_course_curriculum_settings", {
     target_course_id: courseId,
     target_title: parsed.data.title,
     target_description: parsed.data.description,
     target_status: parsed.data.status,
     target_sort_order: parsed.data.sortOrder,
     target_cover_path: coverPath,
-    target_scope: parsed.data.accessScope,
+    target_mode: parsed.data.accessMode,
     target_group_ids: parsed.data.groupIds,
+    target_student_ids: parsed.data.studentIds,
   });
   if (error) {
     if (coverPath !== existing.cover_path && coverPath) {

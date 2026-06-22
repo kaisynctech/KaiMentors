@@ -9,12 +9,6 @@ const optionalUrl = z.preprocess(
 
 const brandingSchema = z.object({
   portalName: z.string().trim().min(2).max(120),
-  slug: z
-    .string()
-    .trim()
-    .min(3)
-    .max(80)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   heroTitle: z.string().trim().min(3).max(180),
@@ -34,6 +28,10 @@ const brandingSchema = z.object({
   ctaLabel: z.string().trim().min(1).max(80),
   brokerCtaLabel: z.string().trim().min(1).max(80),
   isPublished: z.boolean(),
+  academyDescription: z.string().trim().max(800).nullable(),
+  contactEmail: z.preprocess((value) => value === "" ? null : value, z.string().email().max(320).nullable()),
+  riskDisclosureTemplateId: z.string().uuid(),
+  riskDisclosureEnabled: z.boolean(),
 });
 
 const allowedLogoTypes = new Map([
@@ -76,7 +74,6 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const parsed = brandingSchema.safeParse({
     portalName: formData.get("portalName"),
-    slug: formData.get("slug"),
     primaryColor: formData.get("primaryColor"),
     accentColor: formData.get("accentColor"),
     heroTitle: formData.get("heroTitle"),
@@ -88,6 +85,10 @@ export async function POST(request: Request) {
     ctaLabel: formData.get("ctaLabel"),
     brokerCtaLabel: formData.get("brokerCtaLabel"),
     isPublished: formData.get("isPublished") === "true",
+    academyDescription: formData.get("academyDescription") || null,
+    contactEmail: formData.get("contactEmail") || null,
+    riskDisclosureTemplateId: formData.get("riskDisclosureTemplateId"),
+    riskDisclosureEnabled: formData.get("riskDisclosureEnabled") === "on",
   });
 
   if (!parsed.success) {
@@ -109,20 +110,8 @@ export async function POST(request: Request) {
     );
   }
 
-  if (parsed.data.slug !== portal.slug) {
-    const { data: slugMatch } = await supabase
-      .from("portals")
-      .select("id")
-      .eq("slug", parsed.data.slug)
-      .neq("id", portal.id)
-      .maybeSingle();
-    if (slugMatch) {
-      return NextResponse.json(
-        { error: "That portal address is already in use." },
-        { status: 409 },
-      );
-    }
-  }
+  const { data: approvedRiskTemplate } = await supabase.from("risk_disclosure_templates").select("id").eq("id", parsed.data.riskDisclosureTemplateId).eq("is_active", true).maybeSingle();
+  if (!approvedRiskTemplate) return NextResponse.json({ error: "Select an approved risk disclosure." }, { status: 400 });
 
   let logoPath = portal.logo_path as string | null;
   const logo = formData.get("logo");
@@ -157,7 +146,6 @@ export async function POST(request: Request) {
     .from("portals")
     .update({
       portal_name: branding.portalName,
-      slug: branding.slug,
       logo_path: logoPath,
       primary_color: branding.primaryColor,
       accent_color: branding.accentColor,
@@ -170,6 +158,10 @@ export async function POST(request: Request) {
       cta_label: branding.ctaLabel,
       broker_cta_label: branding.brokerCtaLabel,
       is_published: branding.isPublished,
+      academy_description: branding.academyDescription,
+      contact_email: branding.contactEmail,
+      risk_disclosure_template_id: branding.riskDisclosureTemplateId,
+      risk_disclosure_enabled: branding.riskDisclosureEnabled,
     })
     .eq("id", portal.id)
     .eq("trader_id", membership.trader_id);
@@ -195,7 +187,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     status: "saved",
-    slug: branding.slug,
+    slug: portal.slug,
     logoPath,
   });
 }

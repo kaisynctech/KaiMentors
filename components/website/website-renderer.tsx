@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { StudentRegistrationForm } from "@/components/student-registration-form";
+import { getAcademyEntryHref } from "@/lib/academy-routes";
 import { getPortalBrandingUrl } from "@/lib/storage";
 import {
   getWebsiteMediaUrl,
@@ -51,6 +52,19 @@ function pageHref(
     : `/portal/${portalSlug}/${pageSlug}`;
 }
 
+function entryHref(
+  portalSlug: string,
+  entry: "join-academy" | "login",
+  preview: boolean,
+  customDomain: boolean,
+) {
+  if (preview) return `/dashboard/website-builder/preview`;
+  return getAcademyEntryHref(
+    { portalSlug, customDomain },
+    entry,
+  );
+}
+
 function SectionHeading({
   content,
 }: {
@@ -84,14 +98,7 @@ function WebsiteSectionView({
     preview,
     customDomain,
   );
-  const coursesHref = pageHref(
-    data.portal.slug,
-    "courses",
-    false,
-    preview,
-    customDomain,
-  );
-
+  const signInHref = entryHref(data.portal.slug, "login", preview, customDomain);
   switch (section.section_type) {
     case "hero": {
       const heroImage = getWebsiteMediaUrl(data.theme.hero_image_path);
@@ -109,8 +116,8 @@ function WebsiteSectionView({
                 {text(content, "primaryCta", data.portal.cta_label)}
                 <ArrowRight size={17} />
               </Link>
-              <Link className={styles.secondaryAction} href={coursesHref}>
-                {text(content, "secondaryCta", "Explore Courses")}
+              <Link className={styles.secondaryAction} href={signInHref}>
+                {text(content, "secondaryCta", "Sign In")}
               </Link>
             </div>
           </div>
@@ -286,11 +293,13 @@ function WebsiteSectionView({
             ) : (
               <StudentRegistrationForm
                 brokers={data.brokers}
-                portalId={data.portal.id}
                 portalSlug={data.portal.slug}
                 primaryColor={data.theme.primary_color}
-                studentPortalPath={customDomain ? "/academy" : "/student"}
-                traderId={data.portal.trader_id}
+                studentPortalPath={
+                  customDomain
+                    ? "/academy"
+                    : `/student?portal=${encodeURIComponent(data.portal.slug)}`
+                }
               />
             )}
           </div>
@@ -410,12 +419,13 @@ export function WebsiteRenderer({
             );
           })}
         </nav>
-        {customDomain && !preview ? (
-          <Link className={styles.studentLogin} href="/login">
-            Student Login
-          </Link>
-        ) : null}
-        <Link className={styles.headerCta} href={pageHref(data.portal.slug, "join-academy", false, preview, customDomain)}>
+        <Link
+          className={styles.studentLogin}
+          href={entryHref(data.portal.slug, "login", preview, customDomain)}
+        >
+          Sign In
+        </Link>
+        <Link className={styles.headerCta} href={entryHref(data.portal.slug, "join-academy", preview, customDomain)}>
           Join Academy
         </Link>
       </header>

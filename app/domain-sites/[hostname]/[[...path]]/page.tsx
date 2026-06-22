@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { CustomSiteJoinPage } from "@/components/custom-site-join-page";
+import { CoreAcademyPage } from "@/components/core-academy-page";
 import { CustomSiteRenderer } from "@/components/custom-site-renderer";
 import { WebsiteRenderer } from "@/components/website/website-renderer";
 import {
@@ -9,6 +10,7 @@ import {
 } from "@/lib/custom-sites";
 import { resolveWebsiteDomain } from "@/lib/domains/resolution";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
+import { loadAcademyEntryByResolution } from "@/lib/academy-entry";
 
 interface CustomDomainWebsitePageProps {
   params: Promise<{ hostname: string; path?: string[] }>;
@@ -38,8 +40,11 @@ async function loadCustomDomainWebsite(
 
   const pageSlug = path?.[0];
   const website = await loadWebsiteBySlug(resolution.portal_slug, { pageSlug });
-  if (!website) return null;
-  return { resolution, website, pageSlug };
+  if (website) return { resolution, website, pageSlug };
+  if (pageSlug) return null;
+  const corePage = await loadAcademyEntryByResolution(resolution);
+  if (!corePage || corePage.portal.website_delivery_mode !== "core_page") return null;
+  return { resolution, corePage, pageSlug };
 }
 
 export async function generateMetadata({
@@ -67,6 +72,9 @@ export async function generateMetadata({
         }`,
       },
     };
+  }
+  if ("corePage" in result && result.corePage) {
+    return { title: result.corePage.portal.portal_name, description: result.corePage.portal.academy_description ?? undefined };
   }
   const page = result.pageSlug
     ? result.website.pages.find((entry) => entry.slug === result.pageSlug)
@@ -101,11 +109,15 @@ export default async function CustomDomainWebsitePage({
   }
 
   if ("joinData" in result && result.joinData) {
-    return <CustomSiteJoinPage data={result.joinData} />;
+    return <CustomSiteJoinPage customDomain data={result.joinData} />;
   }
 
   if ("customSite" in result && result.customSite) {
-    return <CustomSiteRenderer site={result.customSite} />;
+    return <CustomSiteRenderer customDomain site={result.customSite} />;
+  }
+
+  if ("corePage" in result && result.corePage) {
+    return <CoreAcademyPage customDomain portal={result.corePage.portal} />;
   }
 
   const currentPageSlug =

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  isPlatformHostname,
+  normalizeRequestHostname,
+} from "@/lib/domains/hostnames";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const registrationSchema = z.object({
-  portalId: z.string().uuid(),
   portalSlug: z.string().min(1),
-  traderId: z.string().uuid(),
   fullName: z.string().trim().min(2).max(120),
   email: z.string().email().max(320),
-  password: z.string().min(10).max(72),
   phoneNumber: z
     .string()
     .trim()
@@ -27,15 +28,49 @@ const allowedProofTypes = new Map([
   ["image/webp", "webp"],
 ]);
 
+async function resolveRegistrationPortal(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  request: Request,
+  submittedPortalSlug: string,
+) {
+  const hostname = normalizeRequestHostname(
+    request.headers.get("x-forwarded-host") ??
+      request.headers.get("host") ??
+      "",
+  );
+
+  if (hostname && !isPlatformHostname(hostname)) {
+    const { data, error } = await admin.rpc("resolve_public_website_domain", {
+      target_hostname: hostname,
+    });
+    if (error) return null;
+    const resolution = Array.isArray(data) ? data[0] : data;
+    if (!resolution?.portal_id) return null;
+
+    const { data: portal } = await admin
+      .from("portals")
+      .select("id,trader_id,slug,is_published")
+      .eq("id", resolution.portal_id)
+      .eq("is_published", true)
+      .maybeSingle();
+    return portal;
+  }
+
+  const { data: portal } = await admin
+    .from("portals")
+    .select("id,trader_id,slug,is_published")
+    .eq("slug", submittedPortalSlug)
+    .eq("is_published", true)
+    .maybeSingle();
+  return portal;
+}
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   const parsed = registrationSchema.safeParse({
-    portalId: formData.get("portalId"),
     portalSlug: formData.get("portalSlug"),
-    traderId: formData.get("traderId"),
     fullName: formData.get("fullName"),
     email: formData.get("email"),
-    password: formData.get("password"),
     phoneNumber: formData.get("phoneNumber"),
     brokerConnectionId: formData.get("brokerConnectionId"),
     tradingAccountNumber: formData.get("tradingAccountNumber"),
@@ -58,28 +93,29 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data;
+  const validPortal = await resolveRegistrationPortal(
+    admin,
+    request,
+    input.portalSlug,
+  );
+  if (!validPortal) {
+    return NextResponse.json(
+      { error: "This academy is not accepting applications right now." },
+      { status: 400 },
+    );
+  }
 
-  const [{ data: validPortal }, { data: validConnection }] = await Promise.all([
-    admin
-      .from("portals")
-      .select("id")
-      .eq("id", input.portalId)
-      .eq("trader_id", input.traderId)
-      .eq("slug", input.portalSlug)
-      .eq("is_published", true)
-      .maybeSingle(),
-    admin
-      .from("trader_broker_accounts")
-      .select(
-        "id,broker_id,verification_method,broker:brokers(adapter_key)",
-      )
-      .eq("id", input.brokerConnectionId)
-      .eq("trader_id", input.traderId)
-      .eq("is_active", true)
-      .maybeSingle(),
-  ]);
+  const { data: validConnection } = await admin
+    .from("trader_broker_accounts")
+    .select(
+      "id,broker_id,verification_method,broker:brokers(adapter_key)",
+    )
+    .eq("id", input.brokerConnectionId)
+    .eq("trader_id", validPortal.trader_id)
+    .eq("is_active", true)
+    .maybeSingle();
 
-  if (!validPortal || !validConnection) {
+  if (!validConnection) {
     return NextResponse.json(
       { error: "This broker option is no longer available." },
       { status: 400 },
@@ -99,20 +135,23 @@ export async function POST(request: Request) {
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
       email: input.email,
-      password: input.password,
       email_confirm: false,
       user_metadata: { full_name: input.fullName, role: "student" },
     });
 
   if (createError || !created.user) {
     const isDuplicate = createError?.message.toLowerCase().includes("already");
+    if (isDuplicate) {
+      return NextResponse.json(
+        { status: "accepted", email: input.email },
+        { status: 202 },
+      );
+    }
     return NextResponse.json(
       {
-        error: isDuplicate
-          ? "An account with this email already exists. Sign in to continue."
-          : "Your account could not be created.",
+        error: "Your account could not be created.",
       },
-      { status: isDuplicate ? 409 : 400 },
+      { status: 400 },
     );
   }
 
@@ -125,8 +164,8 @@ export async function POST(request: Request) {
     .from("student_applications")
     .insert({
       id: applicationId,
-      trader_id: input.traderId,
-      portal_id: input.portalId,
+      trader_id: validPortal.trader_id,
+      portal_id: validPortal.id,
       student_user_id: created.user.id,
       trader_broker_account_id: input.brokerConnectionId,
       broker_account_identifier: input.tradingAccountNumber,
@@ -162,7 +201,7 @@ export async function POST(request: Request) {
   let screenshotPath: string | null = null;
   if (proof instanceof File && proof.size > 0) {
     const extension = allowedProofTypes.get(proof.type);
-    screenshotPath = `${input.traderId}/${applicationId}/proof.${extension}`;
+    screenshotPath = `${validPortal.trader_id}/${applicationId}/proof.${extension}`;
     const { error: uploadError } = await admin.storage
       .from("verification-proofs")
       .upload(screenshotPath, proof, {
@@ -198,7 +237,7 @@ export async function POST(request: Request) {
   const { error: attemptError } = await admin
     .from("verification_attempts")
     .insert({
-      trader_id: input.traderId,
+      trader_id: validPortal.trader_id,
       application_id: application.id,
       broker_id: validConnection.broker_id,
       request_id: crypto.randomUUID(),
@@ -227,10 +266,9 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
-      applicationId: application.id,
-      status: initialStatus,
+      status: "accepted",
       email: input.email,
     },
-    { status: 201 },
+    { status: 202 },
   );
 }

@@ -11,6 +11,7 @@ interface TraderRow {
   id: string;
   display_name: string;
   legal_name: string;
+  environment: "production" | "acceptance_test";
   status: string;
 }
 
@@ -45,7 +46,7 @@ export default async function AdminCustomSitesPage() {
     await Promise.all([
       supabase
         .from("traders")
-        .select("id,display_name,legal_name,status")
+        .select("id,display_name,legal_name,environment,status")
         .order("created_at", { ascending: false }),
       supabase
         .from("portals")
@@ -84,6 +85,7 @@ export default async function AdminCustomSitesPage() {
       traderId: portal.trader_id,
       portalId: portal.id,
       mentorName: trader?.display_name ?? trader?.legal_name ?? "Unknown mentor",
+      environment: trader?.environment ?? "production",
       portalName: portal.portal_name,
       portalSlug: portal.slug,
       studentCount: studentCounts.get(portal.trader_id) ?? 0,

@@ -2,10 +2,15 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { PublicBrokerOption } from "@/lib/database.types";
+import {
+  getAcademyEntryHref,
+  getAcademyWebsitePageHref,
+} from "@/lib/academy-routes";
 import type { ResolvedWebsiteDomain } from "@/lib/domains/resolution";
 import { createClient } from "@/lib/supabase/server";
 
 export type WebsiteDeliveryMode =
+  | "core_page"
   | "builder_template"
   | "custom_package"
   | "external_website";
@@ -188,12 +193,24 @@ function rewriteHtml(
   html: string,
   sitePackage: CustomSitePackage,
   overrides: Record<string, string>,
+  portalSlug: string,
+  customDomain: boolean,
 ) {
   const assetBase = sitePackage.asset_base_path;
   const reservedLinks = sitePackage.manifest.reservedLinks ?? {};
+  const routeContext = { portalSlug, customDomain };
   const pageLinks = new Map(
-    sitePackage.manifest.pages.map((page) => [page.file, page.path]),
+    sitePackage.manifest.pages.map((page) => [
+      page.file,
+      getAcademyWebsitePageHref(routeContext, page.path),
+    ]),
   );
+  const reservedEntryLinks = new Map([
+    ["/join-academy", getAcademyEntryHref(routeContext, "join-academy")],
+    ["/login", getAcademyEntryHref(routeContext, "login")],
+    ["/academy", getAcademyEntryHref(routeContext, "academy")],
+    ["/student", getAcademyEntryHref(routeContext, "academy")],
+  ]);
 
   let output = extractBody(html)
     .replace(/\s(?:src|href)=["'](?:\.\/)?styles\.css["']/gi, "")
@@ -203,6 +220,10 @@ function rewriteHtml(
     )
     .replace(/href=["']([^"']+)["']/gi, (_match, rawValue: string) => {
       const [target, hash = ""] = rawValue.split("#");
+      const absoluteEntryTarget = reservedEntryLinks.get(target);
+      if (absoluteEntryTarget) {
+        return `href="${absoluteEntryTarget}${hash ? `#${hash}` : ""}"`;
+      }
       if (
         !target ||
         target.startsWith("/") ||
@@ -214,10 +235,13 @@ function rewriteHtml(
       }
 
       const normalizedTarget = target.replace(/^\.\//, "");
-      const rewritten =
-        reservedLinks[normalizedTarget] ??
-        pageLinks.get(normalizedTarget) ??
-        (normalizedTarget === "index.html" ? "/" : null);
+      const reservedTarget = reservedLinks[normalizedTarget];
+      const rewritten = reservedTarget
+        ? reservedEntryLinks.get(reservedTarget) ?? reservedTarget
+        : pageLinks.get(normalizedTarget) ??
+          (normalizedTarget === "index.html"
+            ? getAcademyEntryHref(routeContext, "home")
+            : null);
       if (!rewritten) return `href="${rawValue}"`;
       return `href="${rewritten}${hash ? `#${hash}` : ""}"`;
     });
@@ -233,10 +257,19 @@ function rewriteHtml(
   }
 
   if (overrides.brokerLink?.trim()) {
-    output = output.replace(
-      /href=["']\/xm["']/gi,
-      `href="${escapeAttribute(overrides.brokerLink.trim())}"`,
+    const brokerPage = sitePackage.manifest.pages.find((page) =>
+      ["broker", "xm"].includes(page.slug),
     );
+    if (brokerPage) {
+      const brokerPageHref = getAcademyWebsitePageHref(
+        routeContext,
+        brokerPage.path,
+      );
+      output = output.replace(
+        new RegExp(`href=["']${escapeRegExp(brokerPageHref)}["']`, "gi"),
+        `href="${escapeAttribute(overrides.brokerLink.trim())}"`,
+      );
+    }
   }
 
   return output;
@@ -251,6 +284,10 @@ function escapeHtml(value: string) {
 
 function escapeAttribute(value: string) {
   return escapeHtml(value).replace(/"/g, "&quot;");
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function loadAssignment(
@@ -303,6 +340,7 @@ async function loadPortalBySlug(
 async function loadCustomSite(
   portal: CustomSitePortal,
   routePath: string[] | undefined,
+  customDomain: boolean,
 ): Promise<LoadedCustomSite | null> {
   if (portal.website_delivery_mode !== "custom_package") return null;
   const supabase = await createClient();
@@ -331,6 +369,8 @@ async function loadCustomSite(
       html,
       sitePackage,
       resolvedAssignment.assignment.content_overrides,
+      portal.slug,
+      customDomain,
     ),
     assetBasePath: sitePackage.asset_base_path,
   };
@@ -344,7 +384,7 @@ export async function loadCustomSiteBySlug(
   if (!supabase) return null;
   const portal = await loadPortalBySlug(supabase, slug);
   if (!portal) return null;
-  return loadCustomSite(portal, routePath);
+  return loadCustomSite(portal, routePath, false);
 }
 
 export async function loadCustomSiteByResolution(
@@ -362,7 +402,7 @@ export async function loadCustomSiteByResolution(
     .eq("is_published", true)
     .maybeSingle();
   if (!data) return null;
-  return loadCustomSite(data as CustomSitePortal, routePath);
+  return loadCustomSite(data as CustomSitePortal, routePath, true);
 }
 
 export async function loadCustomSiteJoinByResolution(

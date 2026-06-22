@@ -1,4 +1,6 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { InvitationRenewalControl } from "@/components/invitation-renewal-control";
+import { OwnerEmailCorrectionControl } from "@/components/owner-email-correction-control";
 import { requirePlatformAdmin } from "@/lib/admin-access";
 import styles from "../platform-tables.module.css";
 
@@ -6,6 +8,7 @@ interface TraderRow {
   id: string;
   display_name: string;
   legal_name: string;
+  environment: "production" | "acceptance_test";
   status: string;
   created_at: string;
   portal: Array<{
@@ -20,6 +23,7 @@ interface TraderRow {
       | { name: string; version: number }[]
       | null;
   }> | null;
+  academy_invitations: Array<{ id: string; status: string; expires_at: string }> | null;
 }
 
 export default async function AdminTradersPage() {
@@ -28,7 +32,7 @@ export default async function AdminTradersPage() {
     supabase
       .from("traders")
       .select(
-        "id,display_name,legal_name,status,created_at,portal:portals(slug,portal_name,website_delivery_mode),custom_site_assignments(status,package:custom_site_packages(name,version))",
+        "id,display_name,legal_name,environment,status,created_at,portal:portals(slug,portal_name,website_delivery_mode),custom_site_assignments(status,package:custom_site_packages(name,version)),academy_invitations(id,status,expires_at)",
       )
       .order("created_at", { ascending: false }),
     supabase.from("student_applications").select("trader_id"),
@@ -82,9 +86,11 @@ export default async function AdminTradersPage() {
                 <th>Mentor</th>
                 <th>Portal</th>
                 <th>Status</th>
+                <th>Environment</th>
                 <th>Students</th>
                 <th>Website mode</th>
                 <th>Custom package</th>
+                <th>Account setup</th>
               </tr>
             </thead>
             <tbody>
@@ -92,17 +98,25 @@ export default async function AdminTradersPage() {
                 traders.map((trader) => {
                   const portal = trader.portal?.[0] ?? null;
                   const assignment = trader.custom_site_assignments?.[0] ?? null;
+                  const invitation = trader.academy_invitations?.[0] ?? null;
+                  const invitationExpired = invitation && invitation.status !== "accepted" && new Date(invitation.expires_at).getTime() <= Date.now();
                   return (
                     <tr key={trader.id}>
                       <td>
                         <strong>{trader.display_name}</strong>
                         <span>{trader.legal_name}</span>
                       </td>
+                      <td>{invitationExpired ? <InvitationRenewalControl invitationId={invitation.id} /> : invitation?.status ?? "Complete"}<OwnerEmailCorrectionControl traderId={trader.id} /></td>
                       <td>
                         <strong>{portal?.portal_name ?? "No portal"}</strong>
                         <span>{portal ? `/portal/${portal.slug}` : "Not provisioned"}</span>
                       </td>
                       <td><span className={styles.badge}>{trader.status}</span></td>
+                      <td>
+                        <span className={trader.environment === "acceptance_test" ? styles.testBadge : styles.badge}>
+                          {trader.environment.replace(/_/g, " ")}
+                        </span>
+                      </td>
                       <td>{studentCounts.get(trader.id) ?? 0}</td>
                       <td>{portal?.website_delivery_mode?.replace(/_/g, " ") ?? "none"}</td>
                       <td>
@@ -114,7 +128,7 @@ export default async function AdminTradersPage() {
                   );
                 })
               ) : (
-                <tr><td className={styles.empty} colSpan={6}>No mentor tenants yet.</td></tr>
+                <tr><td className={styles.empty} colSpan={8}>No mentor tenants yet.</td></tr>
               )}
             </tbody>
           </table>

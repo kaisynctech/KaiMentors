@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getMentorWorkspace } from "@/lib/workspace";
+import { requirePlatformAdminApi } from "@/lib/admin-api";
 
 const color = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 const sectionContent = z.record(z.unknown());
@@ -64,6 +65,9 @@ const templateSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!(await requirePlatformAdminApi())) {
+    return NextResponse.json({ error: "Super admin access is required." }, { status: 403 });
+  }
   const workspace = await getMentorWorkspace();
   if (!workspace) {
     return NextResponse.json(

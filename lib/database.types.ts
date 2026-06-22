@@ -7,6 +7,7 @@ export type Json =
   | Json[];
 
 export type UserRole = "super_admin" | "trader" | "student";
+export type TenantEnvironment = "production" | "acceptance_test";
 export type VerificationStatus =
   | "pending"
   | "processing"

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">KaiTrades</title>
+  <rect width="128" height="128" rx="28" fill="#101214"/>
+  <path d="M30 26h16v31l27-31h21L62 62l35 40H76L51 72l-5 6v24H30z" fill="#fff"/>
+  <path d="M96 24v28H68z" fill="#ff5757"/>
+</svg>

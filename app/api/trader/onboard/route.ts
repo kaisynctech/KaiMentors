@@ -8,7 +8,6 @@ const schema = z.object({
   legalName: z.string().trim().min(2).max(160),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80),
   email: z.string().email().max(320),
-  password: z.string().min(10).max(72),
 });
 
 export async function POST(request: Request) {
@@ -37,16 +36,9 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingProfile) {
-    if (existingProfile.role !== "trader") {
-      return NextResponse.json(
-        { error: "This email is already registered with another account type." },
-        { status: 409 },
-      );
-    }
-
     return NextResponse.json(
-      { status: "existing", email: input.email },
-      { status: 200 },
+      { status: "accepted", email: input.email },
+      { status: 202 },
     );
   }
 
@@ -65,15 +57,14 @@ export async function POST(request: Request) {
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
       email: input.email,
-      password: input.password,
-      email_confirm: false,
+        email_confirm: false,
       user_metadata: { full_name: input.fullName, role: "trader" },
     });
   if (createError || !created.user) {
     return NextResponse.json(
       {
         error: createError?.message.toLowerCase().includes("already")
-          ? "An account with this email already exists."
+          ? "Continue the existing account setup instead of creating another workspace."
           : "Account creation failed.",
       },
       { status: 400 },
@@ -97,7 +88,7 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json(
-    { status: "created", email: input.email },
-    { status: 201 },
+    { status: "accepted", email: input.email },
+    { status: 202 },
   );
 }

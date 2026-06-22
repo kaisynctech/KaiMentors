@@ -10,10 +10,14 @@ export function LoginForm({
   studentDestination = "/student",
   mentorDestination = "/dashboard",
   allowedRole,
+  academyTraderId,
+  submitLabel = "Sign in to workspace",
 }: {
   studentDestination?: string;
   mentorDestination?: string;
   allowedRole?: "student";
+  academyTraderId?: string;
+  submitLabel?: string;
 } = {}) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -44,6 +48,18 @@ export function LoginForm({
         throw new Error(
           "This login is for academy students. Mentor accounts must use the KaiMentors platform login.",
         );
+      }
+      if (allowedRole === "student" && academyTraderId) {
+        const { data: application } = await supabase
+          .from("student_applications")
+          .select("id")
+          .eq("student_user_id", data.user.id)
+          .eq("trader_id", academyTraderId)
+          .maybeSingle();
+        if (!application) {
+          await supabase.auth.signOut();
+          throw new Error("This student account is not registered for this academy.");
+        }
       }
 
       const destination =
@@ -85,7 +101,7 @@ export function LoginForm({
       {error && <p className={styles.error}>{error}</p>}
       <button disabled={loading} type="submit">
         {loading && <Loader2 className={styles.spin} size={18} />}
-        Sign in to workspace
+        {submitLabel}
       </button>
     </form>
   );

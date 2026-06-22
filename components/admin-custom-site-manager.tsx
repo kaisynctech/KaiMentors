@@ -10,6 +10,7 @@ interface TenantRow {
   traderId: string;
   portalId: string;
   mentorName: string;
+  environment: "production" | "acceptance_test";
   portalName: string;
   portalSlug: string;
   studentCount: number;
@@ -111,6 +112,9 @@ export function AdminCustomSiteManager({
                   <td>
                     <strong>{tenant.mentorName}</strong>
                     <span>{tenant.deliveryMode.replace("_", " ")}</span>
+                    {tenant.environment === "acceptance_test" ? (
+                      <span className={styles.testBadge}>Acceptance test</span>
+                    ) : null}
                   </td>
                   <td>
                     <strong>{tenant.portalName}</strong>
@@ -188,7 +192,7 @@ export function AdminCustomSiteManager({
                               {
                                 action: "set_mode",
                                 portalId: tenant.portalId,
-                                mode: "builder_template",
+                                mode: "core_page",
                               },
                               `pause-${tenant.portalId}`,
                             )

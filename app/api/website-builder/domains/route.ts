@@ -7,12 +7,13 @@ import {
 import { isPlatformHostname, normalizeHostname } from "@/lib/domains/hostnames";
 import type { DomainProviderState, WebsiteDomain } from "@/lib/domains/types";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { createClient } from "@/lib/supabase/server";
 
 const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("add"),
     hostname: z.string().trim().min(4).max(253),
+    portalId: z.string().uuid(),
   }),
   z.object({
     action: z.literal("refresh"),
@@ -91,13 +92,11 @@ async function writeEvent(
 async function loadOwnedDomain(
   admin: NonNullable<ReturnType<typeof createAdminClient>>,
   domainId: string,
-  traderId: string,
 ) {
   const { data } = await admin
     .from("website_domains")
     .select("*")
     .eq("id", domainId)
-    .eq("trader_id", traderId)
     .maybeSingle();
   return data as WebsiteDomain | null;
 }
@@ -128,11 +127,13 @@ async function persistProviderState(
 }
 
 export async function POST(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) {
+  const supabase = await createClient();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const { data: profile } = user && supabase ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
+  if (!supabase || !user || profile?.role !== "super_admin") {
     return NextResponse.json(
-      { error: "Please sign in to your mentor workspace." },
-      { status: 401 },
+      { error: "Super admin access is required." },
+      { status: 403 },
     );
   }
 
@@ -169,6 +170,14 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data;
+  const { data: resolvedPortal } = input.action === "add"
+    ? await supabase.from("portals").select("id,trader_id").eq("id", input.portalId).maybeSingle()
+    : { data: null };
+  const existingDomain = input.action === "add" ? null : await loadOwnedDomain(admin, input.domainId);
+  const portalId = resolvedPortal?.id ?? existingDomain?.portal_id;
+  const traderId = resolvedPortal?.trader_id ?? existingDomain?.trader_id;
+  if (!portalId || !traderId) return NextResponse.json({ error: "Academy website not found." }, { status: 404 });
+  const workspace = { supabase, user, traderId, portal: { id: portalId } };
 
   if (input.action === "add") {
     let hostname: string;
@@ -292,7 +301,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const domain = await loadOwnedDomain(admin, input.domainId, workspace.traderId);
+  const domain = existingDomain;
   if (!domain) {
     return NextResponse.json({ error: "Domain not found." }, { status: 404 });
   }

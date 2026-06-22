@@ -81,6 +81,18 @@
   text-transform: capitalize;
 }
 
+.testBadge {
+  border-radius: 999px;
+  display: inline-flex !important;
+  background: #fff2cc;
+  color: #6b4f00 !important;
+  font-size: 11px !important;
+  font-weight: 900;
+  margin: 0 !important;
+  padding: 7px 10px;
+  text-transform: capitalize;
+}
+
 .empty {
   color: #6d7780;
   padding: 28px !important;

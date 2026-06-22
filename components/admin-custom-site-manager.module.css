@@ -102,6 +102,18 @@
   color: #14743d !important;
 }
 
+.testBadge {
+  background: #fff2cc;
+  border-radius: 999px;
+  color: #6b4f00 !important;
+  display: inline-flex !important;
+  font-size: 10px !important;
+  font-weight: 900;
+  margin-top: 7px !important;
+  padding: 5px 8px;
+  text-transform: uppercase;
+}
+
 .actions {
   align-items: center;
   display: flex;
