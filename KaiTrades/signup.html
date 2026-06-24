@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Sign Up | Traders Confidence</title>
+    <title>Join KaiTrades</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
+      /* ── Signup-page extras ── */
       .broker-guide {
         display: none;
         background: var(--surface-2, #111);
@@ -19,6 +20,7 @@
       .broker-guide ol { margin: 0; padding-left: 1.25rem; display: flex; flex-direction: column; gap: .5rem; font-size: .95rem; line-height: 1.6; }
       .broker-guide .guide-note { margin-top: .75rem; font-size: .85rem; opacity: .6; }
 
+      /* Confirmation screen */
       .signup-confirmation {
         display: none;
         text-align: center;
@@ -39,6 +41,7 @@
       .signup-confirmation p { opacity: .7; line-height: 1.7; margin: 0 0 2rem; }
       .signup-confirmation .btn { margin: 0 auto; }
 
+      /* Approved notice (shown if ?approved=1 in URL) */
       .approved-banner {
         display: none;
         background: rgba(var(--accent-rgb, 82,196,82), .1);
@@ -51,6 +54,7 @@
       .approved-banner.is-visible { display: block; }
       .approved-banner strong { display: block; margin-bottom: .35rem; }
 
+      /* Review step disclaimer emphasis */
       .disclaimer-card {
         border: 1px solid var(--border, #222);
         border-radius: 10px;
@@ -60,14 +64,20 @@
       .disclaimer-card strong { display: block; margin-bottom: .5rem; font-size: 1rem; }
       .disclaimer-card p { margin: 0; font-size: .92rem; line-height: 1.65; opacity: .75; }
 
+      /* Experience level cards */
       .level-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: .6rem;
         margin-bottom: 1rem;
       }
-      .level-card { position: relative; cursor: pointer; }
-      .level-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+      .level-card {
+        position: relative;
+        cursor: pointer;
+      }
+      .level-card input[type="radio"] {
+        position: absolute; opacity: 0; width: 0; height: 0;
+      }
       .level-card .card-inner {
         border: 1px solid var(--border, #222);
         border-radius: 8px;
@@ -84,9 +94,9 @@
   </head>
   <body>
     <header class="site-header" data-header>
-      <a class="brand" href="index.html#home">
-        <img src="assets/tc-logo.png" alt="Traders Confidence logo" />
-        <span><strong>Traders Confidence</strong><small>Student Onboarding</small></span>
+      <a class="brand" href="index.html">
+        <img src="assets/kaitrades-logo.svg" alt="KaiTrades logo" />
+        <span><strong>KaiTrades</strong><small>KaiTrades Test Academy</small></span>
       </a>
       <button class="nav-toggle" data-nav-toggle aria-label="Open navigation" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -97,7 +107,7 @@
         <a href="signals.html">Signals</a>
         <a href="mentorship.html">Mentorship</a>
         <a href="events.html">Events</a>
-        <a href="xm.html">Open XM</a>
+        <a href="broker.html">Broker Setup</a>
         <a href="signup.html" aria-current="page">Sign Up</a>
         <a class="nav-login" href="login.html">Login</a>
       </nav>
@@ -106,15 +116,16 @@
     <main>
       <section class="signup-hero">
         <div class="section-heading reveal">
-          <p class="eyebrow">New Student Portal</p>
-          <h1>Apply, onboard and start your trading journey.</h1>
+          <p class="eyebrow">Student Onboarding</p>
+          <h1>Apply to join KaiTrades.</h1>
           <p>
-            Complete your profile, trading level, and broker readiness so the team
-            can place you correctly from day one.
+            Complete the onboarding form and the team will review your application,
+            verify your details, and activate your student access.
           </p>
         </div>
       </section>
 
+      <!-- Approved banner (shown via JS if URL contains ?approved=1) -->
       <div class="section">
         <div class="approved-banner" id="approvedBanner">
           <strong>🎉 Your application has been approved!</strong>
@@ -125,16 +136,16 @@
 
       <section class="section onboarding-shell" id="onboardingShell">
         <aside class="onboarding-sidebar reveal">
-          <img src="assets/tc-logo.png" alt="" />
+          <img src="assets/kaitrades-logo.svg" alt="" />
           <div class="mini-chart onboarding-chart" aria-hidden="true">
-            <span class="candle down" style="--h: 48%; --y: 30%; --x: 8%"></span>
-            <span class="candle up"   style="--h: 70%; --y: 12%; --x: 20%"></span>
-            <span class="candle up"   style="--h: 52%; --y: 24%; --x: 32%"></span>
-            <span class="candle down" style="--h: 66%; --y: 18%; --x: 44%"></span>
-            <span class="candle up"   style="--h: 84%; --y:  4%; --x: 56%"></span>
-            <span class="candle down" style="--h: 42%; --y: 34%; --x: 68%"></span>
-            <span class="candle up"   style="--h: 62%; --y: 16%; --x: 80%"></span>
-            <span class="candle up"   style="--h: 76%; --y:  8%; --x: 92%"></span>
+            <span class="candle down"  style="--h: 48%; --y: 30%; --x: 8%"></span>
+            <span class="candle up"    style="--h: 70%; --y: 12%; --x: 20%"></span>
+            <span class="candle up"    style="--h: 52%; --y: 24%; --x: 32%"></span>
+            <span class="candle down"  style="--h: 66%; --y: 18%; --x: 44%"></span>
+            <span class="candle up"    style="--h: 84%; --y:  4%; --x: 56%"></span>
+            <span class="candle down"  style="--h: 42%; --y: 34%; --x: 68%"></span>
+            <span class="candle up"    style="--h: 62%; --y: 16%; --x: 80%"></span>
+            <span class="candle up"    style="--h: 76%; --y:  8%; --x: 92%"></span>
           </div>
           <h2>Onboarding Steps</h2>
           <ol class="step-list" data-step-list>
@@ -143,7 +154,7 @@
             <li>Broker Setup</li>
             <li>Review</li>
           </ol>
-          <p>After submission, the team can verify details, activate portal access, and send the first class schedule.</p>
+          <p>Once submitted, the team reviews your details, activates your portal access, and sends your first class schedule.</p>
         </aside>
 
         <form class="onboarding-form reveal delay-1" data-onboarding-form id="onboardingForm">
@@ -209,9 +220,9 @@
           <!-- Step 3: Broker Setup -->
           <div class="form-step" data-step="2">
             <p class="eyebrow">Step 03 of 04</p>
-            <h2>XM broker readiness</h2>
-            <p style="opacity:.65;font-size:.93rem;margin-top:-.25rem;">A verified XM account is required to participate in the mentorship programme.</p>
-            <label>Do you have an XM account?
+            <h2>Broker readiness</h2>
+            <p style="opacity:.65;font-size:.93rem;margin-top:-.25rem;">A funded broker account is required to participate in the mentorship programme.</p>
+            <label>Do you have a live broker account?
               <select name="brokerStatus" id="brokerStatusSelect">
                 <option value="">Select…</option>
                 <option value="yes_verified">Yes — verified and funded</option>
@@ -221,18 +232,18 @@
             </label>
 
             <div class="broker-guide" id="brokerGuide">
-              <h3>How to open your XM account</h3>
+              <h3>How to open your broker account</h3>
               <ol>
-                <li>Visit XM using the mentor's referral link — check your welcome message or the <a href="xm.html">XM Setup guide</a> on this site.</li>
+                <li>Visit the broker's official website using the link provided by your mentor.</li>
                 <li>Click <strong>Open Live Account</strong> and complete the registration form with your personal details.</li>
-                <li>Upload your ID document and proof of address for KYC verification.</li>
-                <li>Wait for account approval — typically 1 – 2 business days.</li>
+                <li>Upload your ID document and proof of address for verification.</li>
+                <li>Wait for account approval — this usually takes 1 – 2 business days.</li>
                 <li>Make your first deposit and ensure the account is funded before your first session.</li>
               </ol>
-              <p class="guide-note">Your mentor will share the exact referral link, recommended account type, and minimum deposit in your welcome message.</p>
+              <p class="guide-note">Your mentor will share the exact broker link, recommended account type, and minimum deposit in your welcome message. For more detail, see the <a href="broker.html">Broker Setup guide</a>.</p>
             </div>
 
-            <label>XM account ID (if you have one)
+            <label>Broker account ID (if you have one)
               <input type="text" name="brokerId" placeholder="Optional — enter if already opened" />
             </label>
           </div>
@@ -244,16 +255,16 @@
 
             <div class="review-box" style="margin-bottom:1.25rem;">
               <strong>What happens after you submit</strong>
-              <p>The Traders Confidence team will review your application, confirm your details, and activate your portal access. You will receive an email confirmation with your login link and your first class schedule.</p>
+              <p>The KaiTrades team will review your application, confirm your details, and activate your portal access. You will receive an email confirmation with your login link and your first class schedule.</p>
             </div>
 
             <div class="disclaimer-card">
               <strong>⚠ Important — please read before submitting</strong>
               <p>
                 Trading financial instruments involves substantial risk of loss and is not suitable for all investors.
-                Past performance is not indicative of future results. All content provided through the Traders Confidence
-                programme is strictly educational and does not constitute financial advice. You are solely responsible
-                for any trading decisions you make.
+                Past performance is not indicative of future results. All content provided through the KaiTrades programme
+                is strictly educational and does not constitute financial advice. You are solely responsible for any
+                trading decisions you make.
               </p>
             </div>
 
@@ -270,12 +281,12 @@
           </div>
         </form>
 
-        <!-- Confirmation screen -->
+        <!-- Confirmation screen (shown after submit) -->
         <div class="signup-confirmation" id="signupConfirmation">
           <div class="confirm-icon">✓</div>
           <h2>Application submitted!</h2>
           <p>
-            Thank you for applying to Traders Confidence. The team will review your details,
+            Thank you for applying to KaiTrades. The team will review your details,
             verify your information, and activate your student portal access.<br /><br />
             Keep an eye on your inbox — you'll receive a confirmation email once
             your account is approved and ready to use.
@@ -286,8 +297,8 @@
     </main>
 
     <footer class="site-footer">
-      <div><img src="assets/tc-logo.png" alt="" /><strong>Traders Confidence</strong></div>
-      <p>Trading involves risk. Educational content and signals are not financial advice.</p>
+      <div><img src="assets/kaitrades-logo.svg" alt="" /><strong>KaiTrades</strong></div>
+      <p>Trading involves risk. Student applications are reviewed before portal activation.</p>
       <nav>
         <a href="index.html">Home</a>
         <a href="about.html">About</a>
@@ -296,15 +307,17 @@
         <a href="events.html">Events</a>
         <a href="signup.html">Sign Up</a>
         <a href="login.html">Login</a>
-        <a href="xm.html">XM Setup</a>
+        <a href="broker.html">Broker Setup</a>
       </nav>
     </footer>
     <script src="app.js"></script>
     <script>
+      // Approved banner — shown when URL contains ?approved=1
       if (new URLSearchParams(window.location.search).get("approved") === "1") {
         document.getElementById("approvedBanner").classList.add("is-visible");
       }
 
+      // Broker guide — show/hide based on select value
       const brokerSelect = document.getElementById("brokerStatusSelect");
       const brokerGuide  = document.getElementById("brokerGuide");
       if (brokerSelect && brokerGuide) {
@@ -313,6 +326,7 @@
         });
       }
 
+      // Submit → show confirmation, hide form
       const form         = document.getElementById("onboardingForm");
       const confirmation = document.getElementById("signupConfirmation");
       if (form && confirmation) {
