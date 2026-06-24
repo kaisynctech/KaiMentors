@@ -1,15 +1,22 @@
-import Link from "next/link";
 import {
   AlertCircle,
+  BookOpen,
   CheckCircle2,
   Clock3,
-  LockKeyhole,
-  SearchCheck,
+  ExternalLink,
+  Video,
 } from "lucide-react";
-import { BrandMark } from "@/components/brand-mark";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { BrokerGuideCard } from "@/components/broker-guide-card";
+import { StudentShell } from "@/components/student-shell";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./student.module.css";
+
+export const dynamic = "force-dynamic";
 
 interface StudentPageProps {
   searchParams?: Promise<{ portal?: string }>;
@@ -17,123 +24,389 @@ interface StudentPageProps {
 
 export default async function StudentPage({ searchParams }: StudentPageProps) {
   const query = await searchParams;
-  const academyContext = await getStudentAcademyContext(query?.portal);
-  const studentBasePath = academyContext.basePath;
+  const academy = await getStudentAcademyContext(query?.portal);
+  const { basePath, querySuffix } = academy;
+
   const supabase = await createClient();
-  const { data: userData } = supabase
-    ? await supabase.auth.getUser()
-    : { data: { user: null } };
+  if (!supabase) redirect(`${basePath}/login${querySuffix}`);
 
-  let applicationQuery =
-    supabase && userData.user
-      ? supabase
-          .from("student_applications")
-          .select("status,status_reason,submitted_at,portal_id,portal:portals!inner(portal_name,slug)")
-          .eq("student_user_id", userData.user.id)
-      : null;
-  if (applicationQuery && academyContext.portalId) {
-    applicationQuery = applicationQuery.eq("portal_id", academyContext.portalId);
-  }
-  if (applicationQuery && academyContext.portalSlug) {
-    applicationQuery = applicationQuery.eq("portal.slug", academyContext.portalSlug);
-  }
-  const { data: application } = applicationQuery
-    ? await applicationQuery
-        .order("submitted_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-    : { data: null };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`${basePath}/login${querySuffix}`);
 
-  const verified = application?.status === "verified";
-  const rejected = application?.status === "rejected";
-  const needsMoreInformation =
-    application?.status === "needs_more_information";
-  const portal = Array.isArray(application?.portal)
+  // Application query — any status (dashboard is the status hub)
+  let appQuery = supabase
+    .from("student_applications")
+    .select(
+      "id,trader_id,status,status_reason,portal_id,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path)",
+    )
+    .eq("student_user_id", user.id);
+  if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
+  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
+
+  const { data: application } = await appQuery
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!application) redirect(`${basePath}/join-academy${querySuffix}`);
+
+  const portal = Array.isArray(application.portal)
     ? application.portal[0]
-    : application?.portal;
-  const brandLabel =
-    studentBasePath === "/academy"
-      ? portal?.portal_name ?? "Academy"
+    : application.portal;
+
+  const academyName =
+    basePath === "/academy"
+      ? (portal?.portal_name ?? "Academy")
       : "KaiMentors";
-  const suffix = academyContext.querySuffix;
-  const pendingReview =
-    application?.status === "pending" || application?.status === "manual_review";
-  const processing = application?.status === "processing";
+
+  const displayName = user.email?.split("@")[0] ?? "Student";
+  const status = application.status;
+  const isVerified = status === "verified";
+
+  // Fetch broker guide via SECURITY DEFINER RPC
+  const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
+    p_portal_id: application.portal_id,
+  });
+  const brokerGuide = Array.isArray(guideRows) ? guideRows[0] ?? null : null;
+
+  // Dashboard data — only for verified students
+  let lessonProgress: Array<{
+    course_id: string;
+    lesson_id: string;
+    is_started: boolean;
+    is_completed: boolean;
+    last_activity_at: string | null;
+    lesson: { title: string; module_id: string | null } | null;
+    course: { title: string; cover_path: string | null } | null;
+  }> = [];
+  let nextLiveClass: {
+    id: string;
+    title: string;
+    description: string | null;
+    starts_at: string;
+    ends_at: string | null;
+    join_url: string;
+  } | null = null;
+  let announcements: Array<{
+    id: string;
+    title: string;
+    body: string;
+    is_pinned: boolean;
+    published_at: string | null;
+  }> = [];
+  let courseCount = 0;
+
+  if (isVerified) {
+    const now = new Date().toISOString();
+    const [progressResult, liveResult, announcementsResult, coursesResult] =
+      await Promise.all([
+        supabase
+          .from("lesson_progress")
+          .select(
+            "course_id,lesson_id,is_started,is_completed,last_activity_at,lesson:lessons(title,module_id),course:courses(title,cover_path)",
+          )
+          .eq("trader_id", application.trader_id)
+          .eq("student_user_id", user.id)
+          .order("last_activity_at", { ascending: false })
+          .limit(10),
+        supabase
+          .from("live_classes")
+          .select("id,title,description,starts_at,ends_at,join_url")
+          .eq("trader_id", application.trader_id)
+          .eq("status", "published")
+          .gte("starts_at", now)
+          .order("starts_at")
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("announcements")
+          .select("id,title,body,is_pinned,published_at")
+          .eq("trader_id", application.trader_id)
+          .eq("status", "published")
+          .order("is_pinned", { ascending: false })
+          .order("published_at", { ascending: false })
+          .limit(3),
+        supabase
+          .from("courses")
+          .select("id", { count: "exact", head: true })
+          .eq("trader_id", application.trader_id)
+          .eq("status", "published"),
+      ]);
+
+    lessonProgress = (progressResult.data ?? []) as unknown as typeof lessonProgress;
+    nextLiveClass = liveResult.data as {
+      id: string;
+      title: string;
+      description: string | null;
+      starts_at: string;
+      ends_at: string | null;
+      join_url: string;
+    } | null;
+    announcements = announcementsResult.data ?? [];
+    courseCount = coursesResult.count ?? 0;
+  }
+
+  const continueLearning = lessonProgress.find(
+    (p) => p.is_started && !p.is_completed,
+  ) ?? null;
+
+  const lessonsCompleted = lessonProgress.filter((p) => p.is_completed).length;
+
+  // Signed URL for continue-learning thumbnail
+  let continueThumbnailUrl: string | null = null;
+  if (continueLearning?.course?.cover_path) {
+    const admin = createAdminClient();
+    if (admin) {
+      const { data: signed } = await admin.storage
+        .from("course-content")
+        .createSignedUrl(continueLearning.course.cover_path, 300);
+      continueThumbnailUrl = signed?.signedUrl ?? null;
+    }
+  }
+
+  // Status display
+  const statusConfig = {
+    pending: {
+      icon: <Clock3 size={22} />,
+      iconClass: styles.statusIconPending,
+      title: "Your academy access is being reviewed.",
+      body: "We'll notify you once your broker account has been verified.",
+    },
+    processing: {
+      icon: <Clock3 size={22} />,
+      iconClass: styles.statusIconPending,
+      title: "We're checking your verification details.",
+      body: "This usually completes within a few minutes.",
+    },
+    manual_review: {
+      icon: <AlertCircle size={22} />,
+      iconClass: styles.statusIconInfo,
+      title: "More information is needed.",
+      body:
+        application.status_reason ??
+        "Your mentor has requested additional details before approving your access.",
+    },
+    rejected: {
+      icon: <AlertCircle size={22} />,
+      iconClass: styles.statusIconRejected,
+      title: "Your application could not be approved.",
+      body:
+        application.status_reason ??
+        "Please contact the academy for support.",
+    },
+    verified: {
+      icon: <CheckCircle2 size={22} />,
+      iconClass: styles.statusIconVerified,
+      title: "You have full academy access.",
+      body: `Welcome to ${portal?.portal_name ?? "your mentor academy"}.`,
+    },
+    processing_default: {
+      icon: <Clock3 size={22} />,
+      iconClass: styles.statusIconPending,
+      title: "Your application is under review.",
+      body: "We'll notify you once your access is ready.",
+    },
+  } as const;
+
+  const statusDisplay =
+    statusConfig[status as keyof typeof statusConfig] ??
+    statusConfig.processing_default;
 
   return (
-    <main className={styles.page}>
-      <nav className={styles.nav}>
-        <BrandMark href={`${studentBasePath}${suffix}`} label={brandLabel} />
-        <Link href="/auth/signout">Sign out</Link>
-      </nav>
-      <section className={styles.card}>
-        <div className={verified ? styles.successIcon : styles.pendingIcon}>
-          {verified ? (
-            <CheckCircle2 size={30} />
-          ) : rejected || needsMoreInformation ? (
-            <AlertCircle size={30} />
-          ) : (
-            <Clock3 size={30} />
-          )}
+    <StudentShell
+      academyName={academyName}
+      basePath={basePath}
+      displayName={displayName}
+      isVerified={isVerified}
+      logoPath={portal?.logo_path ?? null}
+      querySuffix={querySuffix}
+    >
+      <div className={styles.dashboard}>
+        <div className={styles.pageHeader}>
+          <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+          <h1>Dashboard</h1>
         </div>
-        <p className="eyebrow">Student access</p>
-        <h1>
-          {verified
-            ? "You're approved. You can now access your academy."
-            : rejected
-              ? "Your application could not be approved."
-              : needsMoreInformation
-                ? "More information is needed before your access can be approved."
-                : processing
-                  ? "We're checking your verification details."
-                  : pendingReview
-                    ? "Your academy access is being reviewed."
-                    : "Your academy access is being reviewed."}
-        </h1>
-        <p className={styles.lead}>
-          {verified
-            ? `You can now enter ${portal?.portal_name ?? "your mentor portal"}.`
-            : rejected
-              ? application?.status_reason ??
-                "Your application could not be approved. Please contact the academy for support."
-              : needsMoreInformation
-                ? application?.status_reason ??
-                  "More information is needed before your access can be approved."
-                : processing
-                  ? "We're checking your verification details."
-                  : "Your academy access is being reviewed."}
-        </p>
-        <div className={styles.timeline}>
-          <div className={styles.complete}>
-            <CheckCircle2 size={18} />
-            <span><strong>Application submitted</strong><small>Your student account is active.</small></span>
+
+        {/* Status card */}
+        <div className={styles.statusCard}>
+          <div className={`${styles.statusIcon} ${statusDisplay.iconClass}`}>
+            {statusDisplay.icon}
           </div>
-          <div className={verified ? styles.complete : styles.current}>
-            <SearchCheck size={18} />
-            <span><strong>Broker verification</strong><small>Status: {application?.status?.replace(/_/g, " ") ?? "pending"}</small></span>
-          </div>
-          <div className={verified ? styles.complete : ""}>
-            <LockKeyhole size={18} />
-            <span><strong>Private portal access</strong><small>{verified ? "Unlocked" : "Waiting for verification"}</small></span>
+          <div>
+            <p className={styles.statusTitle}>{statusDisplay.title}</p>
+            <p className={styles.statusBody}>{statusDisplay.body}</p>
           </div>
         </div>
-        {verified && portal?.slug ? (
+
+        {/* Verified dashboard sections */}
+        {isVerified ? (
           <>
-            <Link className="button button-primary" href={`${studentBasePath}/courses${suffix}`}>
-              View video courses
-            </Link>
-            <Link className="button button-secondary" href={`${studentBasePath}/messages${suffix}`}>
-              Open academy messages
-            </Link>
-            <Link
-              className="button button-secondary"
-              href={studentBasePath === "/academy" ? "/" : `/portal/${portal.slug}`}
-            >
-              Enter mentor portal
-            </Link>
+            {/* Stat cards */}
+            <div className={styles.statsRow}>
+              <div className={styles.statCard}>
+                <p className={styles.statValue}>{courseCount}</p>
+                <p className={styles.statLabel}>Courses available</p>
+              </div>
+              <div className={styles.statCard}>
+                <p className={styles.statValue}>{lessonsCompleted}</p>
+                <p className={styles.statLabel}>Lessons completed</p>
+              </div>
+              <div className={styles.statCard}>
+                <p className={styles.statValue}>{announcements.length}</p>
+                <p className={styles.statLabel}>Announcements</p>
+              </div>
+            </div>
+
+            {/* Continue learning */}
+            {continueLearning ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <h2>Continue learning</h2>
+                  <Link
+                    className={styles.sectionLink}
+                    href={`${basePath}/courses${querySuffix}`}
+                  >
+                    All courses →
+                  </Link>
+                </div>
+                <Link
+                  className={styles.continueCard}
+                  href={`${basePath}/courses/${continueLearning.course_id}/lessons/${continueLearning.lesson_id}${querySuffix}`}
+                >
+                  <div className={styles.continueThumbnail}>
+                    {continueThumbnailUrl ? (
+                      <Image
+                        alt=""
+                        fill
+                        sizes="80px"
+                        src={continueThumbnailUrl}
+                        unoptimized
+                      />
+                    ) : (
+                      <BookOpen size={24} />
+                    )}
+                  </div>
+                  <div className={styles.continueBody}>
+                    <p className={styles.continueCourseName}>
+                      {continueLearning.course?.title ?? "Course"}
+                    </p>
+                    <p className={styles.continueLessonTitle}>
+                      {(continueLearning.lesson as { title?: string } | null)?.title ??
+                        "Continue learning"}
+                    </p>
+                    <div className={styles.progressBar}>
+                      <div
+                        className={styles.progressFill}
+                        style={{ width: `${Math.min(100, (lessonsCompleted / Math.max(lessonProgress.length, 1)) * 100)}%` }}
+                      />
+                    </div>
+                    <p className={styles.progressLabel}>
+                      {lessonsCompleted} lesson{lessonsCompleted === 1 ? "" : "s"} completed
+                    </p>
+                  </div>
+                </Link>
+              </section>
+            ) : null}
+
+            {/* Next live class */}
+            {nextLiveClass ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <h2>Next live class</h2>
+                  <Link
+                    className={styles.sectionLink}
+                    href={`${basePath}/live-classes${querySuffix}`}
+                  >
+                    View all →
+                  </Link>
+                </div>
+                <div className={styles.liveCard}>
+                  <div className={styles.liveTimeBadge}>
+                    <span className={styles.liveTimeDay}>
+                      {new Date(nextLiveClass.starts_at).toLocaleDateString(
+                        undefined,
+                        { weekday: "short" },
+                      )}
+                    </span>
+                    <span className={styles.liveTimeHour}>
+                      {new Date(nextLiveClass.starts_at).toLocaleTimeString(
+                        undefined,
+                        { hour: "2-digit", minute: "2-digit", hour12: false },
+                      )}
+                    </span>
+                  </div>
+                  <div className={styles.liveBody}>
+                    <p className={styles.liveTitle}>{nextLiveClass.title}</p>
+                    <p className={styles.liveMeta}>
+                      {new Date(nextLiveClass.starts_at).toLocaleDateString(
+                        undefined,
+                        { dateStyle: "long" },
+                      )}
+                      {nextLiveClass.ends_at
+                        ? ` · ends ${new Date(nextLiveClass.ends_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })}`
+                        : ""}
+                    </p>
+                  </div>
+                  <a
+                    className={styles.liveJoin}
+                    href={nextLiveClass.join_url}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <Video size={14} />
+                    Join
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+              </section>
+            ) : null}
+
+            {/* Announcements */}
+            {announcements.length > 0 ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <h2>Announcements</h2>
+                </div>
+                <div className={styles.announcementList}>
+                  {announcements.map((a) => (
+                    <div
+                      className={`${styles.announcement} ${a.is_pinned ? styles.announcementPinned : ""}`}
+                      key={a.id}
+                    >
+                      <p className={styles.announcementTitle}>{a.title}</p>
+                      <p className={styles.announcementBody}>{a.body}</p>
+                      {a.published_at ? (
+                        <p className={styles.announcementDate}>
+                          {new Date(a.published_at).toLocaleDateString(
+                            undefined,
+                            { dateStyle: "medium" },
+                          )}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </>
         ) : null}
-      </section>
-    </main>
+
+        {/* Broker guide — always visible when application exists */}
+        {brokerGuide ? (
+          <BrokerGuideCard
+            affiliateLink={brokerGuide.affiliate_link}
+            applicationStatus={status}
+            currentScreenshotPath={application.verification_screenshot_path ?? null}
+            portalId={application.portal_id}
+            studentUserId={user.id}
+            traderId={application.trader_id}
+            verificationInstructions={brokerGuide.verification_instructions}
+            verificationMethod={brokerGuide.verification_method}
+          />
+        ) : null}
+      </div>
+    </StudentShell>
   );
 }

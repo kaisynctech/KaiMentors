@@ -53,7 +53,10 @@
 }
 
 .formCard input,
-.formCard select {
+.formCard select,
+.formCard textarea,
+.editForm input,
+.editForm textarea {
   width: 100%;
   min-height: 46px;
   border: 1px solid #dce1e4;
@@ -64,8 +67,21 @@
   background: white;
 }
 
+.formCard textarea,
+.editForm textarea {
+  min-height: 96px;
+  padding: 11px 13px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .formCard input:focus,
-.formCard select:focus {
+.formCard select:focus,
+.formCard textarea:focus,
+.editForm input:focus,
+.editForm textarea:focus {
   border-color: #8d959b;
   box-shadow: 0 0 0 3px rgba(17, 19, 21, 0.06);
 }
@@ -229,12 +245,92 @@
   font-size: 11px;
 }
 
+.accountActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .toggle {
   min-height: 38px;
   border: 1px solid #dce1e4;
   padding: 0 13px;
   background: white;
   font-size: 11px;
+}
+
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid #dce1e4;
+  border-radius: 11px;
+  padding: 0 13px;
+  background: white;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #343a3f;
+}
+
+.editBtn:hover {
+  border-color: #8d959b;
+}
+
+.editForm {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #dce1e4;
+}
+
+.editForm label {
+  display: grid;
+  gap: 7px;
+  color: #343a3f;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.editActions {
+  display: flex;
+  gap: 10px;
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  background: #111315;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.cancelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+  padding: 0 16px;
+  background: white;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #343a3f;
 }
 
 .empty {

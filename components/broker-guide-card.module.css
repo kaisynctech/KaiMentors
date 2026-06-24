@@ -1,0 +1,101 @@
+.card {
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: white;
+  margin-top: 24px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.methodRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f6f7f8;
+  margin-bottom: 16px;
+}
+
+.methodIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eef8e8;
+  color: #3a6a1a;
+  flex-shrink: 0;
+}
+
+.methodLabel {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 2px;
+}
+
+.methodName {
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.instructions {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f9fbf7;
+  border: 1px solid #d8ecc8;
+  margin-bottom: 18px;
+}
+
+.instructionsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5a8a3a;
+  margin: 0 0 8px;
+}
+
+.instructionsText {
+  font-size: 13px;
+  color: #3a4a2e;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.affiliateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  background: var(--foreground);
+  color: white;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: opacity 0.12s;
+  width: fit-content;
+  min-height: 44px;
+}
+
+.affiliateBtn:hover {
+  opacity: 0.85;
+}

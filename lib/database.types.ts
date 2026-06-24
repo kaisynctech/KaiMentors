@@ -56,3 +56,10 @@ export interface PublicBrokerOption {
   affiliate_link: string | null;
   verification_method: VerificationMethod;
 }
+
+export interface StudentBrokerGuide {
+  id: string;
+  affiliate_link: string | null;
+  verification_method: VerificationMethod;
+  verification_instructions: string | null;
+}

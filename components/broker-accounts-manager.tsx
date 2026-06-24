@@ -7,7 +7,9 @@ import {
   CheckCircle2,
   ExternalLink,
   Loader2,
+  Pencil,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { VerificationMethod } from "@/lib/database.types";
@@ -18,6 +20,7 @@ interface BrokerAccount {
   partner_code: string;
   affiliate_link: string | null;
   verification_method: VerificationMethod;
+  verification_instructions: string | null;
   is_active: boolean;
   broker: { name: string } | null;
 }
@@ -38,6 +41,12 @@ const methodIcons = {
   screenshot_upload: Camera,
 };
 
+interface EditState {
+  partnerCode: string;
+  affiliateLink: string;
+  verificationInstructions: string;
+}
+
 export function BrokerAccountsManager({
   accounts,
 }: BrokerAccountsManagerProps) {
@@ -47,6 +56,12 @@ export function BrokerAccountsManager({
   );
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editState, setEditState] = useState<EditState>({
+    partnerCode: "",
+    affiliateLink: "",
+    verificationInstructions: "",
+  });
 
   async function addBroker(formData: FormData) {
     setState("saving");
@@ -62,7 +77,6 @@ export function BrokerAccountsManager({
       setMessage(payload.error ?? "The broker account could not be saved.");
       return;
     }
-
     setState("success");
     setMessage("Broker account connected.");
     router.refresh();
@@ -85,6 +99,42 @@ export function BrokerAccountsManager({
     }
     setState("success");
     setMessage(isActive ? "Broker account enabled." : "Broker account paused.");
+    router.refresh();
+  }
+
+  function openEdit(account: BrokerAccount) {
+    setEditingId(account.id);
+    setEditState({
+      partnerCode: account.partner_code,
+      affiliateLink: account.affiliate_link ?? "",
+      verificationInstructions: account.verification_instructions ?? "",
+    });
+  }
+
+  async function saveEdit(accountId: string) {
+    setUpdatingId(accountId);
+    setMessage("");
+    const response = await fetch("/api/brokers/accounts", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        accountId,
+        partnerCode: editState.partnerCode,
+        affiliateLink: editState.affiliateLink || null,
+        verificationInstructions:
+          editState.verificationInstructions || null,
+      }),
+    });
+    const payload = await response.json();
+    setUpdatingId(null);
+    if (!response.ok) {
+      setState("error");
+      setMessage(payload.error ?? "The broker account could not be updated.");
+      return;
+    }
+    setState("success");
+    setMessage("Broker account updated.");
+    setEditingId(null);
     router.refresh();
   }
 
@@ -136,6 +186,15 @@ export function BrokerAccountsManager({
               <option value="screenshot_upload">Screenshot upload</option>
             </select>
           </label>
+          <label>
+            Verification instructions
+            <textarea
+              maxLength={2000}
+              name="verificationInstructions"
+              placeholder="Write step-by-step instructions for your students to verify their broker account. Students will see this in their portal."
+              rows={4}
+            />
+          </label>
           <div className={styles.methodNote}>
             <ShieldCheck size={17} />
             API verification uses the existing server-side adapter layer.
@@ -160,13 +219,16 @@ export function BrokerAccountsManager({
         <div className={styles.listHeading}>
           <div>
             <span>Connected brokers</span>
-            <h2>{accounts.length} account{accounts.length === 1 ? "" : "s"}</h2>
+            <h2>
+              {accounts.length} account{accounts.length === 1 ? "" : "s"}
+            </h2>
           </div>
         </div>
         {accounts.length ? (
           <div className={styles.list}>
             {accounts.map((account) => {
               const Icon = methodIcons[account.verification_method];
+              const isEditing = editingId === account.id;
               return (
                 <article className={styles.account} key={account.id}>
                   <div className={styles.accountTop}>
@@ -208,17 +270,101 @@ export function BrokerAccountsManager({
                       </a>
                     ) : null}
                   </div>
-                  <button
-                    className={styles.toggle}
-                    disabled={updatingId === account.id}
-                    onClick={() => setActive(account.id, !account.is_active)}
-                    type="button"
-                  >
-                    {updatingId === account.id ? (
-                      <Loader2 className={styles.spin} size={16} />
-                    ) : null}
-                    {account.is_active ? "Pause account" : "Enable account"}
-                  </button>
+
+                  {/* Inline edit form */}
+                  {isEditing ? (
+                    <div className={styles.editForm}>
+                      <label>
+                        Partner code
+                        <input
+                          maxLength={160}
+                          onChange={(e) =>
+                            setEditState((s) => ({
+                              ...s,
+                              partnerCode: e.target.value,
+                            }))
+                          }
+                          required
+                          value={editState.partnerCode}
+                        />
+                      </label>
+                      <label>
+                        Affiliate link
+                        <input
+                          maxLength={1000}
+                          onChange={(e) =>
+                            setEditState((s) => ({
+                              ...s,
+                              affiliateLink: e.target.value,
+                            }))
+                          }
+                          placeholder="https://broker.example/register?ref=..."
+                          type="url"
+                          value={editState.affiliateLink}
+                        />
+                      </label>
+                      <label>
+                        Verification instructions
+                        <textarea
+                          maxLength={2000}
+                          onChange={(e) =>
+                            setEditState((s) => ({
+                              ...s,
+                              verificationInstructions: e.target.value,
+                            }))
+                          }
+                          placeholder="Write step-by-step instructions for your students to verify their broker account. Students will see this in their portal."
+                          rows={4}
+                          value={editState.verificationInstructions}
+                        />
+                      </label>
+                      <div className={styles.editActions}>
+                        <button
+                          className={styles.saveBtn}
+                          disabled={updatingId === account.id}
+                          onClick={() => saveEdit(account.id)}
+                          type="button"
+                        >
+                          {updatingId === account.id ? (
+                            <Loader2 className={styles.spin} size={15} />
+                          ) : null}
+                          Save changes
+                        </button>
+                        <button
+                          className={styles.cancelBtn}
+                          onClick={() => setEditingId(null)}
+                          type="button"
+                        >
+                          <X size={15} />
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className={styles.accountActions}>
+                    <button
+                      className={styles.toggle}
+                      disabled={updatingId === account.id}
+                      onClick={() => setActive(account.id, !account.is_active)}
+                      type="button"
+                    >
+                      {updatingId === account.id && !isEditing ? (
+                        <Loader2 className={styles.spin} size={16} />
+                      ) : null}
+                      {account.is_active ? "Pause account" : "Enable account"}
+                    </button>
+                    <button
+                      className={styles.editBtn}
+                      onClick={() =>
+                        isEditing ? setEditingId(null) : openEdit(account)
+                      }
+                      type="button"
+                    >
+                      <Pencil size={14} />
+                      {isEditing ? "Close" : "Edit"}
+                    </button>
+                  </div>
                 </article>
               );
             })}

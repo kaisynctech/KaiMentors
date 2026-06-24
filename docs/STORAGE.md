@@ -44,6 +44,18 @@ Access: Owning students and tenant reviewers can read; students upload their own
 
 Used by: Student registration and review.
 
+#### Resubmission path
+
+When a student resubmits a screenshot (application in `manual_review` status), the client uploads directly to:
+
+```
+{trader_id}/{student_user_id}/resubmission/verification.{ext}
+```
+
+The upload uses `upsert: true` so repeated submissions overwrite the previous file at the same path. After a successful upload, the client calls `PATCH /api/student/verification-screenshot` to update `student_applications.verification_screenshot_path`. The API validates path ownership (segment 1 === user.id) and trader tenancy (segment 0 === application.trader_id) before writing.
+
+Storage policies for the resubmission path are applied in migration `202606240028` and use `storage.foldername(name)` array indexing to verify the bucket's path structure.
+
 ### `website-media`
 
 Purpose: Website Builder assets such as logos, hero images, template images, and page media.

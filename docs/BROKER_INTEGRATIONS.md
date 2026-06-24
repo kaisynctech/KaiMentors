@@ -61,6 +61,16 @@ Supported methods:
 4. Tenant reviewers and the owning student can access the proof under RLS/storage policies.
 5. Mentor reviews and updates status.
 
+### Resubmission (EP-014)
+
+When a student's application is in `manual_review` status and the broker's `verification_method` is `screenshot_upload`, the student portal dashboard shows a `VerificationScreenshotUpload` component. The client uploads to `{trader_id}/{student_user_id}/resubmission/verification.{ext}` (upsert), then calls `PATCH /api/student/verification-screenshot`. That route validates path ownership and tenant integrity before updating `student_applications.verification_screenshot_path` via admin client and emitting an audit log.
+
+## Verification Instructions (EP-014)
+
+`trader_broker_accounts.verification_instructions` (text, nullable) stores custom step-by-step guidance mentors want students to follow. Set via `PATCH /api/brokers/accounts` (extended in EP-014 alongside `affiliateLink` and `partnerCode`). Displayed to students in `BrokerGuideCard` inside the student portal dashboard. The field is returned by the `get_student_broker_guide` SECURITY DEFINER function (never `partner_code`).
+
+Last updated: 2026-06-24
+
 ## Security Rules
 
 - Broker APIs are never called from frontend code.

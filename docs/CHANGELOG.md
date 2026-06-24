@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-06-24 - Student Portal Redesign (EP-014)
+
+- **StudentShell**: persistent sidebar shell wrapping all student portal pages. Server component generates portal logo signed URL (1-hour expiry) from `portal-branding`; delegates nav/drawer/sign-out to `StudentShellClient`.
+- **ContentGate**: replaces redirect-on-unverified. Unverified students see a blurred placeholder and centred lock overlay with status-appropriate message (`pending`, `manual_review`, `processing`, `rejected`). Applied to Courses, Live Classes, Groups, Messages.
+- **Student dashboard (`/student`) rewrite**: status card (shows `manual_review` as "More information is needed.", never "being reviewed"), stats row (course count, lessons completed), continue-learning section, next live class card, announcements list, broker guide card.
+- **New pages**: `/student/live-classes` (upcoming + past live classes with join links), `/student/groups` (student group memberships with color dots).
+- **BrokerGuideCard**: displays `verification_method`, `verification_instructions`, and affiliate link from `get_student_broker_guide` SECURITY DEFINER RPC — never `partner_code`. Shows `VerificationScreenshotUpload` when `verification_method = 'screenshot_upload'` and application is in `manual_review`.
+- **VerificationScreenshotUpload**: client component. JPEG/PNG/WebP, max 10 MB. Uploads to `verification-proofs` at `{trader_id}/{student_user_id}/resubmission/verification.{ext}` (upsert). Calls `PATCH /api/student/verification-screenshot`.
+- **`PATCH /api/student/verification-screenshot`**: new route. Validates path regex, path ownership (segment 1 === user.id), application eligibility (manual_review only), tenant integrity (application.trader_id === path segment 0). Admin-client write; emits `student.verification_screenshot.submitted` audit log.
+- **`PATCH /api/brokers/accounts` extended**: accepts `verificationInstructions`, `affiliateLink`, `partnerCode` as optional update fields. Dynamic `updatePayload` only writes supplied fields. Audit log emitted when `verificationInstructions` changes.
+- **Broker accounts manager extended**: inline edit form per account card (partner code, affiliate link, verification instructions). `saveEdit()` calls the extended PATCH endpoint.
+- **`get_student_broker_guide` SECURITY DEFINER function**: returns `id`, `affiliate_link`, `verification_method`, `verification_instructions` — never `partner_code`. Added in migration `202606240028`.
+- **Migration `202606240028_student_portal_schema.sql`**: adds `verification_instructions text` to `trader_broker_accounts`, `verification_screenshot_path text` to `student_applications`, creates `get_student_broker_guide`, adds 3 storage policies for the resubmission path in `verification-proofs`.
+- `npm run typecheck`, `npm run build`, and all 44 tests pass.
+
 ## 2026-06-24 - Student Onboarding 4-Step Flow
 
 - Replaced the single-page `StudentRegistrationForm` with a 4-step multi-step form: Profile → Experience → Broker → Review.

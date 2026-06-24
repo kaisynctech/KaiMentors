@@ -25,7 +25,7 @@ export default async function BrokerAccountsPage() {
   const { data } = await supabase
     .from("trader_broker_accounts")
     .select(
-      "id,partner_code,affiliate_link,verification_method,is_active,broker:brokers(name)",
+      "id,partner_code,affiliate_link,verification_method,verification_instructions,is_active,broker:brokers(name)",
     )
     .eq("trader_id", membership.trader_id)
     .order("created_at", { ascending: false });
@@ -34,6 +34,9 @@ export default async function BrokerAccountsPage() {
     ...account,
     verification_method:
       account.verification_method as VerificationMethod,
+    verification_instructions:
+      (account as { verification_instructions?: string | null })
+        .verification_instructions ?? null,
     broker: Array.isArray(account.broker)
       ? account.broker[0] ?? null
       : account.broker,

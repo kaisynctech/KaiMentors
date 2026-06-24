@@ -1,11 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BrandMark } from "@/components/brand-mark";
+import { ContentGate } from "@/components/content-gate";
 import { MessagesWorkspace } from "@/components/messages-workspace";
+import { StudentShell } from "@/components/student-shell";
 import { loadConversationWorkspace } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./messages.module.css";
+
+export const dynamic = "force-dynamic";
 
 interface StudentMessagesPageProps {
   searchParams?: Promise<{ portal?: string }>;
@@ -16,67 +18,107 @@ export default async function StudentMessagesPage({
 }: StudentMessagesPageProps) {
   const query = await searchParams;
   const academyContext = await getStudentAcademyContext(query?.portal);
-  const studentBasePath = academyContext.basePath;
+  const { basePath, querySuffix: suffix } = academyContext;
+
   const supabase = await createClient();
-  if (!supabase) redirect("/login");
+  if (!supabase) redirect(`${basePath}/login${suffix}`);
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`${basePath}/login${suffix}`);
 
+  // Fetch application — any status
   let applicationQuery = supabase
     .from("student_applications")
-    .select("trader_id,status,portal_id,portal:portals!inner(portal_name,slug)")
-    .eq("student_user_id", user.id)
-    .eq("status", "verified");
+    .select(
+      "id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)",
+    )
+    .eq("student_user_id", user.id);
   if (academyContext.portalId) {
     applicationQuery = applicationQuery.eq("portal_id", academyContext.portalId);
   }
   if (academyContext.portalSlug) {
-    applicationQuery = applicationQuery.eq("portal.slug", academyContext.portalSlug);
+    applicationQuery = applicationQuery.eq(
+      "portal.slug",
+      academyContext.portalSlug,
+    );
   }
   const { data: application } = await applicationQuery
-    .order("verified_at", { ascending: false })
+    .order("submitted_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!application) redirect(`${studentBasePath}${academyContext.querySuffix}`);
 
+  if (!application) redirect(`${basePath}/join-academy${suffix}`);
+
+  const portal = Array.isArray(application.portal)
+    ? application.portal[0]
+    : application.portal;
+  const academyName =
+    basePath === "/academy"
+      ? (portal?.portal_name ?? "Academy")
+      : "KaiMentors";
+  const displayName = user.email?.split("@")[0] ?? "Student";
+  const isVerified = application.status === "verified";
+
+  function Shell({ children }: { children: React.ReactNode }) {
+    return (
+      <StudentShell
+        academyName={academyName}
+        basePath={basePath}
+        displayName={displayName}
+        isVerified={isVerified}
+        logoPath={portal?.logo_path ?? null}
+        querySuffix={suffix}
+      >
+        {children}
+      </StudentShell>
+    );
+  }
+
+  // Unverified — ContentGate
+  if (!isVerified) {
+    return (
+      <Shell>
+        <div className={styles.page}>
+          <header className={styles.header}>
+            <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+            <h1>Academy messages.</h1>
+            <p>Private support, group conversations, and mentor announcements.</p>
+          </header>
+          <ContentGate
+            applicationStatus={application.status}
+            returnPath={`${basePath}${suffix}`}
+          />
+        </div>
+      </Shell>
+    );
+  }
+
+  // Verified — full messages
   const { conversations } = await loadConversationWorkspace(
     supabase,
     user.id,
     application.trader_id,
   );
-  const portal = Array.isArray(application.portal)
-    ? application.portal[0]
-    : application.portal;
-  const brandLabel =
-    studentBasePath === "/academy"
-      ? portal?.portal_name ?? "Academy"
-      : "KaiMentors";
-  const suffix = academyContext.querySuffix;
 
   return (
-    <main className={styles.page}>
-      <nav className={styles.nav}>
-        <BrandMark href={`${studentBasePath}${suffix}`} label={brandLabel} />
-        <div>
-          <Link href={`${studentBasePath}/courses${suffix}`}>Courses</Link>
-          <Link href={`${studentBasePath}${suffix}`}>Access status</Link>
-          <Link href="/auth/signout">Sign out</Link>
-        </div>
-      </nav>
-      <header className={styles.header}>
-        <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
-        <h1>Your academy messages.</h1>
-        <p>Private support, group conversations, and mentor announcements.</p>
-      </header>
-      <MessagesWorkspace
-        conversations={conversations}
-        mode="student"
-        students={[]}
-        traderId={application.trader_id}
-        userId={user.id}
-      />
-    </main>
+    <Shell>
+      <main className={styles.page}>
+        <header className={styles.header}>
+          <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+          <h1>Your academy messages.</h1>
+          <p>
+            Private support, group conversations, and mentor announcements.
+          </p>
+        </header>
+        <MessagesWorkspace
+          conversations={conversations}
+          mode="student"
+          students={[]}
+          traderId={application.trader_id}
+          userId={user.id}
+        />
+      </main>
+    </Shell>
   );
 }
