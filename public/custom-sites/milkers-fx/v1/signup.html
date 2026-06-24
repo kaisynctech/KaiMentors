@@ -1,4 +1,328 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Student Sign Up | Milkers Fx</title><link rel="stylesheet" href="styles.css" /></head><body>
-<header class="site-header" data-header><a class="brand" href="index.html"><span class="brand-mark">MF</span><span><strong>Milkers Fx</strong><small>Student Onboarding</small></span></a><button class="nav-toggle" data-nav-toggle aria-label="Open navigation" aria-expanded="false"><span></span><span></span><span></span></button><nav class="site-nav" data-nav><a href="index.html">Home</a><a href="about.html">About</a><a href="signals.html">Signals</a><a href="mentorship.html">Mentorship</a><a href="events.html">Events</a><a href="xm.html">Open XM</a><a href="signup.html" aria-current="page">Sign Up</a><a class="nav-login" href="login.html">Login</a></nav></header>
-<main><section class="signup-hero"><p class="eyebrow">New Student Portal</p><h1>Apply, onboard and prepare your trading plan.</h1><p>Complete your profile, trading level, preferred program and XM readiness.</p></section><section class="section onboarding-shell"><aside class="onboarding-sidebar"><span class="brand-mark">MF</span><div class="mini-chart"><span class="candle down" style="--h:48%;--y:30%;--x:8%"></span><span class="candle up" style="--h:70%;--y:12%;--x:20%"></span><span class="candle up" style="--h:52%;--y:24%;--x:32%"></span><span class="candle down" style="--h:66%;--y:18%;--x:44%"></span><span class="candle up" style="--h:84%;--y:4%;--x:56%"></span><span class="candle down" style="--h:42%;--y:34%;--x:68%"></span><span class="candle up" style="--h:62%;--y:16%;--x:80%"></span><span class="candle up" style="--h:76%;--y:8%;--x:92%"></span></div><ol class="step-list" data-step-list><li class="is-active">Profile</li><li>Experience</li><li>Program</li><li>XM Setup</li><li>Review</li></ol></aside><form class="onboarding-form" data-onboarding-form><div class="form-step is-active"><p class="eyebrow">Step 01</p><h2>Student profile</h2><label>Full name<input required placeholder="Your full name" /></label><label>Email<input type="email" required placeholder="you@example.com" /></label><label>WhatsApp<input required placeholder="+27 ..." /></label></div><div class="form-step"><p class="eyebrow">Step 02</p><h2>Trading experience</h2><label>Level<select><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><label>Biggest challenge<textarea rows="4" placeholder="Risk, entries, discipline..."></textarea></label></div><div class="form-step"><p class="eyebrow">Step 03</p><h2>Program</h2><label>Program<select><option>Foundation</option><option>Elite Mentorship</option><option>One-on-One</option></select></label></div><div class="form-step"><p class="eyebrow">Step 04</p><h2>XM readiness</h2><label>XM status<select><option>Need to open account</option><option>Opened, not verified</option><option>Verified and ready</option></select></label><a class="inline-link" href="xm.html">Need XM setup help?</a></div><div class="form-step"><p class="eyebrow">Step 05</p><h2>Review</h2><div class="review-box"><p>Milkers Fx will review the application and activate portal access.</p></div><label class="check"><input type="checkbox" required /> I understand trading involves risk.</label></div><div class="form-controls"><button class="btn ghost form-back" type="button" data-prev>Back</button><button class="btn primary" type="button" data-next>Next Step</button><button class="btn primary form-submit" type="submit">Submit Application</button></div></form></section></main>
-<footer class="site-footer"><div><span class="brand-mark small">MF</span><strong>Milkers Fx</strong></div><p>Trading involves risk. Applications are reviewed.</p><nav><a href="index.html">Home</a><a href="xm.html">Open XM</a><a href="login.html">Login</a></nav></footer><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Sign Up | Milkers Fx</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .broker-guide {
+        display: none;
+        background: var(--surface-2, #111);
+        border: 1px solid var(--border, #222);
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-top: 1rem;
+      }
+      .broker-guide.is-visible { display: block; }
+      .broker-guide h3 { margin: 0 0 .75rem; font-size: .95rem; letter-spacing: .04em; text-transform: uppercase; opacity: .6; }
+      .broker-guide ol { margin: 0; padding-left: 1.25rem; display: flex; flex-direction: column; gap: .5rem; font-size: .95rem; line-height: 1.6; }
+      .broker-guide .guide-note { margin-top: .75rem; font-size: .85rem; opacity: .6; }
+
+      .signup-confirmation {
+        display: none;
+        text-align: center;
+        padding: 3rem 2rem;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+      .signup-confirmation.is-visible { display: block; }
+      .confirm-icon {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        background: rgba(var(--accent-rgb, 82,196,82), .12);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 1.75rem;
+      }
+      .signup-confirmation h2 { margin: 0 0 .75rem; }
+      .signup-confirmation p { opacity: .7; line-height: 1.7; margin: 0 0 2rem; }
+      .signup-confirmation .btn { margin: 0 auto; }
+
+      .approved-banner {
+        display: none;
+        background: rgba(var(--accent-rgb, 82,196,82), .1);
+        border: 1px solid rgba(var(--accent-rgb, 82,196,82), .25);
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+      .approved-banner.is-visible { display: block; }
+      .approved-banner strong { display: block; margin-bottom: .35rem; }
+
+      .disclaimer-card {
+        border: 1px solid var(--border, #222);
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      .disclaimer-card strong { display: block; margin-bottom: .5rem; font-size: 1rem; }
+      .disclaimer-card p { margin: 0; font-size: .92rem; line-height: 1.65; opacity: .75; }
+
+      .level-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .6rem;
+        margin-bottom: 1rem;
+      }
+      .level-card { position: relative; cursor: pointer; }
+      .level-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+      .level-card .card-inner {
+        border: 1px solid var(--border, #222);
+        border-radius: 8px;
+        padding: .85rem 1rem;
+        transition: border-color .15s, background .15s;
+      }
+      .level-card input:checked + .card-inner {
+        border-color: var(--accent, #52c452);
+        background: rgba(var(--accent-rgb, 82,196,82), .07);
+      }
+      .level-card .card-inner strong { display: block; font-size: .9rem; margin-bottom: .2rem; }
+      .level-card .card-inner span { font-size: .8rem; opacity: .55; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="index.html">
+        <span class="brand-mark">MF</span>
+        <span><strong>Milkers Fx</strong><small>Student Onboarding</small></span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" data-nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="signals.html">Signals</a>
+        <a href="mentorship.html">Mentorship</a>
+        <a href="events.html">Events</a>
+        <a href="xm.html">Open XM</a>
+        <a href="signup.html" aria-current="page">Sign Up</a>
+        <a class="nav-login" href="login.html">Login</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="signup-hero">
+        <div class="section-heading reveal">
+          <p class="eyebrow">New Student Portal</p>
+          <h1>Apply, onboard and prepare your trading plan.</h1>
+          <p>
+            Complete your profile, trading level, and broker readiness so the team
+            can place you correctly from day one.
+          </p>
+        </div>
+      </section>
+
+      <div class="section">
+        <div class="approved-banner" id="approvedBanner">
+          <strong>🎉 Your application has been approved!</strong>
+          You can now sign in to your student portal.
+          <a class="btn primary" href="login.html" style="display:inline-flex;margin-top:.75rem;">Go to Login</a>
+        </div>
+      </div>
+
+      <section class="section onboarding-shell" id="onboardingShell">
+        <aside class="onboarding-sidebar reveal">
+          <span class="brand-mark" style="font-size:2rem;">MF</span>
+          <div class="mini-chart onboarding-chart" aria-hidden="true">
+            <span class="candle down" style="--h: 48%; --y: 30%; --x: 8%"></span>
+            <span class="candle up"   style="--h: 70%; --y: 12%; --x: 20%"></span>
+            <span class="candle up"   style="--h: 52%; --y: 24%; --x: 32%"></span>
+            <span class="candle down" style="--h: 66%; --y: 18%; --x: 44%"></span>
+            <span class="candle up"   style="--h: 84%; --y:  4%; --x: 56%"></span>
+            <span class="candle down" style="--h: 42%; --y: 34%; --x: 68%"></span>
+            <span class="candle up"   style="--h: 62%; --y: 16%; --x: 80%"></span>
+            <span class="candle up"   style="--h: 76%; --y:  8%; --x: 92%"></span>
+          </div>
+          <h2>Onboarding Steps</h2>
+          <ol class="step-list" data-step-list>
+            <li class="is-active">Profile</li>
+            <li>Experience</li>
+            <li>Broker Setup</li>
+            <li>Review</li>
+          </ol>
+          <p>After submission, the team will verify your details, activate your portal access, and send your first class schedule.</p>
+        </aside>
+
+        <form class="onboarding-form reveal delay-1" data-onboarding-form id="onboardingForm">
+
+          <!-- Step 1: Profile -->
+          <div class="form-step is-active" data-step="0">
+            <p class="eyebrow">Step 01 of 04</p>
+            <h2>Your profile</h2>
+            <label>Full name<input type="text" name="fullName" placeholder="Your full name" required /></label>
+            <label>Email address<input type="email" name="email" placeholder="you@example.com" required /></label>
+            <label>WhatsApp number<input type="tel" name="whatsapp" placeholder="+27 ..." required /></label>
+          </div>
+
+          <!-- Step 2: Experience -->
+          <div class="form-step" data-step="1">
+            <p class="eyebrow">Step 02 of 04</p>
+            <h2>Your trading experience</h2>
+            <label style="margin-bottom:.4rem;">Where are you right now?</label>
+            <div class="level-grid">
+              <label class="level-card">
+                <input type="radio" name="level" value="beginner" required />
+                <div class="card-inner">
+                  <strong>Beginner</strong>
+                  <span>Just starting out — learning the basics</span>
+                </div>
+              </label>
+              <label class="level-card">
+                <input type="radio" name="level" value="intermediate" />
+                <div class="card-inner">
+                  <strong>Intermediate</strong>
+                  <span>Consistent practice, refining a strategy</span>
+                </div>
+              </label>
+              <label class="level-card">
+                <input type="radio" name="level" value="advanced" />
+                <div class="card-inner">
+                  <strong>Advanced</strong>
+                  <span>Profitable, working on psychology &amp; scale</span>
+                </div>
+              </label>
+              <label class="level-card">
+                <input type="radio" name="level" value="funded" />
+                <div class="card-inner">
+                  <strong>Funded Trader</strong>
+                  <span>Trading a prop or funded account</span>
+                </div>
+              </label>
+            </div>
+            <label>How long have you been trading?
+              <select name="yearsTrading">
+                <option value="">Select…</option>
+                <option value="less_than_1">Less than 1 year</option>
+                <option value="1_to_3">1 – 3 years</option>
+                <option value="3_to_5">3 – 5 years</option>
+                <option value="5_plus">5+ years</option>
+              </select>
+            </label>
+            <label>What is your biggest challenge right now?
+              <textarea name="challenge" rows="3" placeholder="Risk management, entries, discipline, consistency…"></textarea>
+            </label>
+          </div>
+
+          <!-- Step 3: Broker Setup -->
+          <div class="form-step" data-step="2">
+            <p class="eyebrow">Step 03 of 04</p>
+            <h2>XM broker readiness</h2>
+            <p style="opacity:.65;font-size:.93rem;margin-top:-.25rem;">A verified XM account is required to participate in the mentorship programme.</p>
+            <label>Do you have an XM account?
+              <select name="brokerStatus" id="brokerStatusSelect">
+                <option value="">Select…</option>
+                <option value="yes_verified">Yes — verified and funded</option>
+                <option value="yes_not_verified">Yes — not yet verified or funded</option>
+                <option value="no">No — I need to open one</option>
+              </select>
+            </label>
+
+            <div class="broker-guide" id="brokerGuide">
+              <h3>How to open your XM account</h3>
+              <ol>
+                <li>Visit XM using the mentor's referral link — check your welcome message or the <a href="xm.html">XM Setup guide</a> on this site.</li>
+                <li>Click <strong>Open Live Account</strong> and complete the registration form with your personal details.</li>
+                <li>Upload your ID document and proof of address for KYC verification.</li>
+                <li>Wait for account approval — typically 1 – 2 business days.</li>
+                <li>Make your first deposit and ensure the account is funded before your first session.</li>
+              </ol>
+              <p class="guide-note">Your mentor will share the exact referral link, recommended account type, and minimum deposit in your welcome message.</p>
+            </div>
+
+            <label>XM account ID (if you have one)
+              <input type="text" name="brokerId" placeholder="Optional — enter if already opened" />
+            </label>
+          </div>
+
+          <!-- Step 4: Review -->
+          <div class="form-step" data-step="3">
+            <p class="eyebrow">Step 04 of 04</p>
+            <h2>Review &amp; submit</h2>
+
+            <div class="review-box" style="margin-bottom:1.25rem;">
+              <strong>What happens after you submit</strong>
+              <p>The Milkers Fx team will review your application, confirm your details, and activate your portal access. You will receive an email confirmation with your login link and your first class schedule.</p>
+            </div>
+
+            <div class="disclaimer-card">
+              <strong>⚠ Important — please read before submitting</strong>
+              <p>
+                Trading financial instruments involves substantial risk of loss and is not suitable for all investors.
+                Past performance is not indicative of future results. All content provided through the Milkers Fx
+                programme is strictly educational and does not constitute financial advice. You are solely responsible
+                for any trading decisions you make.
+              </p>
+            </div>
+
+            <label class="check" style="font-weight:600;">
+              <input type="checkbox" name="consent" required />
+              I have read and understood the above. I accept full responsibility for my own trading decisions.
+            </label>
+          </div>
+
+          <div class="form-controls">
+            <button class="btn ghost form-back" type="button" data-prev>Back</button>
+            <button class="btn primary" type="button" data-next>Next Step</button>
+            <button class="btn primary form-submit" type="submit">Submit Application</button>
+          </div>
+        </form>
+
+        <!-- Confirmation screen -->
+        <div class="signup-confirmation" id="signupConfirmation">
+          <div class="confirm-icon">✓</div>
+          <h2>Application submitted!</h2>
+          <p>
+            Thank you for applying to Milkers Fx. The team will review your details,
+            verify your information, and activate your student portal access.<br /><br />
+            Keep an eye on your inbox — you'll receive a confirmation email once
+            your account is approved and ready to use.
+          </p>
+          <a class="btn primary" href="login.html">Go to Login</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div><span class="brand-mark small">MF</span><strong>Milkers Fx</strong></div>
+      <p>Trading involves risk. Applications are reviewed before portal activation.</p>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="signals.html">Signals</a>
+        <a href="mentorship.html">Mentorship</a>
+        <a href="events.html">Events</a>
+        <a href="signup.html">Sign Up</a>
+        <a href="login.html">Login</a>
+        <a href="xm.html">Open XM</a>
+      </nav>
+    </footer>
+    <script src="app.js"></script>
+    <script>
+      if (new URLSearchParams(window.location.search).get("approved") === "1") {
+        document.getElementById("approvedBanner").classList.add("is-visible");
+      }
+
+      const brokerSelect = document.getElementById("brokerStatusSelect");
+      const brokerGuide  = document.getElementById("brokerGuide");
+      if (brokerSelect && brokerGuide) {
+        brokerSelect.addEventListener("change", () => {
+          brokerGuide.classList.toggle("is-visible", brokerSelect.value === "no");
+        });
+      }
+
+      const form         = document.getElementById("onboardingForm");
+      const confirmation = document.getElementById("signupConfirmation");
+      if (form && confirmation) {
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          form.style.display = "none";
+          confirmation.classList.add("is-visible");
+          window.scrollTo({ top: document.getElementById("onboardingShell").offsetTop - 80, behavior: "smooth" });
+        });
+      }
+    </script>
+  </body>
+</html>
