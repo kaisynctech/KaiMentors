@@ -1,5 +1,39 @@
 # Architecture Decisions
 
+## 2026-06-23: `set_course_access` — Explicit Enum Cast in CASE Expression
+
+Decision: In `public.set_course_access`, cast both branches of the `access_scope` `CASE` expression to `public.content_access_scope` rather than relying on an implicit assignment cast.
+
+Reason: PostgreSQL types a `CASE` expression by resolving the common type of its branches before considering the assignment target. Both `'all_verified'` and `'restricted'` resolve to `text`; assigning `text` to an enum column fails at runtime with `42804` even though the same literals work as bare assignment values. The defect had been silently swallowed in the acceptance runner because the three `set_course_access` RPC calls had no error handling — the runner reported apparent success while the `content_access_grants` rows were never written.
+
+Impact: Applied in migration `026` as a `create or replace function`. No signature change. Fixes both the acceptance runner and the mentor Access tab save path (`update_course_curriculum_settings` calls `set_course_access` internally). Any future `CASE` expression assigning to a domain or enum column must carry an explicit cast on at least one branch.
+
+## 2026-06-23: Courses UI Redesign — Three Structural Decisions
+
+**a. `CourseDetailManager` split into a parent shell and six tab subcomponents**
+
+Decision: Extract `components/course-detail-manager.tsx` into a parent shell and six independent components under `components/course-tabs/` (OverviewTab, CurriculumTab, ResourcesTab, AccessTab, StudentsTab, SettingsTab).
+
+Reason: The original single file held all six tab UIs inline, making it prohibitively large and untestable in isolation. Each tab has distinct props, state, and mutation paths; collocating them caused type noise and made narrowing impossible.
+
+Impact: The parent shell owns all `useState` declarations, action handlers (`call`, `createModule`, `createLesson`, `addBlock`, `addResource`, `patchCurriculum`, `saveCourse`, `saveAccess`), error/success banners, and the tab bar. Each subcomponent receives only the props it needs. `saveCurriculum` (FormData batch) is replaced by `patchCurriculum` (JSON PATCH), which preserves the same 409-confirmation branch.
+
+**b. Student `courses.module.css` split into three independent per-page CSS modules**
+
+Decision: Replace the single `app/student/courses/courses.module.css` (imported at three different relative depths) with three independent CSS modules: `app/student/courses/courses.module.css` (My Learning), `app/student/courses/[courseId]/course-detail.module.css` (student course detail), and `app/student/courses/[courseId]/lessons/[lessonId]/lesson.module.css` (lesson player).
+
+Reason: A shared module imported at different relative paths with the same class names conflates three visually distinct pages. Adding class names for one surface risked unintentional styling on another, and the depth mismatch made the import path fragile.
+
+Impact: Each page now owns its full style surface. Class name collisions between pages are impossible. The CSS split required updating the import path in each consuming server component.
+
+**c. New-course flow implemented as a modal rather than an always-visible form column**
+
+Decision: Replace the side-by-side layout (create form left, course table right) with a modal triggered from the page header "New course" button and the dashed "Add" card in the grid.
+
+Reason: The always-visible form wasted vertical and horizontal space on the library page, which is the primary mentor navigation surface. A modal keeps the full viewport available for the course grid and stats, reduces the visual weight of the primary flow, and aligns with the design spec's emphasis on the library as the leading surface.
+
+Impact: The modal uses a `useRef`/`useEffect` focus trap, Escape-key listener, and backdrop-click handler. Focus returns to the trigger button on close. The `createCourse` handler, API call body, and router redirect are unchanged.
+
 ## 2026-06-21: One Protected Curriculum and Media Authorization Engine
 
 Decision: Model learning as Course -> Module -> Lesson -> typed content blocks, store reusable assets in normalized tenant-owned media records, and authorize all student course/media reads through `can_access_course`.
@@ -56,7 +90,7 @@ Reason: Direct row edits can orphan records, lose history, or cross tenant bound
 
 Impact: `academy_invitations`, `provision_invited_academy`, `trader_ownership_transfers`, secure self-service owner email confirmation, and audit events are required administration paths.
 
-Last updated: 2026-06-20
+Last updated: 2026-06-23
 
 This file records major KaiMentors product and engineering decisions. Add a new entry whenever a decision changes architecture, data ownership, authentication, permissions, deployment, integrations, or core business workflows.
 
