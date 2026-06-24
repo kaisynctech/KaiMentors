@@ -124,9 +124,11 @@ export function DashboardShell({
             <span>Tenant isolation enabled</span>
           </div>
         </div>
-        <Link className={styles.signout} href="/auth/signout">
-          <LogOut size={17} /> Sign out
-        </Link>
+        <form action="/auth/signout" method="post">
+          <button className={styles.signout} type="submit">
+            <LogOut size={17} /> Sign out
+          </button>
+        </form>
       </aside>
       <button
         aria-label="Close navigation menu"
@@ -161,13 +163,11 @@ export function DashboardShell({
             <span>Tenant isolation enabled</span>
           </div>
         </div>
-        <Link
-          className={styles.signout}
-          href="/auth/signout"
-          onClick={() => setMobileOpen(false)}
-        >
-          <LogOut size={17} /> Sign out
-        </Link>
+        <form action="/auth/signout" method="post">
+          <button className={styles.signout} onClick={() => setMobileOpen(false)} type="submit">
+            <LogOut size={17} /> Sign out
+          </button>
+        </form>
       </aside>
       <main className={styles.main}>
         <header className={styles.mobileHeader}>
