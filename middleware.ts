@@ -134,18 +134,12 @@ export async function middleware(request: NextRequest) {
   }
   if (logicalPath.startsWith("/dashboard") && profile?.role !== "trader") {
     if (profile?.role === "super_admin") {
-      const { data: membership } = await supabase
-        .from("trader_members")
-        .select("id")
-        .eq("user_id", data.user.id)
-        .limit(1)
-        .maybeSingle();
-      if (membership) return response;
-
-      return copyCookies(
-        response,
-        NextResponse.redirect(new URL("/admin", request.url)),
-      );
+      // Always allow super_admin through to /dashboard.
+      // The dashboard page resolves traderId via its own DB query and handles
+      // the null case gracefully. The previous trader_members check here
+      // was unreliable in the Edge Runtime JWT context and caused a redirect
+      // loop for platform owners who also hold a trader_members row.
+      return response;
     }
 
     const destination =
