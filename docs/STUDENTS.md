@@ -18,10 +18,15 @@ Registration captures:
 - Full name
 - Email
 - Phone number
+- Trading level (self-reported: `beginner`, `intermediate`, `advanced`, `funded`) — required
+- Years trading (`less_than_1`, `1_to_3`, `3_to_5`, `5_plus`) — optional
+- Biggest challenge (free text, max 500 chars) — optional
 - Broker
 - Trading account number
 - MT4/MT5 number
 - Optional screenshot proof
+
+The registration form uses a 4-step flow: Profile → Experience → Broker → Review. The Experience step captures `trading_level`, `years_trading`, and `trading_challenge`. Students who select "No account yet" on the Broker step receive an affiliate-link guide and cannot advance until they have an account.
 
 The server resolves the academy tenant from the custom-domain hostname or portal slug, creates an unconfirmed passwordless student identity when needed, creates the tenant-scoped `student_applications` and `verification_attempts` records, then directs the student to `/account-setup`. Password creation is available only after the email OTP is verified. Repeated registration returns an enumeration-safe continuation response and does not duplicate the identity or application.
 

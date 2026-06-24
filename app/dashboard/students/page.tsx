@@ -46,6 +46,7 @@ interface QueueRecord {
   broker_id: string;
   broker_name: string;
   verification_method: VerificationMethod;
+  trading_level: string | null;
   total_count: number;
 }
 
@@ -210,6 +211,7 @@ export default async function StudentsPage({
         verification_method:
           (connection?.verification_method as VerificationMethod) ??
           "manual_review",
+        trading_level: null,
         total_count: result.count ?? 0,
       };
     });
@@ -232,6 +234,7 @@ export default async function StudentsPage({
     brokerId: application.broker_id,
     brokerName: application.broker_name,
     verificationMethod: application.verification_method,
+    tradingLevel: application.trading_level ?? null,
   }));
 
   const brokers = (connectionResult.data ?? []).map((connection) => {

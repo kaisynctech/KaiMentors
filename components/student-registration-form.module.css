@@ -197,3 +197,225 @@
     transform: rotate(360deg);
   }
 }
+
+/* Step indicator */
+.steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.stepDot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.dotCircle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #dfe3e6;
+  font-size: 11px;
+  font-weight: 800;
+  color: #9da5ac;
+  background: white;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.stepDone .dotCircle {
+  color: white;
+}
+
+.dotLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9da5ac;
+  text-align: center;
+}
+
+/* Navigation row */
+.navRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #dfe3e6;
+  border-radius: 11px;
+  background: white;
+  color: #4f575d;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.nextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  background: #9da5ac;
+}
+
+.nextBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Step note */
+.stepNote {
+  margin: 0;
+  color: #687078;
+  font-size: 12px;
+}
+
+/* Level grid */
+.levelPrompt {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 750;
+  color: #22272b;
+}
+
+.levelGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.levelCard {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  border: 2px solid #dfe3e6;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.levelCard input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.levelCard strong {
+  font-size: 13px;
+  color: #22272b;
+}
+
+.levelCard span {
+  font-size: 11px;
+  color: #687078;
+  line-height: 1.4;
+}
+
+/* Broker guide */
+.brokerGuide {
+  border: 1px solid #dfe3e6;
+  border-radius: 11px;
+  padding: 16px;
+  background: #f9fafb;
+  display: grid;
+  gap: 10px;
+}
+
+.brokerGuide ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #4f575d;
+  line-height: 1.5;
+}
+
+.brokerGuideNote {
+  margin: 0;
+  font-size: 12px;
+  color: #b45309;
+  font-weight: 600;
+}
+
+/* Review step */
+.reviewBox {
+  border: 1px solid #dfe3e6;
+  border-radius: 11px;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.reviewBox strong {
+  font-size: 13px;
+  color: #22272b;
+}
+
+.reviewBox p {
+  margin: 0;
+  font-size: 12px;
+  color: #4f575d;
+  line-height: 1.6;
+}
+
+.disclaimerCard {
+  border: 2px solid #fef3c7;
+  border-radius: 11px;
+  padding: 16px;
+  background: #fffbeb;
+  display: grid;
+  gap: 8px;
+}
+
+.disclaimerCard strong {
+  font-size: 13px;
+  color: #92400e;
+}
+
+.disclaimerCard p {
+  margin: 0;
+  font-size: 12px;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+/* Textarea in field */
+.field textarea {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid #dfe3e6;
+  border-radius: 11px;
+  outline: none;
+  padding: 10px 13px;
+  color: #111315;
+  background: white;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.field textarea:focus {
+  border-color: #8b9298;
+  box-shadow: 0 0 0 3px rgba(17, 19, 21, 0.06);
+}

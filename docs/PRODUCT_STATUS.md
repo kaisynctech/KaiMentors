@@ -1,6 +1,6 @@
 # Product Status
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 This file tracks implemented product state. `Planned` and `In Progress` items are not production behavior until their implementation and validation are complete.
 
@@ -21,8 +21,9 @@ This file tracks implemented product state. `Planned` and `In Progress` items ar
 | Custom domains | Partially Complete | Resolution and Vercel automation architecture exist; each client domain still requires provisioning and verification. |
 | KaiTrades acceptance-test tenant | Complete | Independent package, assets, centralized routing, tests, admin classification, remote migrations, and production RLS verification are complete. |
 | Student registration and verification | Complete | Tenant-aware registration, verification attempts, review workflows, status states, and audit logs. |
+| Student Onboarding 4-Step Flow | Complete | 4-step join-academy form (Profile → Experience → Broker → Review); `trading_level`, `years_trading`, `trading_challenge` fields added to `student_applications`; level tag on the mentor Students dashboard; migration `027`. |
 | Broker accounts and verification | Complete | Multiple tenant broker accounts with API, manual review, and screenshot verification methods. |
-| Protected courses Phase 1 | Partially Complete | Structured curriculum, mixed media, Media Library, access modes, progress and student learning views are implemented. Migration `025` and application commit `6828fb6` are deployed at `https://kaimentors.vercel.app`; production table/storage/security verification, public/protected route checks, tests, typecheck and build pass. Authenticated role workflows, upload/playback/progress, responsive visual acceptance and custom-domain acceptance remain because production has no course fixture or configured academy domain and the browser acceptance connection was unavailable. |
+| Protected courses Phase 1 | Partially Complete | Structured curriculum, mixed media, Media Library, access modes, progress and student learning views are implemented and UI-redesigned. Migrations `025` and `026` (`fix_set_course_access_enum_cast`) are deployed at `https://kaimentors.vercel.app`. UI redesign (card library, detail tabs, student My Learning, lesson player) is implemented locally; tests, typecheck, and build pass. Acceptance runner passes fully: all scenarios (all-verified, group, individual, one-to-one, revoke/restore, lifecycle), security, media, and progress assertions pass. Authenticated browser acceptance screenshots (desktop and mobile) remain open. |
 | Groups, entitlements, and messaging | Complete | System all-students group, custom groups, content grants, direct/group/announcement conversations, and attachments. |
 | Platform administration | Complete | Super-admin overview, mentors, custom sites, brokers, subscriptions, audit logs, and settings shells/workflows. |
 

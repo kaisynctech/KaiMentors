@@ -59,6 +59,20 @@ const tabs: Array<{ key: StudentTab; label: string }> = [
   { key: "rejected", label: "Rejected" },
 ];
 
+const levelTagLabels: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  funded: "Funded Trader",
+};
+
+const levelTagColors: Record<string, string> = {
+  beginner: "#1d4ed8",
+  intermediate: "#b45309",
+  advanced: "#15803d",
+  funded: "#7e22ce",
+};
+
 const actionLabels: Record<ReviewAction, string> = {
   verified: "Approve",
   rejected: "Reject",
@@ -439,7 +453,17 @@ export function StudentReviewList({
                         {application.studentName.slice(0, 1).toUpperCase()}
                       </span>
                       <div>
-                        <strong>{application.studentName}</strong>
+                        <div className={styles.studentNameRow}>
+                          <strong>{application.studentName}</strong>
+                          {application.tradingLevel && (
+                            <span
+                              className={styles.levelTag}
+                              style={{ background: levelTagColors[application.tradingLevel] }}
+                            >
+                              {levelTagLabels[application.tradingLevel]}
+                            </span>
+                          )}
+                        </div>
                         <small>
                           {application.studentEmail ?? "No email available"}
                         </small>

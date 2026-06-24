@@ -32,6 +32,7 @@ export interface StudentApplicationRow {
   brokerId: string;
   brokerName: string;
   verificationMethod: VerificationMethod;
+  tradingLevel: string | null;
 }
 
 export interface StudentCounts {

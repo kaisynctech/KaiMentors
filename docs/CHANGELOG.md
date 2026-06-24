@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-06-24 - Student Onboarding 4-Step Flow
+
+- Replaced the single-page `StudentRegistrationForm` with a 4-step multi-step form: Profile → Experience → Broker → Review.
+- Added `trading_level` (enum: `beginner`, `intermediate`, `advanced`, `funded`), `years_trading` (enum: `less_than_1`, `1_to_3`, `3_to_5`, `5_plus`), and `trading_challenge` (text, max 500 chars) columns to `student_applications` via migration `202606240027_student_onboarding_trading_fields.sql`.
+- Experience step: 2×2 level radio card grid (highlighted border uses academy primary colour), optional years select, optional challenge textarea.
+- Broker step: "No account yet" state reveals affiliate-link and step guide, disables Next.
+- Review step: "What happens next" card, risk disclosure card, consent checkbox (disables submit until checked).
+- On success: checkmark state shown for 1.5 s, then redirected to `/account-setup` as before.
+- `trading_level` surfaces as a coloured read-only tag on each student row in `/dashboard/students`: Beginner (blue), Intermediate (amber), Advanced (green), Funded Trader (purple). Students registered before this feature show no tag.
+- `get_student_applications_page` rebuilt to include `trading_level`; fallback direct-query path maps `trading_level: null`.
+- API pre-validates `trading_level` and `years_trading` enum values (422 on invalid).
+- `npm run typecheck`, `npm run build`, and all 31 tests pass.
+
+## 2026-06-23 - Protected Courses Phase 1: Group-Entitlement Blocker Resolved
+
+- Diagnosed silent failure in `set_course_access`: the `UPDATE courses SET access_scope = CASE ... END` expression resolved to `text` at the point PostgreSQL typed the `CASE` branches, but `access_scope` is `public.content_access_scope` (enum). PostgreSQL applies the implicit literal→enum assignment cast for bare string literals but not inside a `CASE` expression, producing Postgres error `42804`. The failure was swallowed because the runner's three `set_course_access` calls had no error handling; the `student_group_members` insert (correctly guarded) passed cleanly.
+- Added explicit `::public.content_access_scope` casts to both branches of the `CASE` expression in the function body. All other function logic, guards, grants, and deletes are unchanged.
+- Applied migration `202606230026_fix_set_course_access_enum_cast.sql` (`create or replace function public.set_course_access`).
+- Acceptance runner passes cleanly: all scenarios (all-verified, group, individual, one-to-one, verified-not-entitled, unverified, revoke/restore, lifecycle), all security checks, all media operations, all progress assertions, and cleanup all pass. Evidence JSON recorded.
+- Remaining blocker for Protected Courses Phase 1 sign-off: authenticated browser acceptance screenshots (desktop and mobile).
+
+## 2026-06-23 - Courses UI Redesign
+
+- Replaced the developer-scaffolded mentor course table with a card-grid library: stats row (total courses, published, total lessons, active learners), filter pills (All / Published / Draft / Archived), responsive card grid with per-card module/lesson counts and learner-completeness bars, dashed "Add" card, and a modal new-course form with focus trap, Escape-key and backdrop-click dismissal.
+- Split `CourseDetailManager` into a parent shell plus six independent tab subcomponents under `components/course-tabs/`: `OverviewTab`, `CurriculumTab`, `ResourcesTab`, `AccessTab`, `StudentsTab`, `SettingsTab`. Parent shell retains all action handlers and state; each subcomponent receives a narrowed prop subset.
+- Split the previously shared `courses.module.css` into three independent per-page CSS modules: `app/student/courses/courses.module.css` (My Learning), `app/student/courses/[courseId]/course-detail.module.css` (student course detail), `app/student/courses/[courseId]/lessons/[lessonId]/lesson.module.css` (lesson player).
+- Redesigned My Learning page: portal-name eyebrow hero, full-width Continue Watching resume card (180 px thumbnail column, lesson title, module name, progress bar, Resume button), card-grid Library section, conditional Completed section.
+- Redesigned student course detail: hero with two-column thumbnail/copy layout, 4 px progress bar, module cards with three lesson states (completed green circle, in-progress blue resume pill, upcoming gray number).
+- Redesigned lesson player: back link, lesson header card (eyebrow/title/description), `ProtectedLessonContent` with unchanged props, green completion notice below player, bottom prev/next navigation (absent when no adjacent lesson exists).
+- Data augmentations: `courses` query on the mentor library now fetches `course_modules(count)` and `lessons(id,status)` to compute `moduleCount`, `publishedLessonCount`, `activeLearnerCount`; global `CourseStats` computed and passed to `CourseManager`. Course detail page `lesson_progress` query now includes `lesson_id` to compute `activityFeed`. Student My Learning and course detail queries now include `is_started` and `last_activity_at` to determine the resume lesson and its module name.
+- Added `timeAgo` helper to `lib/courses.ts`.
+- Fixed Access tab defect: removed empty `groupIds`/`studentIds` hidden inputs rendered when `selectedMode !== "restricted"`; `fd.getAll` returning `[]` is the correct no-op when not restricted.
+- `npm run typecheck`, `npm run build`, and all 31 tests pass.
+
+## 2026-06-22 - Engineering Team Operating Instructions
+
+- Added `ENGINEER_FOR_KAIMENTORS_INSTRUCTIONS.md` as the implementation team's living operating contract.
+- Documented Engineering identity and role boundaries, enterprise rules, required workflow, security and multi-tenancy requirements, database/auth/storage/audit standards, Definition of Done, delivery format, and documentation synchronization obligations.
+- Recorded the current KaiTrades Protected Courses production-acceptance implementation, latest group-entitlement failure, safe identity cleanup, and remaining browser/custom-domain blockers without declaring the feature complete.
+
 ## 2026-06-22 - Protected Courses Phase 1 (Application Deployed)
 
 - Deployed commit `6828fb679121d9f186de8ad62ad0abb2e5b66246` to the existing `kaimentors` Vercel production project as deployment `dpl_7v2ywrcHmZqy4vCWDg54HUKUUZP4`, promoted at `https://kaimentors.vercel.app`.

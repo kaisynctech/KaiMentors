@@ -6,6 +6,9 @@ import {
 } from "@/lib/domains/hostnames";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const VALID_TRADING_LEVELS = new Set(["beginner", "intermediate", "advanced", "funded"]);
+const VALID_YEARS_TRADING = new Set(["less_than_1", "1_to_3", "3_to_5", "5_plus"]);
+
 const registrationSchema = z.object({
   portalSlug: z.string().min(1),
   fullName: z.string().trim().min(2).max(120),
@@ -20,6 +23,9 @@ const registrationSchema = z.object({
   tradingAccountNumber: z.string().trim().min(3).max(120),
   platformAccountNumber: z.string().trim().min(3).max(120),
   consent: z.literal(true),
+  tradingLevel: z.string().nullable().optional(),
+  yearsTrading: z.string().nullable().optional(),
+  tradingChallenge: z.string().max(500).nullable().optional(),
 });
 
 const allowedProofTypes = new Map([
@@ -67,6 +73,16 @@ async function resolveRegistrationPortal(
 
 export async function POST(request: Request) {
   const formData = await request.formData();
+
+  const tradingLevelRaw = formData.get("tradingLevel")?.toString() || null;
+  const yearsRaw = formData.get("yearsTrading")?.toString() || null;
+  if (tradingLevelRaw && !VALID_TRADING_LEVELS.has(tradingLevelRaw)) {
+    return NextResponse.json({ error: "Invalid trading level." }, { status: 422 });
+  }
+  if (yearsRaw && !VALID_YEARS_TRADING.has(yearsRaw)) {
+    return NextResponse.json({ error: "Invalid years trading value." }, { status: 422 });
+  }
+
   const parsed = registrationSchema.safeParse({
     portalSlug: formData.get("portalSlug"),
     fullName: formData.get("fullName"),
@@ -76,6 +92,9 @@ export async function POST(request: Request) {
     tradingAccountNumber: formData.get("tradingAccountNumber"),
     platformAccountNumber: formData.get("platformAccountNumber"),
     consent: formData.get("consent") === "on",
+    tradingLevel: tradingLevelRaw,
+    yearsTrading: yearsRaw,
+    tradingChallenge: formData.get("tradingChallenge")?.toString() || null,
   });
   if (!parsed.success) {
     return NextResponse.json(
@@ -174,6 +193,9 @@ export async function POST(request: Request) {
       platform_account_number: input.platformAccountNumber,
       status: initialStatus,
       consented_at: new Date().toISOString(),
+      trading_level: input.tradingLevel ?? null,
+      years_trading: input.yearsTrading ?? null,
+      trading_challenge: input.tradingChallenge ?? null,
     })
     .select("id")
     .single();
