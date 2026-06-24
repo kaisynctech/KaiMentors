@@ -1,9 +1,28 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "@/components/login-form";
+import { createClient } from "@/lib/supabase/server";
 import styles from "../auth.module.css";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createClient();
+  if (supabase) {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      const dest =
+        profile?.role === "super_admin" ? "/admin" :
+        profile?.role === "trader" ? "/dashboard" :
+        profile?.role === "student" ? "/student" : null;
+      if (dest) redirect(dest);
+    }
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.aside}>

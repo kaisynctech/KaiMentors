@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 import styles from "./auth-form.module.css";
 
@@ -19,7 +18,6 @@ export function LoginForm({
   academyTraderId?: string;
   submitLabel?: string;
 } = {}) {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -68,8 +66,7 @@ export function LoginForm({
           : profile?.role === "student"
             ? studentDestination
             : mentorDestination;
-      router.push(destination);
-      router.refresh();
+      window.location.href = destination;
     } catch (signInError) {
       const message =
         signInError instanceof Error ? signInError.message : "Sign in failed.";
