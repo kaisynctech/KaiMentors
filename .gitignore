@@ -9,3 +9,5 @@ out
 .DS_Store
 supabase/.temp
 .vercel
+.acceptance-tmp
+.claude/settings.local.json

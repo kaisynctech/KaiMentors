@@ -105,8 +105,25 @@ test("mentor and student course surfaces expose the required operating model", a
   const studentList = await read("app", "student", "courses", "page.tsx");
   for (const tab of ["Overview", "Curriculum", "Resources", "Access", "Students", "Settings"]) assert.match(manager, new RegExp(`"${tab}"`));
   for (const mode of ["all_verified", "restricted", "one_to_one"]) assert.match(manager, new RegExp(mode));
-  assert.match(courseList, /<table>/);
+  assert.match(courseList, /filterStatus|showNewCourse/);
   assert.match(studentList, /My Learning/);
   assert.match(studentList, /Continue Watching/);
   assert.match(studentList, /Completed/);
+});
+
+test("production acceptance is acceptance-test scoped, repeatable, and secretless", async () => {
+  const runner = await read("scripts", "accept-protected-courses-production.mjs");
+  assert.match(runner, /environment.*acceptance_test/);
+  assert.match(runner, /portalSlug\s*=\s*"kaitrades"/);
+  assert.match(runner, /length === 1/);
+  assert.match(runner, /removePreviousFixture/);
+  assert.match(runner, /loadClientBaselines/);
+  assert.match(runner, /assertClientBaselines/);
+  assert.match(runner, /authenticatedClient/);
+  assert.match(runner, /signInWithPassword/);
+  assert.match(runner, /tusUpload/);
+  assert.match(runner, /issue_course_media_session|\/session/);
+  assert.match(runner, /finally\s*{\s*await cleanup\(\)/);
+  assert.doesNotMatch(runner, /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+  assert.doesNotMatch(runner, /(?:password|token|key)\s*=\s*["'][^"']+["']/i);
 });
