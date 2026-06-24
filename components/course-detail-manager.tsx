@@ -1,41 +1,361 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, CheckCircle2, FilePlus2, Layers3, Loader2, Plus, ShieldCheck, Users } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import styles from "./course-detail-manager.module.css";
+import { AccessTab } from "./course-tabs/access-tab";
+import { CurriculumTab } from "./course-tabs/curriculum-tab";
+import { OverviewTab } from "./course-tabs/overview-tab";
+import { ResourcesTab } from "./course-tabs/resources-tab";
+import { SettingsTab } from "./course-tabs/settings-tab";
+import { StudentsTab } from "./course-tabs/students-tab";
 
-type Status="draft"|"published"|"archived";
-type Media={id:string;title:string;media_type:"video"|"pdf"|"image";processing_state:string};
-type Lesson={id:string;module_id:string;title:string;description:string|null;status:Status;sort_order:number;duration_seconds:number|null;is_required:boolean;blocks:Array<{id:string;block_type:string;sort_order:number;media_id:string|null}>};
-type Module={id:string;title:string;description:string|null;status:Status;sort_order:number;is_required:boolean;lessons:Lesson[]};
-interface Props{course:{id:string;title:string;description:string|null;status:Status;sort_order:number;access_mode:"all_verified"|"restricted"|"one_to_one"};modules:Module[];media:Media[];groups:Array<{id:string;name:string;color:string}>;students:Array<{student_user_id:string;full_name:string;email:string}>;selectedGroupIds:string[];selectedStudentIds:string[];progress:Array<{student_user_id:string;full_name:string;completed:number;started:number;last_activity_at:string|null}>;resources:Array<{id:string;title:string;status:Status;sort_order:number}>}
-const tabs=["Overview","Curriculum","Resources","Access","Students","Settings"] as const;
+type Status = "draft" | "published" | "archived";
+type AccessMode = "all_verified" | "restricted" | "one_to_one";
 
-export function CourseDetailManager({course,modules,media,groups,students,selectedGroupIds,selectedStudentIds,progress,resources}:Props){
- const router=useRouter();const[tab,setTab]=useState<(typeof tabs)[number]>("Overview");const[busy,setBusy]=useState(false);const[message,setMessage]=useState("");const[error,setError]=useState("");const[selectedLesson,setSelectedLesson]=useState<string|null>(modules.flatMap(m=>m.lessons)[0]?.id??null);
- const lessons=useMemo(()=>modules.flatMap(m=>m.lessons),[modules]);const readyMedia=media.filter(m=>m.processing_state==="ready");
- async function call(url:string,body:unknown){setBusy(true);setError("");setMessage("");const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const payload=await response.json();setBusy(false);if(!response.ok){setError(payload.error??"The change could not be saved.");return false}setMessage("Saved successfully.");router.refresh();return true}
- async function createModule(fd:FormData){await call(`/api/courses/${course.id}/modules`,{title:fd.get("title"),description:fd.get("description")||null,status:fd.get("status"),sortOrder:Number(fd.get("sortOrder")),isRequired:fd.get("isRequired")==="on"})}
- async function createLesson(fd:FormData){const ok=await call(`/api/courses/${course.id}/lessons`,{moduleId:fd.get("moduleId"),title:fd.get("title"),description:fd.get("description")||null,status:fd.get("status"),sortOrder:Number(fd.get("sortOrder")),durationSeconds:fd.get("durationSeconds")?Number(fd.get("durationSeconds")):null,isRequired:fd.get("isRequired")==="on"});if(ok)setTab("Curriculum")}
- async function addBlock(fd:FormData){if(!selectedLesson)return;const type=String(fd.get("blockType"));const content=type==="rich_text"?{html:fd.get("text")}:type==="link"?{url:fd.get("url"),label:fd.get("label")}:{caption:fd.get("caption")};await call(`/api/lessons/${selectedLesson}/blocks`,{blockType:type,sortOrder:Number(fd.get("sortOrder")),mediaId:fd.get("mediaId")||null,mediaIds:fd.getAll("galleryMediaIds"),content,isRequired:fd.get("isRequired")==="on"})}
- async function addResource(fd:FormData){await call(`/api/courses/${course.id}/resources`,{title:fd.get("title"),lessonId:fd.get("lessonId")||null,mediaId:fd.get("mediaId")||null,externalUrl:fd.get("externalUrl")||null,status:fd.get("status"),sortOrder:Number(fd.get("sortOrder"))})}
- async function saveCurriculum(fd:FormData){const moduleUpdates=modules.map(m=>({id:m.id,sort_order:Number(fd.get(`module-order-${m.id}`)),status:String(fd.get(`module-status-${m.id}`))}));const lessonUpdates=lessons.map(l=>({id:l.id,sort_order:Number(fd.get(`lesson-order-${l.id}`)),status:String(fd.get(`lesson-status-${l.id}`))}));let body={modules:moduleUpdates,lessons:lessonUpdates,acknowledgeImpact:false};let response=await fetch(`/api/courses/${course.id}/curriculum`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});let payload=await response.json();if(response.status===409&&payload.requiresConfirmation&&window.confirm(payload.error)){body={...body,acknowledgeImpact:true};response=await fetch(`/api/courses/${course.id}/curriculum`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});payload=await response.json()}if(!response.ok)setError(payload.error);else{setMessage("Curriculum updated.");router.refresh()}}
- async function saveCourse(fd:FormData){fd.set("accessMode",course.access_mode);selectedGroupIds.forEach(id=>fd.append("groupIds",id));selectedStudentIds.forEach(id=>fd.append("studentIds",id));let response=await fetch(`/api/courses/${course.id}`,{method:"PATCH",body:fd});let payload=await response.json();if(response.status===409&&payload.requiresConfirmation&&window.confirm(payload.error)){fd.set("acknowledgeImpact","true");response=await fetch(`/api/courses/${course.id}`,{method:"PATCH",body:fd});payload=await response.json()}if(!response.ok)setError(payload.error);else{setMessage("Course settings updated.");router.refresh()}}
- async function saveAccess(fd:FormData){setBusy(true);const response=await fetch(`/api/courses/${course.id}`,{method:"PATCH",body:(()=>{const data=new FormData();data.set("title",course.title);data.set("description",course.description??"");data.set("status",course.status);data.set("sortOrder",String(course.sort_order));data.set("accessMode",String(fd.get("accessMode")));fd.getAll("groupIds").forEach(v=>data.append("groupIds",v));fd.getAll("studentIds").forEach(v=>data.append("studentIds",v));data.set("acknowledgeImpact","true");return data})()});const p=await response.json();setBusy(false);if(!response.ok)setError(p.error);else{setMessage("Course access updated immediately.");router.refresh()}}
- return <div className={styles.workspace}>
-  <nav className={styles.tabs}>{tabs.map(item=><button className={tab===item?styles.activeTab:""} key={item} onClick={()=>setTab(item)}>{item}</button>)}</nav>
-  {error?<p className={styles.error}>{error}</p>:null}{message?<p className={styles.success}><CheckCircle2/> {message}</p>:null}
-  {tab==="Overview"?<div className={styles.kpis}><article><BookOpen/><span>Modules</span><strong>{modules.length}</strong></article><article><Layers3/><span>Lessons</span><strong>{lessons.length}</strong></article><article><Users/><span>Active learners</span><strong>{progress.length}</strong></article><article><ShieldCheck/><span>Access model</span><strong>{course.access_mode.replaceAll("_"," ")}</strong></article></div>:null}
-  {tab==="Curriculum"?<div className={styles.split}>
-   <form action={saveCurriculum} className={styles.panel}><header><div><p className="eyebrow">Ordered curriculum</p><h2>Modules and lessons</h2></div><button type="submit">Save order and status</button></header>{modules.map(module=><div className={styles.module} key={module.id}><div className={styles.moduleHead}><input aria-label={`${module.title} order`} defaultValue={module.sort_order} min="0" name={`module-order-${module.id}`} type="number"/><div><h3>{module.title}</h3><p>{module.is_required?"required":"optional"}</p></div><select defaultValue={module.status} name={`module-status-${module.id}`}><option>draft</option><option>published</option><option>archived</option></select></div><table><thead><tr><th>Order</th><th>Lesson</th><th>Status</th><th>Blocks</th></tr></thead><tbody>{module.lessons.map(lesson=><tr className={selectedLesson===lesson.id?styles.selected:""} key={lesson.id} onClick={()=>setSelectedLesson(lesson.id)}><td><input defaultValue={lesson.sort_order} min="0" name={`lesson-order-${lesson.id}`} onClick={e=>e.stopPropagation()} type="number"/></td><td><strong>{lesson.title}</strong></td><td><select defaultValue={lesson.status} name={`lesson-status-${lesson.id}`} onClick={e=>e.stopPropagation()}><option>draft</option><option>published</option><option>archived</option></select></td><td>{lesson.blocks.length}</td></tr>)}{!module.lessons.length?<tr><td colSpan={4}>Empty module</td></tr>:null}</tbody></table></div>)}{!modules.length?<div className={styles.empty}>Create the first module to begin.</div>:null}</form>
-   <div className={styles.forms}><form action={createModule} className={styles.panel}><h3><Plus/> Add module</h3><label>Title<input name="title" required/></label><label>Description<textarea name="description"/></label><div className={styles.columns}><label>Status<select name="status"><option>draft</option><option>published</option></select></label><label>Order<input name="sortOrder" type="number" defaultValue="0" min="0"/></label></div><label className={styles.check}><input defaultChecked name="isRequired" type="checkbox"/> Required</label><button disabled={busy}>Create module</button></form>
-   <form action={createLesson} className={styles.panel}><h3><FilePlus2/> Add lesson</h3><label>Module<select name="moduleId" required>{modules.map(m=><option key={m.id} value={m.id}>{m.title}</option>)}</select></label><label>Title<input name="title" required/></label><label>Description<textarea name="description"/></label><div className={styles.columns}><label>Status<select name="status"><option>draft</option><option>published</option></select></label><label>Order<input name="sortOrder" type="number" defaultValue="0" min="0"/></label></div><label>Duration seconds<input name="durationSeconds" type="number" min="1"/></label><label className={styles.check}><input defaultChecked name="isRequired" type="checkbox"/> Required</label><button disabled={busy||!modules.length}>Create lesson</button></form>
-   <form action={addBlock} className={styles.panel}><h3>Add content block</h3><label>Selected lesson<select value={selectedLesson??""} onChange={e=>setSelectedLesson(e.target.value)}>{lessons.map(l=><option key={l.id} value={l.id}>{l.title}</option>)}</select></label><label>Block type<select name="blockType"><option value="rich_text">Written content</option><option value="video">Video</option><option value="pdf">PDF</option><option value="image">Image</option><option value="gallery">Image gallery</option><option value="link">Link</option></select></label><label>Single media asset<select name="mediaId"><option value="">None</option>{readyMedia.map(m=><option key={m.id} value={m.id}>{m.title} ({m.media_type})</option>)}</select></label><label>Gallery images (use Ctrl/Cmd to select multiple)<select multiple name="galleryMediaIds">{readyMedia.filter(m=>m.media_type==="image").map(m=><option key={m.id} value={m.id}>{m.title}</option>)}</select></label><label>Written content<textarea name="text"/></label><label>Link URL<input name="url" type="url"/></label><label>Link label<input name="label"/></label><label>Caption<input name="caption"/></label><label>Order<input defaultValue="0" min="0" name="sortOrder" type="number"/></label><label className={styles.check}><input defaultChecked name="isRequired" type="checkbox"/> Required</label><button disabled={busy||!selectedLesson}>Add block</button></form></div>
-  </div>:null}
-  {tab==="Resources"?<div className={styles.split}><section className={styles.panel}><header><div><p className="eyebrow">Supporting material</p><h2>Course resources</h2></div></header><table><thead><tr><th>Order</th><th>Resource</th><th>Status</th></tr></thead><tbody>{resources.map(r=><tr key={r.id}><td>{r.sort_order}</td><td>{r.title}</td><td>{r.status}</td></tr>)}{!resources.length?<tr><td colSpan={3}>No supporting resources yet.</td></tr>:null}</tbody></table></section><form action={addResource} className={styles.panel}><h3>Add supporting resource</h3><label>Title<input name="title" required/></label><label>Attach to lesson<select name="lessonId"><option value="">Whole course</option>{lessons.map(l=><option key={l.id} value={l.id}>{l.title}</option>)}</select></label><label>Protected media<select name="mediaId"><option value="">None</option>{readyMedia.map(m=><option key={m.id} value={m.id}>{m.title}</option>)}</select></label><label>Or external URL<input name="externalUrl" type="url"/></label><div className={styles.columns}><label>Status<select name="status"><option>draft</option><option>published</option></select></label><label>Order<input defaultValue="0" min="0" name="sortOrder" type="number"/></label></div><button>Add resource</button></form></div>:null}
-  {tab==="Access"?<form action={saveAccess} className={styles.panel}><header><div><p className="eyebrow">Immediate authorization</p><h2>Course access</h2><p>Removing a recipient stops future lessons and media sessions but preserves progress.</p></div></header><div className={styles.accessModes}>{["all_verified","restricted","one_to_one"].map(mode=><label key={mode}><input defaultChecked={course.access_mode===mode} name="accessMode" type="radio" value={mode}/><strong>{mode.replaceAll("_"," ")}</strong></label>)}</div><h3>Groups</h3><div className={styles.choices}>{groups.map(g=><label key={g.id}><input defaultChecked={selectedGroupIds.includes(g.id)} name="groupIds" type="checkbox" value={g.id}/><span style={{background:g.color}}/>{g.name}</label>)}</div><h3>Individual students</h3><div className={styles.choices}>{students.map(s=><label key={s.student_user_id}><input defaultChecked={selectedStudentIds.includes(s.student_user_id)} name="studentIds" type="checkbox" value={s.student_user_id}/>{s.full_name}<small>{s.email}</small></label>)}</div><button disabled={busy}>{busy?<Loader2/>:null} Save access</button></form>:null}
-  {tab==="Students"?<section className={styles.panel}><header><div><p className="eyebrow">Core progress</p><h2>Student progress</h2></div></header><table><thead><tr><th>Student</th><th>Started</th><th>Completed</th><th>Last activity</th></tr></thead><tbody>{progress.map(p=><tr key={p.student_user_id}><td>{p.full_name}</td><td>{p.started}</td><td>{p.completed}</td><td>{p.last_activity_at?new Date(p.last_activity_at).toLocaleString():"Never"}</td></tr>)}{!progress.length?<tr><td colSpan={4}>No learner activity yet.</td></tr>:null}</tbody></table></section>:null}
-  {tab==="Settings"?<form action={saveCourse} className={styles.panel}><header><div><p className="eyebrow">Course lifecycle</p><h2>Settings</h2><p>Publishing, archiving, and reordering active curriculum requires confirmation.</p></div></header><label>Title<input defaultValue={course.title} name="title" required/></label><label>Description<textarea defaultValue={course.description??""} name="description"/></label><div className={styles.columns}><label>Status<select defaultValue={course.status} name="status"><option>draft</option><option>published</option><option>archived</option></select></label><label>Order<input defaultValue={course.sort_order} min="0" name="sortOrder" type="number"/></label></div><input name="acknowledgeImpact" type="hidden" value="false"/><button>Save settings</button></form>:null}
- </div>
+type Media = {
+  id: string;
+  title: string;
+  media_type: "video" | "pdf" | "image";
+  processing_state: string;
+};
+
+type Lesson = {
+  id: string;
+  module_id: string;
+  title: string;
+  description: string | null;
+  status: Status;
+  sort_order: number;
+  duration_seconds: number | null;
+  is_required: boolean;
+  blocks: Array<{
+    id: string;
+    block_type: string;
+    sort_order: number;
+    media_id: string | null;
+  }>;
+};
+
+type Module = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: Status;
+  sort_order: number;
+  is_required: boolean;
+  lessons: Lesson[];
+};
+
+interface ActivityFeedItem {
+  studentName: string;
+  lessonTitle: string;
+  lessonNumber: number;
+  totalLessons: number;
+  action: "completed" | "started";
+  lastActivityAt: string;
+}
+
+interface Props {
+  course: {
+    id: string;
+    title: string;
+    description: string | null;
+    status: Status;
+    sort_order: number;
+    access_mode: AccessMode;
+  };
+  modules: Module[];
+  media: Media[];
+  groups: Array<{ id: string; name: string; color: string }>;
+  students: Array<{ student_user_id: string; full_name: string; email: string }>;
+  selectedGroupIds: string[];
+  selectedStudentIds: string[];
+  progress: Array<{
+    student_user_id: string;
+    full_name: string;
+    completed: number;
+    started: number;
+    last_activity_at: string | null;
+  }>;
+  resources: Array<{ id: string; title: string; status: Status; sort_order: number }>;
+  activityFeed: ActivityFeedItem[];
+}
+
+const TABS = [
+  "Overview",
+  "Curriculum",
+  "Resources",
+  "Access",
+  "Students",
+  "Settings",
+] as const;
+
+export function CourseDetailManager({
+  course,
+  modules,
+  media,
+  groups,
+  students,
+  selectedGroupIds,
+  selectedStudentIds,
+  progress,
+  resources,
+  activityFeed,
+}: Props) {
+  const router = useRouter();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [selectedLesson, setSelectedLesson] = useState<string | null>(
+    modules.flatMap((m) => m.lessons)[0]?.id ?? null,
+  );
+
+  const lessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
+  const readyMedia = media.filter((m) => m.processing_state === "ready");
+
+  async function call(url: string, body: unknown) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setError(payload.error ?? "The change could not be saved.");
+      return false;
+    }
+    setMessage("Saved successfully.");
+    router.refresh();
+    return true;
+  }
+
+  async function createModule(fd: FormData) {
+    await call(`/api/courses/${course.id}/modules`, {
+      title: fd.get("title"),
+      description: fd.get("description") || null,
+      status: fd.get("status"),
+      sortOrder: Number(fd.get("sortOrder")),
+      isRequired: fd.get("isRequired") === "on",
+    });
+  }
+
+  async function createLesson(fd: FormData) {
+    const ok = await call(`/api/courses/${course.id}/lessons`, {
+      moduleId: fd.get("moduleId"),
+      title: fd.get("title"),
+      description: fd.get("description") || null,
+      status: fd.get("status"),
+      sortOrder: Number(fd.get("sortOrder")),
+      durationSeconds: fd.get("durationSeconds")
+        ? Number(fd.get("durationSeconds"))
+        : null,
+      isRequired: fd.get("isRequired") === "on",
+    });
+    if (ok) setTab("Curriculum");
+  }
+
+  async function addBlock(fd: FormData) {
+    if (!selectedLesson) return;
+    const type = String(fd.get("blockType"));
+    const content =
+      type === "rich_text"
+        ? { html: fd.get("text") }
+        : type === "link"
+          ? { url: fd.get("url"), label: fd.get("label") }
+          : { caption: fd.get("caption") };
+    await call(`/api/lessons/${selectedLesson}/blocks`, {
+      blockType: type,
+      sortOrder: Number(fd.get("sortOrder")),
+      mediaId: fd.get("mediaId") || null,
+      mediaIds: fd.getAll("galleryMediaIds"),
+      content,
+      isRequired: fd.get("isRequired") === "on",
+    });
+  }
+
+  async function addResource(fd: FormData) {
+    await call(`/api/courses/${course.id}/resources`, {
+      title: fd.get("title"),
+      lessonId: fd.get("lessonId") || null,
+      mediaId: fd.get("mediaId") || null,
+      externalUrl: fd.get("externalUrl") || null,
+      status: fd.get("status"),
+      sortOrder: Number(fd.get("sortOrder")),
+    });
+  }
+
+  async function patchCurriculum(payload: {
+    modules: Array<{ id: string; sort_order: number; status: string }>;
+    lessons: Array<{ id: string; sort_order: number; status: string }>;
+    acknowledgeImpact: boolean;
+  }) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    let response = await fetch(`/api/courses/${course.id}/curriculum`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    let p = await response.json();
+    if (
+      response.status === 409 &&
+      p.requiresConfirmation &&
+      window.confirm(p.error)
+    ) {
+      response = await fetch(`/api/courses/${course.id}/curriculum`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, acknowledgeImpact: true }),
+      });
+      p = await response.json();
+    }
+    setBusy(false);
+    if (!response.ok) setError(p.error ?? "The change could not be saved.");
+    else {
+      setMessage("Curriculum updated.");
+      router.refresh();
+    }
+  }
+
+  async function saveCourse(fd: FormData) {
+    fd.set("accessMode", course.access_mode);
+    selectedGroupIds.forEach((id) => fd.append("groupIds", id));
+    selectedStudentIds.forEach((id) => fd.append("studentIds", id));
+    let response = await fetch(`/api/courses/${course.id}`, {
+      method: "PATCH",
+      body: fd,
+    });
+    let payload = await response.json();
+    if (
+      response.status === 409 &&
+      payload.requiresConfirmation &&
+      window.confirm(payload.error)
+    ) {
+      fd.set("acknowledgeImpact", "true");
+      response = await fetch(`/api/courses/${course.id}`, {
+        method: "PATCH",
+        body: fd,
+      });
+      payload = await response.json();
+    }
+    if (!response.ok) setError(payload.error);
+    else {
+      setMessage("Course settings updated.");
+      router.refresh();
+    }
+  }
+
+  async function saveAccess(fd: FormData) {
+    setBusy(true);
+    const response = await fetch(`/api/courses/${course.id}`, {
+      method: "PATCH",
+      body: (() => {
+        const data = new FormData();
+        data.set("title", course.title);
+        data.set("description", course.description ?? "");
+        data.set("status", course.status);
+        data.set("sortOrder", String(course.sort_order));
+        data.set("accessMode", String(fd.get("accessMode")));
+        fd.getAll("groupIds").forEach((v) => data.append("groupIds", v));
+        fd.getAll("studentIds").forEach((v) => data.append("studentIds", v));
+        data.set("acknowledgeImpact", "true");
+        return data;
+      })(),
+    });
+    const p = await response.json();
+    setBusy(false);
+    if (!response.ok) setError(p.error);
+    else {
+      setMessage("Course access updated immediately.");
+      router.refresh();
+    }
+  }
+
+  return (
+    <div className={styles.workspace}>
+      <nav className={styles.tabs}>
+        {TABS.map((item) => (
+          <button
+            className={tab === item ? styles.activeTab : ""}
+            key={item}
+            onClick={() => setTab(item)}
+            type="button"
+          >
+            {item}
+          </button>
+        ))}
+      </nav>
+
+      {error ? <p className={styles.error}>{error}</p> : null}
+      {message ? (
+        <p className={styles.success}>
+          <CheckCircle2 /> {message}
+        </p>
+      ) : null}
+
+      {tab === "Overview" && (
+        <OverviewTab
+          modules={modules}
+          lessons={lessons}
+          progress={progress}
+          activityFeed={activityFeed}
+        />
+      )}
+
+      {tab === "Curriculum" && (
+        <CurriculumTab
+          course={course}
+          modules={modules}
+          lessons={lessons}
+          readyMedia={readyMedia}
+          selectedLesson={selectedLesson}
+          setSelectedLesson={setSelectedLesson}
+          busy={busy}
+          createModule={createModule}
+          createLesson={createLesson}
+          addBlock={addBlock}
+          patchCurriculum={patchCurriculum}
+        />
+      )}
+
+      {tab === "Resources" && (
+        <ResourcesTab
+          course={course}
+          resources={resources}
+          lessons={lessons}
+          readyMedia={readyMedia}
+          busy={busy}
+          addResource={addResource}
+        />
+      )}
+
+      {tab === "Access" && (
+        <AccessTab
+          course={course}
+          groups={groups}
+          students={students}
+          selectedGroupIds={selectedGroupIds}
+          selectedStudentIds={selectedStudentIds}
+          busy={busy}
+          saveAccess={saveAccess}
+        />
+      )}
+
+      {tab === "Students" && (
+        <StudentsTab progress={progress} modules={modules} lessons={lessons} />
+      )}
+
+      {tab === "Settings" && (
+        <SettingsTab course={course} busy={busy} saveCourse={saveCourse} />
+      )}
+    </div>
+  );
 }

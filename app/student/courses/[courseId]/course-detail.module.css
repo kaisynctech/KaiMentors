@@ -1,0 +1,260 @@
+.page {
+  min-height: 100vh;
+  padding: 0 24px 80px;
+  background: #f4f6f7;
+}
+
+.nav {
+  display: flex;
+  width: min(1120px, 100%);
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  margin: auto;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  align-items: center;
+  gap: 32px;
+  width: min(1120px, 100%);
+  margin: 32px auto 40px;
+  padding: 36px;
+  border: 1px solid #dfe3e5;
+  border-radius: 22px;
+  background: #fff;
+}
+
+.heroCover {
+  position: relative;
+  display: grid;
+  height: 200px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 14px;
+  color: #687078;
+  background: #e9edef;
+  flex-shrink: 0;
+}
+
+.heroCover img {
+  object-fit: cover;
+}
+
+.heroCopy h1 {
+  margin: 6px 0 10px;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -0.045em;
+  line-height: 1.06;
+}
+
+.courseDesc {
+  margin: 0 0 18px;
+  color: #6c747a;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.progressBar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9edef;
+}
+
+.progressBar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #1d6ef9;
+  transition: width 400ms ease;
+}
+
+.progressLabel {
+  margin: 8px 0 0;
+  color: #4e565b;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.curriculum {
+  display: grid;
+  gap: 14px;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.moduleCard {
+  border: 1px solid #dfe3e5;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9edef;
+  background: #f8f9fa;
+}
+
+.moduleHeader h2 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.moduleHeader span {
+  color: #6c747a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lessonList {
+  display: grid;
+}
+
+.lessonRow {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-top: 1px solid #f0f2f3;
+  text-decoration: none;
+  color: inherit;
+  transition: background 120ms ease;
+}
+
+.lessonRow:first-child {
+  border-top: none;
+}
+
+.lessonRow:hover {
+  background: #f8f9fa;
+}
+
+.lessonIcon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid #dfe3e5;
+  color: #6c747a;
+  font-size: 11px;
+  font-weight: 850;
+  flex-shrink: 0;
+}
+
+.lessonDone .lessonIcon {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: #f0fdf4;
+}
+
+.lessonResume .lessonIcon {
+  border-color: #1d6ef9;
+  color: #1d6ef9;
+  background: #eff5ff;
+}
+
+.lessonMeta strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.lessonMeta p {
+  margin: 0;
+  color: #747c82;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.lessonRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.resumeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #1d6ef9;
+  background: #eff5ff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6c747a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.empty {
+  border: 1px solid #dfe3e5;
+  border-radius: 16px;
+  padding: 80px 24px;
+  color: #737b81;
+  background: #fff;
+  text-align: center;
+}
+
+.empty h2 {
+  margin: 16px 0 6px;
+  color: #111315;
+  font-size: 18px;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+
+  .heroCover {
+    height: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-inline: 14px;
+  }
+
+  .lessonRow {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .lessonRight {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+  }
+}
