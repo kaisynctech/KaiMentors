@@ -5,6 +5,8 @@ import { MetricCard } from "@/components/metric-card";
 import { createClient } from "@/lib/supabase/server";
 import styles from "./dashboard.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default async function TraderDashboard() {
   const supabase = await createClient();
   let traderId: string | null = null;
