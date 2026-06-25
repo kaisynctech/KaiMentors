@@ -111,14 +111,23 @@ test("password creation follows successful verification across new account flows
   const student = await read("components", "student-registration-form.tsx");
   const mentorApi = await read("app", "api", "trader", "onboard", "route.ts");
   const studentApi = await read("app", "api", "student", "register", "route.ts");
+  // Mentor and account-setup: OTP verification precedes password creation (unchanged).
   assert.match(setup, /verifyOtp/);
   assert.ok(setup.indexOf("verifyOtp") < setup.indexOf("updateUser({ password }"));
   assert.doesNotMatch(mentorApi, /password: input\.password/);
-  assert.doesNotMatch(studentApi, /password: input\.password/);
+  assert.match(mentor, /account-setup/);
+  // Student EP-017 inline OTP: password is set at createUser time; OTP (type "signup") activates the unconfirmed account.
+  assert.match(studentApi, /createUser/);
+  assert.match(studentApi, /email_confirm: false/);
+  assert.match(studentApi, /canSendAuthEmail/);
+  assert.match(studentApi, /auth_challenge_events/);
+  assert.match(studentApi, /student_registration/);
+  assert.doesNotMatch(studentApi, /console\.log.*password|"password".*metadata|metadata.*"password"/i);
+  // Neither form exposes password as a DOM input — student injects via formData.set in the submit handler.
   assert.doesNotMatch(mentor, /name="password"/);
   assert.doesNotMatch(student, /name="password"/);
-  assert.match(mentor, /account-setup/);
-  assert.match(student, /account-setup/);
+  assert.match(student, /formData\.set\("password"/);
+  assert.match(student, /type: "signup"/);
 });
 
 test("invitation renewal and owner email correction are super-admin-only and preserve identity", async () => {
