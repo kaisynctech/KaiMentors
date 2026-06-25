@@ -116,7 +116,7 @@ test("password creation follows successful verification across new account flows
   assert.ok(setup.indexOf("verifyOtp") < setup.indexOf("updateUser({ password }"));
   assert.doesNotMatch(mentorApi, /password: input\.password/);
   assert.match(mentor, /account-setup/);
-  // Student EP-017 inline OTP: password is set at createUser time; OTP (type "signup") activates the unconfirmed account.
+  // Student EP-017/EP-018 inline OTP: password set at createUser; OTP type is conditional on account state.
   assert.match(studentApi, /createUser/);
   assert.match(studentApi, /email_confirm: false/);
   assert.match(studentApi, /canSendAuthEmail/);
@@ -127,7 +127,8 @@ test("password creation follows successful verification across new account flows
   assert.doesNotMatch(mentor, /name="password"/);
   assert.doesNotMatch(student, /name="password"/);
   assert.match(student, /formData\.set\("password"/);
-  assert.match(student, /type: "signup"/);
+  // EP-018: type is conditional — "email" for confirmed existing users, "signup" for new unconfirmed users.
+  assert.match(student, /isExistingUser \? "email" : "signup"/);
 });
 
 test("invitation renewal and owner email correction are super-admin-only and preserve identity", async () => {

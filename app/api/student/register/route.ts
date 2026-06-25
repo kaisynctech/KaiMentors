@@ -172,6 +172,32 @@ export async function POST(request: Request) {
       // Ignore insert error — existing user keeps their account regardless.
     }
 
+    // Send OTP — same delivery gate as new-user path.
+    const deliveryAllowed = await canSendAuthEmail(admin, existingUserId);
+    if (deliveryAllowed) {
+      const { error: otpError } = await admin.auth.signInWithOtp({
+        email: input.email,
+        options: { shouldCreateUser: false },
+      });
+      await admin.from("auth_challenge_events").insert({
+        user_id: existingUserId,
+        purpose: "student_registration",
+        event_type: otpError ? "provider_error" : "requested",
+        email_hash: hashAccountSetupValue(input.email),
+        metadata: otpError
+          ? { provider: "supabase_auth", error_code: "delivery_failed" }
+          : {},
+      });
+    } else {
+      await admin.from("auth_challenge_events").insert({
+        user_id: existingUserId,
+        purpose: "student_registration",
+        event_type: "suppressed",
+        email_hash: hashAccountSetupValue(input.email),
+        metadata: { reason: "auth_email_canary_gate" },
+      });
+    }
+
     return NextResponse.json(
       { status: "accepted", email: input.email, existingUser: true },
       { status: 202 },

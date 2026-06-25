@@ -32,7 +32,7 @@ export function StudentRegistrationForm({
 }: RegistrationFormProps) {
   const [step, setStep] = useState<StepIndex>(0);
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const [otpScreen, setOtpScreen] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
@@ -75,11 +75,9 @@ export function StudentRegistrationForm({
       if (!response.ok) throw new Error(payload.error ?? "Registration could not be completed.");
       const resolvedEmail = String(payload.email ?? formData.get("email")).trim().toLowerCase();
       setSubmittedEmail(resolvedEmail);
-      if (payload.existingUser === true) {
-        setDone(true);
-      } else {
-        setOtpScreen(true);
-      }
+      const wasExisting = payload.existingUser === true;
+      setIsExistingUser(wasExisting);
+      setOtpScreen(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Registration could not be completed.");
     } finally {
@@ -95,7 +93,7 @@ export function StudentRegistrationForm({
       const { error } = await supabase.auth.verifyOtp({
         email: submittedEmail,
         token: otpCode.trim(),
-        type: "signup",
+        type: isExistingUser ? "email" : "signup",
       });
       if (error) throw new Error("The code is incorrect or has expired. Try again or request a new code.");
       window.location.href = studentDestination;
@@ -114,24 +112,11 @@ export function StudentRegistrationForm({
     });
   }
 
-  if (done) {
-    return (
-      <div className={styles.success}>
-        <CheckCircle2 size={42} style={{ color: primaryColor }} />
-        <h2>Application submitted!</h2>
-        <p>
-          You already have a KaiMentors account. Use your existing password to{" "}
-          <a href={loginPath}>sign in to {academyName ?? "the academy"}</a>.
-        </p>
-      </div>
-    );
-  }
-
   if (otpScreen) {
     return (
       <div className={styles.otpScreen}>
         <CheckCircle2 size={42} style={{ color: primaryColor }} />
-        <h2>Check your inbox</h2>
+        <h2>{isExistingUser ? "Welcome back — check your inbox" : "Check your inbox"}</h2>
         <p>We sent a 6-digit code to <strong>{submittedEmail}</strong>.</p>
         <div className={styles.field}>
           <label htmlFor="srf_otp">Verification code</label>
