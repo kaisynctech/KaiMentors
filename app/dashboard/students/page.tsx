@@ -43,9 +43,9 @@ interface QueueRecord {
   student_name: string;
   student_email: string | null;
   profile_phone: string | null;
-  broker_id: string;
-  broker_name: string;
-  verification_method: VerificationMethod;
+  broker_id: string | null;
+  broker_name: string | null;
+  verification_method: VerificationMethod | null;
   trading_level: string | null;
   total_count: number;
 }
@@ -206,11 +206,11 @@ export default async function StudentsPage({
         student_name: profile?.full_name ?? "Student",
         student_email: profile?.email ?? null,
         profile_phone: profile?.phone ?? null,
-        broker_id: connection?.broker_id ?? "",
-        broker_name: broker?.name ?? "Broker unavailable",
+        broker_id: connection?.broker_id ?? null,
+        broker_name: broker?.name ?? null,
         verification_method:
-          (connection?.verification_method as VerificationMethod) ??
-          "manual_review",
+          (connection?.verification_method as VerificationMethod | null) ??
+          null,
         trading_level: null,
         total_count: result.count ?? 0,
       };

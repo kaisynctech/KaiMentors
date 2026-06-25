@@ -472,14 +472,14 @@ export function StudentReviewList({
                   </td>
                   <td>
                     <div className={styles.stackedCell}>
-                      <strong>{application.brokerName}</strong>
+                      <strong>{application.brokerName ?? "—"}</strong>
                       <small>
                         {application.tradingAccountNumber ?? "No account number"}
                       </small>
                     </div>
                   </td>
                   <td className={styles.capitalize}>
-                    {formatMethod(application.verificationMethod)}
+                    {application.verificationMethod ? formatMethod(application.verificationMethod) : "—"}
                   </td>
                   <td>
                     <span
@@ -624,7 +624,7 @@ export function StudentReviewList({
               </div>
               <div>
                 <dt>Broker</dt>
-                <dd>{detail.brokerName}</dd>
+                <dd>{detail.brokerName ?? "—"}</dd>
               </div>
               <div>
                 <dt>Trading account</dt>
@@ -637,7 +637,7 @@ export function StudentReviewList({
               <div>
                 <dt>Verification method</dt>
                 <dd className={styles.capitalize}>
-                  {formatMethod(detail.verificationMethod)}
+                  {detail.verificationMethod ? formatMethod(detail.verificationMethod) : "—"}
                 </dd>
               </div>
               <div>

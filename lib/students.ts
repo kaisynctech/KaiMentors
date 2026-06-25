@@ -29,9 +29,9 @@ export interface StudentApplicationRow {
   studentName: string;
   studentEmail: string | null;
   profilePhone: string | null;
-  brokerId: string;
-  brokerName: string;
-  verificationMethod: VerificationMethod;
+  brokerId: string | null;
+  brokerName: string | null;
+  verificationMethod: VerificationMethod | null;
   tradingLevel: string | null;
 }
 
