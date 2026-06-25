@@ -1,3 +1,26 @@
+export interface LessonBlockInput {
+  blockType: "rich_text" | "video" | "pdf" | "image" | "gallery" | "link";
+  sortOrder: number;
+  mediaId?: string | null;
+  galleryMediaIds?: string[];
+  text?: string;
+  url?: string;
+  label?: string;
+  caption?: string;
+  isRequired?: boolean;
+}
+
+export interface LessonWithBlocksInput {
+  moduleId: string;
+  title: string;
+  description?: string | null;
+  status: "draft" | "published";
+  sortOrder: number;
+  durationSeconds?: number | null;
+  isRequired: boolean;
+  blocks: LessonBlockInput[];
+}
+
 export function formatDuration(seconds: number | null) {
   if (!seconds) return "Duration not set";
   const minutes = Math.floor(seconds / 60);

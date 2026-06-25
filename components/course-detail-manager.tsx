@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import styles from "./course-detail-manager.module.css";
+import type { LessonWithBlocksInput } from "@/lib/courses";
 import { AccessTab } from "./course-tabs/access-tab";
 import { CurriculumTab } from "./course-tabs/curriculum-tab";
 import { OverviewTab } from "./course-tabs/overview-tab";
@@ -109,9 +110,7 @@ export function CourseDetailManager({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [selectedLesson, setSelectedLesson] = useState<string | null>(
-    modules.flatMap((m) => m.lessons)[0]?.id ?? null,
-  );
+  const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
 
   const lessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
   const readyMedia = media.filter((m) => m.processing_state === "ready");
@@ -146,19 +145,8 @@ export function CourseDetailManager({
     });
   }
 
-  async function createLesson(fd: FormData) {
-    const ok = await call(`/api/courses/${course.id}/lessons`, {
-      moduleId: fd.get("moduleId"),
-      title: fd.get("title"),
-      description: fd.get("description") || null,
-      status: fd.get("status"),
-      sortOrder: Number(fd.get("sortOrder")),
-      durationSeconds: fd.get("durationSeconds")
-        ? Number(fd.get("durationSeconds"))
-        : null,
-      isRequired: fd.get("isRequired") === "on",
-    });
-    if (ok) setTab("Curriculum");
+  async function createLessonWithBlocks(lesson: LessonWithBlocksInput) {
+    await call(`/api/courses/${course.id}/lessons`, lesson);
   }
 
   async function addBlock(fd: FormData) {
@@ -320,7 +308,7 @@ export function CourseDetailManager({
           setSelectedLesson={setSelectedLesson}
           busy={busy}
           createModule={createModule}
-          createLesson={createLesson}
+          createLessonWithBlocks={createLessonWithBlocks}
           addBlock={addBlock}
           patchCurriculum={patchCurriculum}
         />
