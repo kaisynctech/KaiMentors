@@ -157,6 +157,17 @@ export async function middleware(request: NextRequest) {
     const platformUrl =
       process.env.NEXT_PUBLIC_SITE_URL ??
       `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+    // A trader who also holds a student application must be allowed through.
+    // super_admin never has student applications and goes to /admin immediately.
+    if (profile?.role === "trader") {
+      const { data: studentApp } = await supabase
+        .from("student_applications")
+        .select("id")
+        .eq("student_user_id", data.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (studentApp) return response;
+    }
     const destination =
       profile?.role === "super_admin" ? "/admin" : "/dashboard";
     return copyCookies(

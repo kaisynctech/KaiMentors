@@ -121,15 +121,55 @@ export async function POST(request: Request) {
 
   if (createError || !created.user) {
     const isDuplicate = createError?.message.toLowerCase().includes("already");
-    if (isDuplicate) {
+    if (!isDuplicate) {
       return NextResponse.json(
-        { status: "accepted", email: input.email },
-        { status: 202 },
+        { error: "Your account could not be created." },
+        { status: 400 },
       );
     }
+
+    // Existing user — look up their ID and create an application for this portal if they don't already have one.
+    // listUsers + filter is the only available mechanism in supabase-js v2 (no getUserByEmail).
+    const { data: userList } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const existingAuthUser = userList?.users.find(
+      (u) => u.email?.toLowerCase() === input.email.toLowerCase(),
+    );
+    if (!existingAuthUser) {
+      // Can't resolve the user — safe enumeration-resistant fallback.
+      return NextResponse.json({ status: "accepted", email: input.email, existingUser: true }, { status: 202 });
+    }
+    const existingUserId = existingAuthUser.id;
+
+    const { data: existingApp } = await admin
+      .from("student_applications")
+      .select("id")
+      .eq("student_user_id", existingUserId)
+      .eq("portal_id", validPortal.id)
+      .maybeSingle();
+
+    if (!existingApp) {
+      await admin.from("student_applications").insert({
+        id: crypto.randomUUID(),
+        trader_id: validPortal.trader_id,
+        portal_id: validPortal.id,
+        student_user_id: existingUserId,
+        trader_broker_account_id: null,
+        broker_account_identifier: null,
+        trading_account_number: null,
+        platform_account_number: null,
+        phone_number: input.phoneNumber,
+        status: "pending",
+        consented_at: new Date().toISOString(),
+        trading_level: input.tradingLevel ?? null,
+        years_trading: input.yearsTrading ?? null,
+        trading_challenge: input.tradingChallenge ?? null,
+      });
+      // Ignore insert error — existing user keeps their account regardless.
+    }
+
     return NextResponse.json(
-      { error: "Your account could not be created." },
-      { status: 400 },
+      { status: "accepted", email: input.email, existingUser: true },
+      { status: 202 },
     );
   }
 

@@ -60,9 +60,9 @@ export function AcademyJoinPage({
               </p>
             </div>
             <StudentRegistrationForm
+              loginPath={loginHref}
               portalSlug={data.portal.slug}
               primaryColor={data.portal.primary_color}
-              studentPortalPath={studentPortalPath}
             />
           </section>
       </section>

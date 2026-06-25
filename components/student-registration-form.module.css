@@ -188,6 +188,14 @@
   line-height: 1.6;
 }
 
+.loginLink {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
 .spin {
   animation: spin 800ms linear infinite;
 }

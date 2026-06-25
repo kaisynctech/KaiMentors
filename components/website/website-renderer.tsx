@@ -292,13 +292,9 @@ function WebsiteSectionView({
               </div>
             ) : (
               <StudentRegistrationForm
+                loginPath={signInHref}
                 portalSlug={data.portal.slug}
                 primaryColor={data.theme.primary_color}
-                studentPortalPath={
-                  customDomain
-                    ? "/academy"
-                    : `/student?portal=${encodeURIComponent(data.portal.slug)}`
-                }
               />
             )}
           </div>

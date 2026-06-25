@@ -2,7 +2,11 @@
 
 ## Branded Academy Entry
 
-Returning login retains academy context through the resolved portal/domain. After password authentication, KaiMentors accepts only a student profile with an application for that exact academy. The same student can hold applications in multiple academies, but one tenant's status, evidence, courses, groups and conversations do not grant access to another tenant. Join Academy and Sign In remain centralized even when a custom package supplies the visual website.
+Returning login retains academy context through the resolved portal/domain. After password authentication, KaiMentors checks for either a `trader_members` row (mentor of this academy) or a `student_applications` row (student at this academy) for the resolved trader. Mentors are routed to the platform dashboard; students are routed to the student portal. `super_admin` accounts are blocked from the academy login. Users with no relationship to the academy are rejected and signed out. The same student can hold applications in multiple academies, but one tenant's status, evidence, courses, groups and conversations do not grant access to another tenant. Join Academy and Sign In remain centralized even when a custom package supplies the visual website.
+
+### Dual-Role Users
+
+A user whose `profiles.role` is `trader` may also have student applications (e.g., a mentor who enrolled in another academy). The middleware allows such users through to `/student` if they have at least one `student_applications` row. The student dashboard excludes `rejected` applications when no portal context is provided, so a dual-role user with a rejected application at one academy and an active one at another always lands on the active application.
 
 Last updated: 2026-06-17
 
@@ -24,7 +28,7 @@ Registration captures:
 
 The registration form uses a 3-step flow: Profile → Experience → Review. Broker details are no longer collected at signup (EP-015).
 
-The server resolves the academy tenant from the custom-domain hostname or portal slug, creates an unconfirmed passwordless student identity when needed, creates the tenant-scoped `student_applications` record (broker fields null, status `pending`), then directs the student to `/account-setup`. Password creation is available only after the email OTP is verified. Repeated registration returns an enumeration-safe continuation response and does not duplicate the identity or application. No `verification_attempts` row is created at registration.
+The server resolves the academy tenant from the custom-domain hostname or portal slug, creates an unconfirmed passwordless student identity when needed, creates the tenant-scoped `student_applications` record (broker fields null, status `pending`), then directs the student to `/account-setup`. Password creation is available only after the email OTP is verified. Repeated registration with the same email is handled gracefully: the existing auth account is retained, a new application is created for the portal if the user doesn't already have one, and the response includes `existingUser: true` so the form shows sign-in copy instead of account-setup copy. No `verification_attempts` row is created at registration.
 
 ## Dashboard Verification
 

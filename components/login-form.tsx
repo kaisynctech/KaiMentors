@@ -10,12 +10,18 @@ export function LoginForm({
   mentorDestination = "/dashboard",
   allowedRole,
   academyTraderId,
+  academyContext,
   submitLabel = "Sign in to workspace",
 }: {
   studentDestination?: string;
   mentorDestination?: string;
   allowedRole?: "student";
   academyTraderId?: string;
+  academyContext?: {
+    traderId: string;
+    studentDestination: string;
+    mentorDestination: string;
+  };
   submitLabel?: string;
 } = {}) {
   const [error, setError] = useState("");
@@ -41,6 +47,41 @@ export function LoginForm({
         .select("role")
         .eq("id", data.user.id)
         .single();
+
+      if (academyContext) {
+        if (profile?.role === "super_admin") {
+          await supabase.auth.signOut();
+          throw new Error("Platform admin accounts cannot use academy login.");
+        }
+
+        // Mentor of this academy (trader_members row) takes priority.
+        const { data: membership } = await supabase
+          .from("trader_members")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .eq("trader_id", academyContext.traderId)
+          .maybeSingle();
+        if (membership) {
+          window.location.href = academyContext.mentorDestination;
+          return;
+        }
+
+        // Student at this academy.
+        const { data: application } = await supabase
+          .from("student_applications")
+          .select("id")
+          .eq("student_user_id", data.user.id)
+          .eq("trader_id", academyContext.traderId)
+          .maybeSingle();
+        if (application) {
+          window.location.href = academyContext.studentDestination;
+          return;
+        }
+
+        await supabase.auth.signOut();
+        throw new Error("No account was found for this academy.");
+      }
+
       if (allowedRole && profile?.role !== allowedRole) {
         await supabase.auth.signOut();
         throw new Error(

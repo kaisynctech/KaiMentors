@@ -45,6 +45,9 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     .eq("student_user_id", user.id);
   if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
   if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
+  // Without portal context, skip rejected applications so a dual-role user with
+  // a rejected application at one academy still lands on their active application.
+  if (!academy.portalId && !academy.portalSlug) appQuery = appQuery.neq("status", "rejected");
 
   const { data: application } = await appQuery
     .order("submitted_at", { ascending: false })

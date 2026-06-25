@@ -8,7 +8,7 @@ import styles from "./student-registration-form.module.css";
 interface RegistrationFormProps {
   portalSlug: string;
   primaryColor: string;
-  studentPortalPath?: string;
+  loginPath?: string;
 }
 
 const STEPS = ["Profile", "Experience", "Review"] as const;
@@ -21,11 +21,12 @@ const LEVELS = [
   { value: "funded", label: "Funded Trader", desc: "Trading a prop or funded account" },
 ] as const;
 
-export function StudentRegistrationForm({ portalSlug, primaryColor }: RegistrationFormProps) {
+export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }: RegistrationFormProps) {
   const router = useRouter();
   const [step, setStep] = useState<StepIndex>(0);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [existingUser, setExistingUser] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   // Step 1 — Profile
@@ -54,9 +55,14 @@ export function StudentRegistrationForm({ portalSlug, primaryColor }: Registrati
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Registration could not be completed.");
       const resolvedEmail = String(payload.email ?? formData.get("email")).trim().toLowerCase();
-      window.sessionStorage.setItem("kaimentors.accountSetupEmail", resolvedEmail);
-      setDone(true);
-      setTimeout(() => router.push("/account-setup"), 1500);
+      if (payload.existingUser) {
+        setExistingUser(true);
+        setDone(true);
+      } else {
+        window.sessionStorage.setItem("kaimentors.accountSetupEmail", resolvedEmail);
+        setDone(true);
+        setTimeout(() => router.push("/account-setup"), 1500);
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Registration could not be completed.");
     } finally {
@@ -65,6 +71,20 @@ export function StudentRegistrationForm({ portalSlug, primaryColor }: Registrati
   }
 
   if (done) {
+    if (existingUser) {
+      return (
+        <div className={styles.success}>
+          <CheckCircle2 size={42} style={{ color: primaryColor }} />
+          <h2>Welcome back!</h2>
+          <p>Your application has been received. Sign in to access your academy dashboard.</p>
+          {loginPath ? (
+            <a className={styles.loginLink} href={loginPath} style={{ color: primaryColor }}>
+              Sign in →
+            </a>
+          ) : null}
+        </div>
+      );
+    }
     return (
       <div className={styles.success}>
         <CheckCircle2 size={42} style={{ color: primaryColor }} />

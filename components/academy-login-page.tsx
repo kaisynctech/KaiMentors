@@ -22,6 +22,7 @@ export function AcademyLoginPage({
   const platformOrigin = process.env.NEXT_PUBLIC_SITE_URL;
   const setupHref = customDomain && platformOrigin ? new URL("/account-setup", platformOrigin).toString() : "/account-setup";
   const recoveryHref = customDomain && platformOrigin ? new URL("/recover", platformOrigin).toString() : "/recover";
+  const mentorDashboardHref = customDomain && platformOrigin ? new URL("/dashboard", platformOrigin).toString() : "/dashboard";
   const theme = {
     "--academy-primary": data.portal.primary_color,
     "--academy-accent": data.portal.accent_color,
@@ -57,18 +58,18 @@ export function AcademyLoginPage({
           <section className={styles.card}>
             <div className={styles.cardHeader}>
               <LockKeyhole size={28} />
-              <p className={styles.eyebrow}>Student login</p>
+              <p className={styles.eyebrow}>Academy login</p>
               <h2>Welcome back</h2>
               <p>
-                This login is only for students of {data.portal.portal_name}.
-                Mentor and platform accounts must use the KaiMentors platform
-                login.
+                Sign in to {data.portal.portal_name}. Students and mentors of this academy can sign in here.
               </p>
             </div>
             <LoginForm
-              academyTraderId={data.portal.trader_id}
-              allowedRole="student"
-              studentDestination={studentDestination}
+              academyContext={{
+                traderId: data.portal.trader_id,
+                studentDestination,
+                mentorDestination: mentorDashboardHref,
+              }}
               submitLabel="Sign In"
             />
             <p className={styles.footerNote}><Link href={setupHref}>Resume account setup</Link> · <Link href={recoveryHref}>Forgot password</Link></p>

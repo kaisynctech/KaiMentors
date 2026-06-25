@@ -1,5 +1,17 @@
 # Changelog
 
+## EP-016 — Dual-Role User Support (2026-06-25)
+
+### Fixed
+- **Register route** (`POST /api/student/register`): existing users whose email already has an auth account no longer silently lose their academy application. The route now looks up the existing user, creates a `student_applications` row for the submitted portal if they don't already have one, and returns `existingUser: true`. No new auth user is created or deleted. Rollback (delete auth user) is still performed only for newly created users.
+- **Academy login form** (`LoginForm`, `AcademyLoginPage`): replaced the `allowedRole="student"` hard-block with an `academyContext` prop. The new flow checks `trader_members` first (mentor) then `student_applications` (student) — allowing traders who are also academy students to sign in. `super_admin` is blocked at the academy login. Users with no relationship to the academy are signed out with a clear error message.
+- **Middleware** (`middleware.ts`): traders are no longer unconditionally redirected away from `/student`. If the trader has at least one `student_applications` row they are allowed through; otherwise redirected to `/dashboard` as before.
+- **Student page** (`app/student/page.tsx`): when no portal context is provided, `rejected` applications are excluded from the most-recent-application query. A dual-role user with a rejected application at one academy and an active one at another now lands on the active application.
+
+### Changed
+- `StudentRegistrationForm`: replaced dead `studentPortalPath` prop with `loginPath`. On `existingUser: true` response, shows "Welcome back" copy with a sign-in link instead of redirecting to `/account-setup`.
+- `AcademyLoginPage` card header updated from "Student login" to "Academy login"; description updated to include mentors.
+
 ## EP-015 — Signup Simplification & Dashboard Verification (2026-06-25)
 
 ### Changed
