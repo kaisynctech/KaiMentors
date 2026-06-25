@@ -60,9 +60,11 @@ export function AcademyJoinPage({
               </p>
             </div>
             <StudentRegistrationForm
+              academyName={data.portal.portal_name}
               loginPath={loginHref}
               portalSlug={data.portal.slug}
               primaryColor={data.portal.primary_color}
+              studentDestination={studentPortalPath}
             />
           </section>
       </section>

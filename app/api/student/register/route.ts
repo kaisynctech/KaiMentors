@@ -19,6 +19,7 @@ const registrationSchema = z.object({
     .min(7)
     .max(32)
     .regex(/^\+?[0-9 ()-]+$/),
+  password: z.string().min(10).max(128),
   consent: z.literal(true),
   tradingLevel: z.string().nullable().optional(),
   yearsTrading: z.string().nullable().optional(),
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
     fullName: formData.get("fullName"),
     email: formData.get("email"),
     phoneNumber: formData.get("phoneNumber"),
+    password: formData.get("password"),
     consent: formData.get("consent") === "on",
     tradingLevel: tradingLevelRaw,
     yearsTrading: yearsRaw,
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
       email: input.email,
+      password: input.password,
       email_confirm: false,
       user_metadata: { full_name: input.fullName, role: "student" },
     });
@@ -212,6 +215,12 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  // Send OTP — best-effort; student can use "Resend code" if delivery fails.
+  await admin.auth.signInWithOtp({
+    email: input.email,
+    options: { shouldCreateUser: false },
+  });
 
   return NextResponse.json(
     {

@@ -1,14 +1,16 @@
 "use client";
 
-import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/browser";
 import styles from "./student-registration-form.module.css";
 
 interface RegistrationFormProps {
   portalSlug: string;
   primaryColor: string;
   loginPath?: string;
+  academyName?: string;
+  studentDestination?: string;
 }
 
 const STEPS = ["Profile", "Experience", "Review"] as const;
@@ -21,18 +23,29 @@ const LEVELS = [
   { value: "funded", label: "Funded Trader", desc: "Trading a prop or funded account" },
 ] as const;
 
-export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }: RegistrationFormProps) {
-  const router = useRouter();
+export function StudentRegistrationForm({
+  portalSlug,
+  primaryColor,
+  loginPath,
+  academyName,
+  studentDestination = "/student",
+}: RegistrationFormProps) {
   const [step, setStep] = useState<StepIndex>(0);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [existingUser, setExistingUser] = useState(false);
+  const [otpState, setOtpState] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   // Step 1 — Profile
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
   // Step 2 — Experience
   const [tradingLevel, setTradingLevel] = useState("");
@@ -42,7 +55,12 @@ export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }:
   // Step 3 — Review
   const [consentChecked, setConsentChecked] = useState(false);
 
-  const step1Valid = fullName.trim().length >= 2 && email.includes("@") && phoneNumber.trim().length >= 7;
+  const step1Valid =
+    fullName.trim().length >= 2 &&
+    email.includes("@") &&
+    phoneNumber.trim().length >= 7 &&
+    password.length >= 10 &&
+    password === passwordConfirmation;
   const step2Valid = tradingLevel !== "";
   const canNext = step === 0 ? step1Valid : step2Valid;
 
@@ -50,18 +68,16 @@ export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }:
     setLoading(true);
     setSubmitError("");
     formData.set("portalSlug", portalSlug);
+    formData.set("password", password);
     try {
       const response = await fetch("/api/student/register", { method: "POST", body: formData });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Registration could not be completed.");
-      const resolvedEmail = String(payload.email ?? formData.get("email")).trim().toLowerCase();
       if (payload.existingUser) {
         setExistingUser(true);
         setDone(true);
       } else {
-        window.sessionStorage.setItem("kaimentors.accountSetupEmail", resolvedEmail);
-        setDone(true);
-        setTimeout(() => router.push("/account-setup"), 1500);
+        setOtpState(true);
       }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Registration could not be completed.");
@@ -70,39 +86,92 @@ export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }:
     }
   }
 
-  if (done) {
-    if (existingUser) {
-      return (
-        <div className={styles.success}>
-          <CheckCircle2 size={42} style={{ color: primaryColor }} />
-          <h2>Welcome back!</h2>
-          <p>Your application has been received. Sign in to access your academy dashboard.</p>
-          {loginPath ? (
-            <a className={styles.loginLink} href={loginPath} style={{ color: primaryColor }}>
-              Sign in →
-            </a>
-          ) : null}
-        </div>
-      );
+  async function verifyOtp() {
+    setOtpLoading(true);
+    setOtpError("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode.trim(),
+        type: "email",
+      });
+      if (error) throw new Error("The code is incorrect or has expired.");
+      window.location.href = studentDestination;
+    } catch (err) {
+      setOtpError(err instanceof Error ? err.message : "Verification failed.");
+    } finally {
+      setOtpLoading(false);
     }
+  }
+
+  async function resendOtp() {
+    await fetch("/api/student/resend-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  if (done && existingUser) {
     return (
       <div className={styles.success}>
-        <CheckCircle2 size={42} style={{ color: primaryColor }} />
+        <ShieldCheck size={42} style={{ color: primaryColor }} />
         <h2>Application submitted!</h2>
-        <p>Check your inbox to verify your email and create your password.</p>
+        <p>You already have a KaiMentors account. Sign in with your existing password to access your dashboard.</p>
+        {loginPath ? (
+          <a className={styles.loginLink} href={loginPath} style={{ color: primaryColor }}>
+            Sign in to {academyName ?? "your academy"} →
+          </a>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (otpState) {
+    return (
+      <div className={styles.otpScreen}>
+        <MailCheck size={36} style={{ color: primaryColor }} />
+        <h2>Check your inbox</h2>
+        <p>We sent a 6-digit code to <strong>{email}</strong>. Enter it below to activate your account.</p>
+        <input
+          autoComplete="one-time-code"
+          className={styles.codeInput}
+          inputMode="numeric"
+          maxLength={6}
+          minLength={6}
+          onChange={(e) => setOtpCode(e.target.value)}
+          pattern="[0-9]{6}"
+          placeholder="000000"
+          value={otpCode}
+        />
+        {otpError && <p className={styles.error}>{otpError}</p>}
+        <button
+          disabled={otpCode.length !== 6 || otpLoading}
+          onClick={verifyOtp}
+          style={{ background: primaryColor }}
+          type="button"
+        >
+          {otpLoading ? <Loader2 className={styles.spin} size={18} /> : null}
+          Verify and continue
+        </button>
+        <button className={styles.backButton} onClick={resendOtp} type="button">
+          Resend code
+        </button>
       </div>
     );
   }
 
   return (
     <form action={submit} className={styles.form}>
-      {/* Hidden inputs carry all state values into FormData at submission */}
+      {/* Hidden inputs carry state values into FormData at submission */}
       <input type="hidden" name="fullName" value={fullName} />
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="phoneNumber" value={phoneNumber} />
       <input type="hidden" name="tradingLevel" value={tradingLevel} />
       <input type="hidden" name="yearsTrading" value={yearsTrading} />
       <input type="hidden" name="tradingChallenge" value={tradingChallenge} />
+      {/* password is injected via formData.set() in submit(), never a hidden input */}
 
       {/* Step indicator */}
       <div className={styles.steps}>
@@ -140,7 +209,37 @@ export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }:
             <label htmlFor="srf_phone">Phone number</label>
             <input id="srf_phone" onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+27 82 000 0000" required type="tel" value={phoneNumber} />
           </div>
-          <p className={styles.stepNote}>Your password will be created only after your email address is verified.</p>
+          <div className={styles.field}>
+            <label htmlFor="srf_password">Create a password</label>
+            <input
+              autoComplete="new-password"
+              id="srf_password"
+              minLength={10}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              type="password"
+              value={password}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="srf_passwordConfirm">Confirm password</label>
+            <input
+              autoComplete="new-password"
+              id="srf_passwordConfirm"
+              minLength={10}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
+              required
+              type="password"
+              value={passwordConfirmation}
+            />
+          </div>
+          {password.length > 0 && password.length < 10 && (
+            <p className={styles.fieldHint}>Password must be at least 10 characters.</p>
+          )}
+          {password.length >= 10 && passwordConfirmation.length > 0 && password !== passwordConfirmation && (
+            <p className={styles.fieldHint}>Passwords do not match.</p>
+          )}
+          <p className={styles.stepNote}>You&apos;ll use this password to sign in after verifying your email.</p>
         </>
       )}
 
@@ -196,7 +295,7 @@ export function StudentRegistrationForm({ portalSlug, primaryColor, loginPath }:
         <>
           <div className={styles.reviewBox}>
             <strong>What happens next</strong>
-            <p>Once your email is verified and your account is created, you&apos;ll be taken to your student dashboard. From there, you can submit your broker account details to complete verification and unlock full academy access.</p>
+            <p>After submitting, you&apos;ll receive a 6-digit code by email. Enter it on the next screen to activate your account and sign in to your student dashboard.</p>
           </div>
           <div className={styles.disclaimerCard}>
             <strong>⚠ Important — please read before submitting</strong>
