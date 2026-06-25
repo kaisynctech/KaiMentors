@@ -60,7 +60,6 @@ export function AcademyJoinPage({
               </p>
             </div>
             <StudentRegistrationForm
-              brokers={data.brokers}
               portalSlug={data.portal.slug}
               primaryColor={data.portal.primary_color}
               studentPortalPath={studentPortalPath}

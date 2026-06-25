@@ -1,0 +1,96 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formTitle {
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--color-text-primary, #22272b);
+  margin: 0 0 4px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--color-text-secondary, #555f6a);
+}
+
+.field input,
+.field select {
+  border: 1.5px solid var(--color-border, #d0d7de);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.9375rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text-primary, #22272b);
+  transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+}
+
+.field small {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary, #777e87);
+}
+
+.error {
+  font-size: 0.8125rem;
+  color: #c0392b;
+  margin: 0;
+}
+
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-primary, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.successMessage {
+  border-radius: 8px;
+  background: #f0faf0;
+  border: 1.5px solid #5cb85c;
+  padding: 14px 16px;
+}
+
+.successMessage p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #2d6a2d;
+  line-height: 1.5;
+}

@@ -1,30 +1,18 @@
 "use client";
 
-import { CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Loader2, UploadCloud } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import type { VerificationMethod } from "@/lib/database.types";
+import { useState } from "react";
 import styles from "./student-registration-form.module.css";
-
-interface RegistrationBroker {
-  id: string;
-  name: string;
-  slug: string;
-  logo_path: string | null;
-  connectionId: string;
-  affiliateLink: string | null;
-  verificationMethod: VerificationMethod;
-}
 
 interface RegistrationFormProps {
   portalSlug: string;
-  brokers: RegistrationBroker[];
   primaryColor: string;
   studentPortalPath?: string;
 }
 
-const STEPS = ["Profile", "Experience", "Broker", "Review"] as const;
-type StepIndex = 0 | 1 | 2 | 3;
+const STEPS = ["Profile", "Experience", "Review"] as const;
+type StepIndex = 0 | 1 | 2;
 
 const LEVELS = [
   { value: "beginner", label: "Beginner", desc: "Just starting out — learning the basics" },
@@ -33,7 +21,7 @@ const LEVELS = [
   { value: "funded", label: "Funded Trader", desc: "Trading a prop or funded account" },
 ] as const;
 
-export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: RegistrationFormProps) {
+export function StudentRegistrationForm({ portalSlug, primaryColor }: RegistrationFormProps) {
   const router = useRouter();
   const [step, setStep] = useState<StepIndex>(0);
   const [loading, setLoading] = useState(false);
@@ -50,31 +38,16 @@ export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: R
   const [yearsTrading, setYearsTrading] = useState("");
   const [tradingChallenge, setTradingChallenge] = useState("");
 
-  // Step 3 — Broker
-  const [selectedBrokerId, setSelectedBrokerId] = useState("");
-  const [hasAccount, setHasAccount] = useState<"yes" | "no">("yes");
-  const [tradingAccountNumber, setTradingAccountNumber] = useState("");
-  const [platformAccountNumber, setPlatformAccountNumber] = useState("");
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
-
-  // Step 4 — Review
+  // Step 3 — Review
   const [consentChecked, setConsentChecked] = useState(false);
-
-  const selectedBroker = useMemo(
-    () => brokers.find((b) => b.connectionId === selectedBrokerId),
-    [brokers, selectedBrokerId],
-  );
 
   const step1Valid = fullName.trim().length >= 2 && email.includes("@") && phoneNumber.trim().length >= 7;
   const step2Valid = tradingLevel !== "";
-  const step3Valid = selectedBrokerId !== "" && hasAccount === "yes" &&
-    tradingAccountNumber.trim().length >= 3 && platformAccountNumber.trim().length >= 3;
-  const canNext = step === 0 ? step1Valid : step === 1 ? step2Valid : step3Valid;
+  const canNext = step === 0 ? step1Valid : step2Valid;
 
   async function submit(formData: FormData) {
     setLoading(true);
     setSubmitError("");
-    if (screenshotFile) formData.set("screenshotProof", screenshotFile);
     formData.set("portalSlug", portalSlug);
     try {
       const response = await fetch("/api/student/register", { method: "POST", body: formData });
@@ -110,9 +83,6 @@ export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: R
       <input type="hidden" name="tradingLevel" value={tradingLevel} />
       <input type="hidden" name="yearsTrading" value={yearsTrading} />
       <input type="hidden" name="tradingChallenge" value={tradingChallenge} />
-      <input type="hidden" name="brokerConnectionId" value={selectedBrokerId} />
-      <input type="hidden" name="tradingAccountNumber" value={tradingAccountNumber} />
-      <input type="hidden" name="platformAccountNumber" value={platformAccountNumber} />
 
       {/* Step indicator */}
       <div className={styles.steps}>
@@ -201,88 +171,12 @@ export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: R
         </>
       )}
 
-      {/* Step 3 — Broker */}
+      {/* Step 3 — Review */}
       {step === 2 && (
-        <>
-          {brokers.length === 0 ? (
-            <p className={styles.error}>This academy has not enabled registration yet.</p>
-          ) : (
-            <>
-              <div className={styles.field}>
-                <label htmlFor="srf_broker">Broker</label>
-                <select id="srf_broker" onChange={(e) => setSelectedBrokerId(e.target.value)} required value={selectedBrokerId}>
-                  <option value="">Select your broker</option>
-                  {brokers.map((b) => <option key={b.connectionId} value={b.connectionId}>{b.name}</option>)}
-                </select>
-              </div>
-              {selectedBroker && (
-                <>
-                  <div className={styles.field}>
-                    <label htmlFor="srf_hasAccount">Do you have a {selectedBroker.name} account?</label>
-                    <select id="srf_hasAccount" onChange={(e) => setHasAccount(e.target.value as "yes" | "no")} value={hasAccount}>
-                      <option value="yes">Yes, I have an account</option>
-                      <option value="no">No, not yet</option>
-                    </select>
-                  </div>
-                  {hasAccount === "no" && (
-                    <div className={styles.brokerGuide}>
-                      {selectedBroker.affiliateLink && (
-                        <a className={styles.affiliate} href={selectedBroker.affiliateLink} rel="noreferrer" target="_blank">
-                          Open an account with {selectedBroker.name}<ExternalLink size={15} />
-                        </a>
-                      )}
-                      <ol>
-                        <li>Click the link above to visit {selectedBroker.name} using the academy&apos;s referral link.</li>
-                        <li>Complete registration and upload your ID and proof of address.</li>
-                        <li>Wait for account approval (1–2 business days).</li>
-                        <li>Fund your account, then return here to complete your application.</li>
-                      </ol>
-                      <p className={styles.brokerGuideNote}>You&apos;ll need a verified broker account to complete your application. Come back once your account is ready.</p>
-                    </div>
-                  )}
-                  {hasAccount === "yes" && (
-                    <>
-                      <div className={styles.field}>
-                        <label htmlFor="srf_tradingAcc">Trading account number</label>
-                        <input autoComplete="off" id="srf_tradingAcc" onChange={(e) => setTradingAccountNumber(e.target.value)} required value={tradingAccountNumber} />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="srf_platformAcc">MT4/MT5 number</label>
-                        <input autoComplete="off" id="srf_platformAcc" onChange={(e) => setPlatformAccountNumber(e.target.value)} required value={platformAccountNumber} />
-                        <small>Enter the login number shown in MT4 or MT5.</small>
-                      </div>
-                      <label className={styles.upload}>
-                        <UploadCloud size={20} />
-                        <span>
-                          <strong>Screenshot proof</strong>
-                          <small>Optional PNG, JPG, or WebP up to 10 MB.</small>
-                        </span>
-                        <input
-                          accept="image/png,image/jpeg,image/webp"
-                          onChange={(e) => setScreenshotFile(e.target.files?.[0] ?? null)}
-                          type="file"
-                        />
-                      </label>
-                      {selectedBroker.affiliateLink && (
-                        <a className={styles.affiliate} href={selectedBroker.affiliateLink} rel="noreferrer" target="_blank">
-                          Open an account with {selectedBroker.name}<ExternalLink size={15} />
-                        </a>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      {/* Step 4 — Review */}
-      {step === 3 && (
         <>
           <div className={styles.reviewBox}>
             <strong>What happens next</strong>
-            <p>The team will review your application, verify your broker account details, and activate your student portal access. You&apos;ll receive an email confirmation with your login link once approved.</p>
+            <p>Once your email is verified and your account is created, you&apos;ll be taken to your student dashboard. From there, you can submit your broker account details to complete verification and unlock full academy access.</p>
           </div>
           <div className={styles.disclaimerCard}>
             <strong>⚠ Important — please read before submitting</strong>
@@ -296,7 +190,7 @@ export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: R
               required
               type="checkbox"
             />
-            <span>I have read and understood the above. I consent to my account details being checked with the selected broker for verification purposes. I accept full responsibility for my own trading decisions.</span>
+            <span>I have read and understood the above. I consent to my trading account being verified against the academy&apos;s connected broker(s) when I submit my verification details from the student portal. I accept full responsibility for my own trading decisions.</span>
           </label>
           {submitError && <p className={styles.error}>{submitError}</p>}
         </>
@@ -309,7 +203,7 @@ export function StudentRegistrationForm({ portalSlug, brokers, primaryColor }: R
             <ChevronLeft size={16} />Back
           </button>
         )}
-        {step < 3 ? (
+        {step < 2 ? (
           <button
             className={styles.nextBtn}
             disabled={!canNext}

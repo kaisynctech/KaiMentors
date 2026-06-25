@@ -172,7 +172,9 @@ Usage: Mentor broker setup and student registration broker choices.
 
 Purpose: Tracks a student's registration and verification lifecycle for a tenant.
 
-Columns: `id uuid`, `trader_id uuid`, `portal_id uuid`, `student_user_id uuid`, `trader_broker_account_id uuid`, `broker_account_identifier text`, `phone_number text`, `trading_account_number text`, `platform_account_number text`, `screenshot_path text`, `status verification_status`, `status_reason text`, `reviewed_by uuid`, `review_version integer`, consent/submitted/review/verified timestamps, timestamps.
+Columns: `id uuid`, `trader_id uuid`, `portal_id uuid`, `student_user_id uuid`, `trader_broker_account_id uuid` (nullable — set when broker is confirmed during dashboard verification), `broker_account_identifier text` (nullable — set during dashboard verification), `phone_number text`, `trading_account_number text`, `platform_account_number text`, `screenshot_path text`, `status verification_status`, `status_reason text`, `reviewed_by uuid`, `review_version integer`, consent/submitted/review/verified timestamps, timestamps.
+
+Note: `trader_broker_account_id` and `broker_account_identifier` are nullable as of migration `029`. They are null at registration and populated when the student submits broker details from the student portal dashboard.
 
 Relationships: references trader, portal, student profile, broker account, reviewer profile; parent for verification attempts, group membership, and conversations.
 

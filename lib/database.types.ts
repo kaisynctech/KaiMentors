@@ -59,6 +59,10 @@ export interface PublicBrokerOption {
 
 export interface StudentBrokerGuide {
   id: string;
+  broker_id: string;
+  broker_name: string;
+  broker_logo_path: string | null;
+  partner_code: string | null;
   affiliate_link: string | null;
   verification_method: VerificationMethod;
   verification_instructions: string | null;

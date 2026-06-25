@@ -11,6 +11,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrokerGuideCard } from "@/components/broker-guide-card";
 import { StudentShell } from "@/components/student-shell";
+import { VerifyAccountForm } from "@/components/verify-account-form";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -65,11 +66,11 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   const status = application.status;
   const isVerified = status === "verified";
 
-  // Fetch broker guide via SECURITY DEFINER RPC
+  // Fetch broker guides via SECURITY DEFINER RPC — now returns all active connections
   const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
     p_portal_id: application.portal_id,
   });
-  const brokerGuide = Array.isArray(guideRows) ? guideRows[0] ?? null : null;
+  const brokerGuides = (Array.isArray(guideRows) ? guideRows : guideRows ? [guideRows] : []) as import("@/lib/database.types").StudentBrokerGuide[];
 
   // Dashboard data — only for verified students
   let lessonProgress: Array<{
@@ -393,19 +394,28 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           </>
         ) : null}
 
-        {/* Broker guide — always visible when application exists */}
-        {brokerGuide ? (
-          <BrokerGuideCard
-            affiliateLink={brokerGuide.affiliate_link}
-            applicationStatus={status}
-            currentScreenshotPath={application.verification_screenshot_path ?? null}
+        {/* Verification form — visible to all unverified students */}
+        {!isVerified && status !== "rejected" ? (
+          <VerifyAccountForm
+            brokers={brokerGuides.map((g) => ({
+              id: g.id,
+              broker_name: g.broker_name,
+              verification_method: g.verification_method,
+            }))}
             portalId={application.portal_id}
-            studentUserId={user.id}
-            traderId={application.trader_id}
-            verificationInstructions={brokerGuide.verification_instructions}
-            verificationMethod={brokerGuide.verification_method}
+            querySuffix={querySuffix}
           />
         ) : null}
+
+        {/* Broker guide — always visible */}
+        <BrokerGuideCard
+          applicationStatus={status}
+          currentScreenshotPath={application.verification_screenshot_path ?? null}
+          guides={brokerGuides}
+          portalId={application.portal_id}
+          studentUserId={user.id}
+          traderId={application.trader_id}
+        />
       </div>
     </StudentShell>
   );

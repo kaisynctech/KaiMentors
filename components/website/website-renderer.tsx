@@ -292,7 +292,6 @@ function WebsiteSectionView({
               </div>
             ) : (
               <StudentRegistrationForm
-                brokers={data.brokers}
                 portalSlug={data.portal.slug}
                 primaryColor={data.theme.primary_color}
                 studentPortalPath={

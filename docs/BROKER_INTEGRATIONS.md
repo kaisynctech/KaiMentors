@@ -36,14 +36,15 @@ Supported methods:
 
 ## API Verification Flow
 
-1. Student submits broker account details.
-2. Server resolves the academy tenant from the branded entry route or custom domain.
-3. Server validates that the selected broker account belongs to that tenant.
-4. Server creates a verification attempt.
-5. Server/Edge Function loads broker adapter configuration securely.
-6. Broker API is called from the Edge Function.
-7. The verification attempt and student application are updated.
-8. Audit logs record the decision.
+API verification is now triggered from the student portal dashboard (EP-015), not at signup.
+
+1. Student submits account details via `POST /api/student/verify` from the dashboard.
+2. Route authenticates the student and enforces a rate limit (5 attempts per hour).
+3. Route loads all active broker connections for the trader (from `student_applications.trader_id`).
+4. For each `api`-method connection: route updates the application with `trader_broker_account_id` and `broker_account_identifier`, then invokes the `verify-broker-account` Edge Function with `{ applicationId }`.
+5. Edge Function loads broker adapter configuration securely (vault secrets, `public_config`), calls the broker API, and updates the application status and `verification_attempts` record.
+6. On a verified result: route emits an audit log and returns `{ status: "verified" }`.
+7. If no API connection verifies: application transitions to `manual_review`, a `verification_attempts` row is inserted by the route, and an audit log is emitted.
 
 ## Manual Review Flow
 
@@ -61,13 +62,17 @@ Supported methods:
 4. Tenant reviewers and the owning student can access the proof under RLS/storage policies.
 5. Mentor reviews and updates status.
 
-### Resubmission (EP-014)
+### Resubmission (EP-014 / EP-015)
 
-When a student's application is in `manual_review` status and the broker's `verification_method` is `screenshot_upload`, the student portal dashboard shows a `VerificationScreenshotUpload` component. The client uploads to `{trader_id}/{student_user_id}/resubmission/verification.{ext}` (upsert), then calls `PATCH /api/student/verification-screenshot`. That route validates path ownership and tenant integrity before updating `student_applications.verification_screenshot_path` via admin client and emitting an audit log.
+`VerificationScreenshotUpload` is shown on the student dashboard for all unverified students (`pending` or `manual_review`). The client uploads to `{trader_id}/{student_user_id}/resubmission/verification.{ext}` (upsert), then calls `PATCH /api/student/verification-screenshot`. That route validates path ownership and tenant integrity before updating `student_applications.verification_screenshot_path` via admin client and emitting an audit log. The storage policy and route both accept `pending` and `manual_review` status (expanded from `manual_review`-only in EP-014).
 
 ## Verification Instructions (EP-014)
 
-`trader_broker_accounts.verification_instructions` (text, nullable) stores custom step-by-step guidance mentors want students to follow. Set via `PATCH /api/brokers/accounts` (extended in EP-014 alongside `affiliateLink` and `partnerCode`). Displayed to students in `BrokerGuideCard` inside the student portal dashboard. The field is returned by the `get_student_broker_guide` SECURITY DEFINER function (never `partner_code`).
+`trader_broker_accounts.verification_instructions` (text, nullable) stores custom step-by-step guidance mentors want students to follow. Set via `PATCH /api/brokers/accounts` (extended in EP-014 alongside `affiliateLink` and `partnerCode`). Displayed to students in `BrokerGuideCard` inside the student portal dashboard. The field is returned by the `get_student_broker_guide` SECURITY DEFINER function.
+
+## partner_code Exposure (EP-015)
+
+`get_student_broker_guide` now returns `partner_code` so students can use the mentor's referral/affiliate code when registering a new broker account. This is a deliberate reversal of the EP-014 decision to hide the field. The SECURITY DEFINER gate (application existence check) ensures only students with a valid application for the matching portal can read the code. The function still does NOT return `adapter_key`, `api_config`, `vault_secret_id`, or any other sensitive broker configuration.
 
 Last updated: 2026-06-24
 

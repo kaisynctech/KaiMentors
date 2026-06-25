@@ -50,7 +50,7 @@ export async function PATCH(request: Request) {
     .select("id, trader_id, status")
     .eq("student_user_id", user.id)
     .eq("portal_id", portalId)
-    .in("status", ["manual_review"])
+    .in("status", ["pending", "manual_review"])
     .order("submitted_at", { ascending: false })
     .limit(1)
     .maybeSingle();
