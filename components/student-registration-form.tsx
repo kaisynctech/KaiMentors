@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Loader2, MailCheck, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import styles from "./student-registration-form.module.css";
@@ -33,8 +33,8 @@ export function StudentRegistrationForm({
   const [step, setStep] = useState<StepIndex>(0);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [existingUser, setExistingUser] = useState(false);
-  const [otpState, setOtpState] = useState(false);
+  const [otpScreen, setOtpScreen] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
@@ -73,11 +73,12 @@ export function StudentRegistrationForm({
       const response = await fetch("/api/student/register", { method: "POST", body: formData });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? "Registration could not be completed.");
-      if (payload.existingUser) {
-        setExistingUser(true);
+      const resolvedEmail = String(payload.email ?? formData.get("email")).trim().toLowerCase();
+      setSubmittedEmail(resolvedEmail);
+      if (payload.existingUser === true) {
         setDone(true);
       } else {
-        setOtpState(true);
+        setOtpScreen(true);
       }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Registration could not be completed.");
@@ -92,11 +93,11 @@ export function StudentRegistrationForm({
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.verifyOtp({
-        email,
+        email: submittedEmail,
         token: otpCode.trim(),
-        type: "email",
+        type: "signup",
       });
-      if (error) throw new Error("The code is incorrect or has expired.");
+      if (error) throw new Error("The code is incorrect or has expired. Try again or request a new code.");
       window.location.href = studentDestination;
     } catch (err) {
       setOtpError(err instanceof Error ? err.message : "Verification failed.");
@@ -108,54 +109,55 @@ export function StudentRegistrationForm({
   async function resendOtp() {
     await fetch("/api/student/resend-otp", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: submittedEmail }),
     });
   }
 
-  if (done && existingUser) {
+  if (done) {
     return (
       <div className={styles.success}>
-        <ShieldCheck size={42} style={{ color: primaryColor }} />
+        <CheckCircle2 size={42} style={{ color: primaryColor }} />
         <h2>Application submitted!</h2>
-        <p>You already have a KaiMentors account. Sign in with your existing password to access your dashboard.</p>
-        {loginPath ? (
-          <a className={styles.loginLink} href={loginPath} style={{ color: primaryColor }}>
-            Sign in to {academyName ?? "your academy"} →
-          </a>
-        ) : null}
+        <p>
+          You already have a KaiMentors account. Use your existing password to{" "}
+          <a href={loginPath}>sign in to {academyName ?? "the academy"}</a>.
+        </p>
       </div>
     );
   }
 
-  if (otpState) {
+  if (otpScreen) {
     return (
       <div className={styles.otpScreen}>
-        <MailCheck size={36} style={{ color: primaryColor }} />
+        <CheckCircle2 size={42} style={{ color: primaryColor }} />
         <h2>Check your inbox</h2>
-        <p>We sent a 6-digit code to <strong>{email}</strong>. Enter it below to activate your account.</p>
-        <input
-          autoComplete="one-time-code"
-          className={styles.codeInput}
-          inputMode="numeric"
-          maxLength={6}
-          minLength={6}
-          onChange={(e) => setOtpCode(e.target.value)}
-          pattern="[0-9]{6}"
-          placeholder="000000"
-          value={otpCode}
-        />
+        <p>We sent a 6-digit code to <strong>{submittedEmail}</strong>.</p>
+        <div className={styles.field}>
+          <label htmlFor="srf_otp">Verification code</label>
+          <input
+            autoComplete="one-time-code"
+            className={styles.codeInput}
+            id="srf_otp"
+            inputMode="numeric"
+            maxLength={6}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+            pattern="\d{6}"
+            placeholder="000000"
+            value={otpCode}
+          />
+        </div>
         {otpError && <p className={styles.error}>{otpError}</p>}
         <button
           disabled={otpCode.length !== 6 || otpLoading}
           onClick={verifyOtp}
-          style={{ background: primaryColor }}
+          style={otpCode.length === 6 ? { background: primaryColor } : undefined}
           type="button"
         >
           {otpLoading ? <Loader2 className={styles.spin} size={18} /> : null}
           Verify and continue
         </button>
-        <button className={styles.backButton} onClick={resendOtp} type="button">
+        <button className={styles.resendBtn} onClick={resendOtp} type="button">
           Resend code
         </button>
       </div>

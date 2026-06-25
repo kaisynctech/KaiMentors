@@ -10,7 +10,8 @@ Supabase hosted template selection is action-specific. `signInWithOtp` sends **C
 
 Supported code-entry flows:
 
-- Mentor and student setup: `/account-setup` sends an `email` OTP, verifies it, and only then permits the user to choose a password.
+- Inline student registration: `/api/student/register` creates the student user with a password and sends a `signup` OTP via `admin.auth.signInWithOtp`. The browser calls `verifyOtp({ type: "signup" })` directly against Supabase Auth to activate the account and redirect to the student portal — no `/account-setup` visit required.
+- Mentor account setup: `/account-setup` sends an `email` OTP, verifies it, and only then permits the user to choose a password.
 - Academy invitation: `/onboarding/invitation` redirects to the same bare `/account-setup` state machine. It accepts only the existing active invitation whose `invited_user_id` and email match the authenticated user.
 - Password recovery: `/recover` sends the Supabase `recovery` challenge, verifies the recovery OTP, then permits a password update.
 - Owner email change: `/dashboard/settings` sends secure email-change challenges. The owner manually enters codes delivered to both the current and new addresses before the profile email is synchronized.
@@ -31,9 +32,9 @@ Workspace owners change email through `/dashboard/settings`. Supabase secure ema
 
 Each setup attempt receives an opaque random token. Only its SHA-256 hash and lifecycle metadata are stored in `account_setup_sessions`; OTP values are never stored. Verification requires an authenticated Supabase user whose ID and normalized-email hash match the setup session and whose purpose-bound `account_setup` challenge falls within that session's validity window. Resend invalidates older incomplete setup sessions. Completion runs through the authenticated `complete_account_setup` function and cannot use the service role.
 
-Passwords are absent from mentor onboarding and student registration requests. Password creation is exposed only after successful OTP verification. Completed accounts return to password sign-in. Expired invitations are renewed in place only through the audited super-admin operation; ownership email correction preserves the Auth user ID and tenant graph, revokes existing sessions, and requires the corrected address to be verified through account setup.
+Passwords are absent from mentor onboarding. Student registration sets a password at the time of account creation; OTP verification via `verifyOtp({ type: "signup" })` then activates the unconfirmed account. Password creation for mentor account setup is exposed only after successful OTP verification at `/account-setup`. Completed accounts return to password sign-in. Expired invitations are renewed in place only through the audited super-admin operation; ownership email correction preserves the Auth user ID and tenant graph, revokes existing sessions, and requires the corrected address to be verified through account setup.
 
-Last updated: 2026-06-20
+Last updated: 2026-06-25
 
 ## Provider
 

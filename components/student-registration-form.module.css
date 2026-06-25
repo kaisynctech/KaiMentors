@@ -143,7 +143,7 @@
   line-height: 1.6;
 }
 
-.otpScreen button:not(.backButton) {
+.otpScreen button:not(.resendBtn) {
   display: inline-flex;
   min-height: 49px;
   width: 100%;
@@ -157,12 +157,23 @@
   font-size: 14px;
 }
 
-.otpScreen button:not(.backButton):disabled {
+.otpScreen button:not(.resendBtn):disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
 .backButton {
+  background: transparent;
+  border: 0;
+  color: #687078;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  text-decoration: underline;
+}
+
+.resendBtn {
   background: transparent;
   border: 0;
   color: #687078;

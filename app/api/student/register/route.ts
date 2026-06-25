@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { hashAccountSetupValue } from "@/lib/account-setup";
+import { canSendAuthEmail } from "@/lib/auth-email-policy";
 import {
   isPlatformHostname,
   normalizeRequestHostname,
@@ -216,11 +218,31 @@ export async function POST(request: Request) {
     );
   }
 
-  // Send OTP — best-effort; student can use "Resend code" if delivery fails.
-  await admin.auth.signInWithOtp({
-    email: input.email,
-    options: { shouldCreateUser: false },
-  });
+  // Send OTP — gated by platform delivery policy; audit trail written in both branches.
+  const deliveryAllowed = await canSendAuthEmail(admin, created.user.id);
+  if (deliveryAllowed) {
+    const { error: otpError } = await admin.auth.signInWithOtp({
+      email: input.email,
+      options: { shouldCreateUser: false },
+    });
+    await admin.from("auth_challenge_events").insert({
+      user_id: created.user.id,
+      purpose: "student_registration",
+      event_type: otpError ? "provider_error" : "requested",
+      email_hash: hashAccountSetupValue(input.email),
+      metadata: otpError
+        ? { provider: "supabase_auth", error_code: "delivery_failed" }
+        : {},
+    });
+  } else {
+    await admin.from("auth_challenge_events").insert({
+      user_id: created.user.id,
+      purpose: "student_registration",
+      event_type: "suppressed",
+      email_hash: hashAccountSetupValue(input.email),
+      metadata: { reason: "auth_email_canary_gate" },
+    });
+  }
 
   return NextResponse.json(
     {
