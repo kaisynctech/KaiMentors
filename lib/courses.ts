@@ -14,7 +14,7 @@ export interface LessonWithBlocksInput {
   moduleId: string;
   title: string;
   description?: string | null;
-  status: "draft" | "published";
+  status: "draft" | "published" | "archived";
   sortOrder: number;
   durationSeconds?: number | null;
   isRequired: boolean;

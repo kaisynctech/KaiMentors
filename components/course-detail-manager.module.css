@@ -1011,6 +1011,65 @@
   background: #fff5f5;
 }
 
+/* ── Edit lesson panel ───────────────────────────────────── */
+
+.panelTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.panelTitleRow h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6c747a;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: #e9edef;
+  color: #111315;
+}
+
+.panelActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.panelActions button[type="submit"] {
+  flex: 1;
+}
+
+.panelLoading {
+  color: #6c747a;
+  font-size: 12px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.panelError {
+  color: #dc2626;
+  font-size: 12px;
+  padding: 24px 0;
+  text-align: center;
+}
+
 /* Spin */
 .spin {
   animation: spin 800ms linear infinite;

@@ -6,13 +6,12 @@ import {
   ChevronRight,
   Circle,
   Clock,
-  GripVertical,
-  Layers3,
   Plus,
 } from "lucide-react";
 import { formatDuration } from "@/lib/courses";
 import type { LessonWithBlocksInput } from "@/lib/courses";
 import { AddLessonPanel } from "./add-lesson-panel";
+import { EditLessonPanel } from "./edit-lesson-panel";
 import styles from "../course-detail-manager.module.css";
 
 type Status = "draft" | "published" | "archived";
@@ -57,24 +56,12 @@ interface Props {
   busy: boolean;
   createModule: (fd: FormData) => Promise<void>;
   createLessonWithBlocks: (lesson: LessonWithBlocksInput) => Promise<void>;
-  addBlock: (fd: FormData) => Promise<void>;
+  updateLessonWithBlocks: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<void>;
   patchCurriculum: (payload: CurriculumPatch) => Promise<void>;
 }
 
-const BLOCK_LABELS: Record<string, string> = {
-  video: "Video",
-  rich_text: "Written content",
-  pdf: "PDF",
-  image: "Image",
-  gallery: "Image gallery",
-  link: "External link",
-};
-
-function blockIcon(_type: string) {
-  return <Layers3 size={14} />;
-}
-
 export function CurriculumTab({
+  course,
   modules,
   lessons,
   readyMedia,
@@ -83,11 +70,11 @@ export function CurriculumTab({
   busy,
   createModule,
   createLessonWithBlocks,
-  addBlock,
+  updateLessonWithBlocks,
   patchCurriculum,
 }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [activePanel, setActivePanel] = useState<"add_module" | "add_lesson" | "add_block" | null>(null);
+  const [activePanel, setActivePanel] = useState<"add_module" | "add_lesson" | "edit_lesson" | null>(null);
   const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
 
   function toggleModule(id: string) {
@@ -100,16 +87,8 @@ export function CurriculumTab({
 
   function selectLesson(id: string | null) {
     setSelectedLesson(id);
-    setActivePanel(null);
+    setActivePanel(id ? "edit_lesson" : null);
   }
-
-  const selectedLessonData = selectedLesson
-    ? lessons.find((l) => l.id === selectedLesson) ?? null
-    : null;
-
-  const selectedModule = selectedLessonData
-    ? modules.find((m) => m.id === selectedLessonData.module_id) ?? null
-    : null;
 
   function handleModuleStatusChange(module: Module, status: string) {
     patchCurriculum({
@@ -133,12 +112,10 @@ export function CurriculumTab({
     setPendingModuleId(null);
   }
 
-  async function handleAddBlock(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    await addBlock(fd);
+  async function handleUpdateLesson(lessonId: string, lesson: LessonWithBlocksInput) {
+    await updateLessonWithBlocks(lessonId, lesson);
     setActivePanel(null);
-    e.currentTarget.reset();
+    setSelectedLesson(null);
   }
 
   return (
@@ -318,106 +295,19 @@ export function CurriculumTab({
           />
         )}
 
-        {activePanel !== "add_module" && activePanel !== "add_lesson" && selectedLesson && selectedLessonData && (
-          <>
-            <div className={styles.blocksPanel}>
-              <div className={styles.blocksPanelHeader}>
-                <div className={styles.blocksPanelTitle}>
-                  <p>{selectedModule?.title ?? "Module"}</p>
-                  <h4>{selectedLessonData.title}</h4>
-                </div>
-                <button
-                  className={styles.ghostBtn}
-                  disabled={busy}
-                  onClick={() => setActivePanel("add_block")}
-                  type="button"
-                >
-                  <Plus size={12} /> Add block
-                </button>
-              </div>
-
-              {selectedLessonData.blocks.length === 0 ? (
-                <p className={styles.blocksEmpty}>No content blocks yet.</p>
-              ) : (
-                selectedLessonData.blocks.map((block) => (
-                  <div className={styles.blockRow} key={block.id}>
-                    <div className={styles.blockTypeIcon}>{blockIcon(block.block_type)}</div>
-                    <div className={styles.blockInfo}>
-                      <strong>{BLOCK_LABELS[block.block_type] ?? block.block_type}</strong>
-                      <p>{block.media_id ? "Protected media" : "No media"}</p>
-                    </div>
-                    <GripVertical className={styles.dragHandle} size={16} />
-                  </div>
-                ))
-              )}
-            </div>
-
-            {activePanel === "add_block" && (
-              <form onSubmit={handleAddBlock} className={styles.panel}>
-                <h3>Add content block</h3>
-                <label>
-                  Block type
-                  <select name="blockType">
-                    <option value="rich_text">Written content</option>
-                    <option value="video">Video</option>
-                    <option value="pdf">PDF</option>
-                    <option value="image">Image</option>
-                    <option value="gallery">Image gallery</option>
-                    <option value="link">Link</option>
-                  </select>
-                </label>
-                <label>
-                  Single media asset
-                  <select name="mediaId">
-                    <option value="">None</option>
-                    {readyMedia.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.title} ({m.media_type})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Gallery images
-                  <select multiple name="galleryMediaIds">
-                    {readyMedia
-                      .filter((m) => m.media_type === "image")
-                      .map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.title}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-                <label>
-                  Written content
-                  <textarea name="text" />
-                </label>
-                <label>
-                  Link URL
-                  <input name="url" type="url" />
-                </label>
-                <label>
-                  Link label
-                  <input name="label" />
-                </label>
-                <label>
-                  Caption
-                  <input name="caption" />
-                </label>
-                <label>
-                  Order
-                  <input defaultValue="0" min="0" name="sortOrder" type="number" />
-                </label>
-                <label className={styles.check}>
-                  <input defaultChecked name="isRequired" type="checkbox" /> Required
-                </label>
-                <button disabled={busy || !selectedLesson} type="submit">
-                  Add block
-                </button>
-              </form>
-            )}
-          </>
+        {activePanel === "edit_lesson" && selectedLesson && (
+          <EditLessonPanel
+            courseId={course.id}
+            lessonId={selectedLesson}
+            modules={modules}
+            readyMedia={readyMedia}
+            busy={busy}
+            onSubmit={handleUpdateLesson}
+            onCancel={() => {
+              setActivePanel(null);
+              setSelectedLesson(null);
+            }}
+          />
         )}
       </div>
     </div>

@@ -149,6 +149,25 @@ export function CourseDetailManager({
     await call(`/api/courses/${course.id}/lessons`, lesson);
   }
 
+  async function updateLessonWithBlocks(lessonId: string, lesson: LessonWithBlocksInput) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    const response = await fetch(`/api/courses/${course.id}/lessons/${lessonId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lesson),
+    });
+    const payload = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setError(payload.error ?? "The lesson could not be updated.");
+      return;
+    }
+    setMessage("Lesson updated successfully.");
+    router.refresh();
+  }
+
   async function addBlock(fd: FormData) {
     if (!selectedLesson) return;
     const type = String(fd.get("blockType"));
@@ -309,7 +328,7 @@ export function CourseDetailManager({
           busy={busy}
           createModule={createModule}
           createLessonWithBlocks={createLessonWithBlocks}
-          addBlock={addBlock}
+          updateLessonWithBlocks={updateLessonWithBlocks}
           patchCurriculum={patchCurriculum}
         />
       )}
