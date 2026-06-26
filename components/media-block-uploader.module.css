@@ -1,0 +1,124 @@
+.dropZone {
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropZone:hover,
+.dragging {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-surface-hover, rgba(59, 130, 246, 0.04));
+}
+.hint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+.hiddenInput {
+  display: none;
+}
+.orDivider {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin: 8px 0;
+}
+.uploadingState {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+}
+.fileName {
+  font-size: 12px;
+  font-weight: 500;
+}
+.progressBar {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progressBar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary, #3b82f6);
+  transition: width 0.2s;
+}
+.progressLabel {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+.readyState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 0;
+  color: var(--color-text-primary);
+}
+.changeBtn {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.changeBtn:hover {
+  color: var(--color-text-primary);
+}
+.errorState {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--color-error, #ef4444);
+}
+.retryBtn {
+  align-self: flex-start;
+  font-size: 11px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+.gallerySlot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.removeSlotBtn {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-end;
+}
+.addSlotBtn {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px dashed var(--color-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+}

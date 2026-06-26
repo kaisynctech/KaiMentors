@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
+import { MediaBlockUploader } from "@/components/media-block-uploader";
+import { MediaBlockGalleryUploader } from "@/components/media-block-gallery-uploader";
 import styles from "../course-detail-manager.module.css";
 
 type Media = { id: string; title: string; media_type: "video" | "pdf" | "image"; processing_state: string };
@@ -29,6 +31,7 @@ const BLOCK_TYPES = ["rich_text", "video", "pdf", "image", "gallery", "link"] as
 
 export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onSubmit }: AddLessonPanelProps) {
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
+  const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
 
   const videos = readyMedia.filter((m) => m.media_type === "video");
   const pdfs = readyMedia.filter((m) => m.media_type === "pdf");
@@ -42,6 +45,23 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
     setBlocks((prev) =>
       prev.filter((_, i) => i !== index).map((b, i) => ({ ...b, sortOrder: i })),
     );
+    setUploadingBlocks((prev) => {
+      const next = new Set<number>();
+      prev.forEach((i) => {
+        if (i < index) next.add(i);
+        else if (i > index) next.add(i - 1);
+      });
+      return next;
+    });
+  }
+
+  function handleUploadStateChange(key: number, uploading: boolean) {
+    setUploadingBlocks((prev) => {
+      const next = new Set(prev);
+      if (uploading) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   }
 
   function updateBlock(index: number, updates: Partial<LessonBlockInput>) {
@@ -149,75 +169,44 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
           )}
 
           {block.blockType === "video" && (
-            <label>
-              Video
-              <select
-                onChange={(e) => updateBlock(index, { mediaId: e.target.value || null })}
-                value={block.mediaId ?? ""}
-              >
-                <option value="">Select a video…</option>
-                {videos.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MediaBlockUploader
+              availableMedia={videos}
+              mediaType="video"
+              onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
+              value={block.mediaId ?? null}
+            />
           )}
 
           {block.blockType === "pdf" && (
-            <label>
-              PDF
-              <select
-                onChange={(e) => updateBlock(index, { mediaId: e.target.value || null })}
-                value={block.mediaId ?? ""}
-              >
-                <option value="">Select a PDF…</option>
-                {pdfs.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MediaBlockUploader
+              availableMedia={pdfs}
+              mediaType="pdf"
+              onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
+              value={block.mediaId ?? null}
+            />
           )}
 
           {block.blockType === "image" && (
-            <label>
-              Image
-              <select
-                onChange={(e) => updateBlock(index, { mediaId: e.target.value || null })}
-                value={block.mediaId ?? ""}
-              >
-                <option value="">Select an image…</option>
-                {images.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MediaBlockUploader
+              availableMedia={images}
+              mediaType="image"
+              onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
+              value={block.mediaId ?? null}
+            />
           )}
 
           {block.blockType === "gallery" && (
-            <label>
-              Images (hold Ctrl/Cmd to select multiple)
-              <select
-                multiple
-                onChange={(e) =>
-                  updateBlock(index, {
-                    galleryMediaIds: Array.from(e.target.selectedOptions).map((o) => o.value),
-                  })
-                }
-                value={block.galleryMediaIds ?? []}
-              >
-                {images.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MediaBlockGalleryUploader
+              availableImages={images}
+              onChange={(ids) => updateBlock(index, { galleryMediaIds: ids })}
+              onUploadStateChange={(slotIndex, uploading) =>
+                handleUploadStateChange(index * 1000 + slotIndex, uploading)
+              }
+              value={block.galleryMediaIds ?? []}
+            />
           )}
 
           {block.blockType === "link" && (
@@ -244,7 +233,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
         </div>
       ))}
 
-      <button disabled={busy || !modules.length} type="submit">
+      <button disabled={busy || !modules.length || uploadingBlocks.size > 0} type="submit">
         Create lesson
         {blocks.length > 0 ? ` with ${blocks.length} block${blocks.length === 1 ? "" : "s"}` : ""}
       </button>
