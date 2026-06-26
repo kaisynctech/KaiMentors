@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
 import { MediaBlockUploader } from "@/components/media-block-uploader";
@@ -57,6 +57,13 @@ export function EditLessonPanel({
   const [initialData, setInitialData] = useState<FetchedLesson | null>(null);
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
   const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
+  const durationRef = useRef<HTMLInputElement>(null);
+
+  function handleDurationDetected(seconds: number) {
+    if (durationRef.current) {
+      durationRef.current.value = String(Math.max(1, Math.round(seconds / 60)));
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -208,6 +215,7 @@ export function EditLessonPanel({
           defaultValue={durationMinutesDefault}
           min="1"
           name="durationMinutes"
+          ref={durationRef}
           type="number"
         />
       </label>
@@ -262,6 +270,7 @@ export function EditLessonPanel({
               availableMedia={videos}
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onDurationDetected={handleDurationDetected}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />

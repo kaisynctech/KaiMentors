@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
 import { MediaBlockUploader } from "@/components/media-block-uploader";
@@ -32,6 +32,13 @@ const BLOCK_TYPES = ["rich_text", "video", "pdf", "image", "gallery", "link"] as
 export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onSubmit }: AddLessonPanelProps) {
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
   const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
+  const durationRef = useRef<HTMLInputElement>(null);
+
+  function handleDurationDetected(seconds: number) {
+    if (durationRef.current) {
+      durationRef.current.value = String(Math.max(1, Math.round(seconds / 60)));
+    }
+  }
 
   const videos = readyMedia.filter((m) => m.media_type === "video");
   const pdfs = readyMedia.filter((m) => m.media_type === "pdf");
@@ -125,7 +132,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
       </div>
       <label>
         Duration (minutes)
-        <input min="1" name="durationMinutes" type="number" />
+        <input min="1" name="durationMinutes" ref={durationRef} type="number" />
       </label>
       <label className={styles.check}>
         <input defaultChecked name="isRequired" type="checkbox" /> Required
@@ -173,6 +180,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
               availableMedia={videos}
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onDurationDetected={handleDurationDetected}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
