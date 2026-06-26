@@ -1,54 +1,92 @@
-const navToggle = document.querySelector("[data-nav-toggle]");
-const nav = document.querySelector("[data-nav]");
-const header = document.querySelector("[data-header]");
+// Milkers FX Team
+// Vanilla JS: mobile nav, sticky header, scroll reveal, gallery lightbox.
 
-if (navToggle && nav) {
-  navToggle.addEventListener("click", () => {
-    const open = nav.classList.toggle("is-open");
-    navToggle.setAttribute("aria-expanded", String(open));
-  });
-}
+(function () {
+  "use strict";
 
-if (header) {
-  window.addEventListener("scroll", () => header.classList.toggle("is-scrolled", window.scrollY > 12));
-}
+  // --- Mobile navigation -------------------------------------------------
+  const navToggle = document.querySelector("[data-nav-toggle]");
+  const nav = document.querySelector("[data-nav]");
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add("is-visible");
-  });
-}, { threshold: 0.14 });
+  if (navToggle && nav) {
+    navToggle.addEventListener("click", () => {
+      const isOpen = nav.classList.toggle("is-open");
+      navToggle.setAttribute("aria-expanded", String(isOpen));
+    });
 
-document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        nav.classList.remove("is-open");
+        navToggle.setAttribute("aria-expanded", "false");
+      });
+    });
 
-const onboardingForm = document.querySelector("[data-onboarding-form]");
-if (onboardingForm) {
-  const steps = Array.from(onboardingForm.querySelectorAll(".form-step"));
-  const dots = Array.from(document.querySelectorAll("[data-step-list] li"));
-  const prev = onboardingForm.querySelector("[data-prev]");
-  const next = onboardingForm.querySelector("[data-next]");
-  const submit = onboardingForm.querySelector(".form-submit");
-  let active = 0;
-  const render = () => {
-    steps.forEach((step, index) => step.classList.toggle("is-active", index === active));
-    dots.forEach((dot, index) => dot.classList.toggle("is-active", index === active));
-    prev.disabled = active === 0;
-    next.style.display = active === steps.length - 1 ? "none" : "inline-flex";
-    submit.style.display = active === steps.length - 1 ? "inline-flex" : "none";
-  };
-  prev.addEventListener("click", () => { active = Math.max(0, active - 1); render(); });
-  next.addEventListener("click", () => { active = Math.min(steps.length - 1, active + 1); render(); });
-  render();
-}
+    document.addEventListener("click", (event) => {
+      if (!nav.contains(event.target) && !navToggle.contains(event.target)) {
+        nav.classList.remove("is-open");
+        navToggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
 
-document.querySelectorAll("form").forEach((form) => {
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const button = form.querySelector("button[type='submit']");
-    if (!button) return;
-    const original = button.textContent;
-    button.textContent = "Received";
-    button.disabled = true;
-    setTimeout(() => { button.textContent = original; button.disabled = false; }, 1600);
-  });
-});
+  // --- Sticky header state ----------------------------------------------
+  const header = document.querySelector("[data-header]");
+  if (header) {
+    const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  // --- Scroll reveal -----------------------------------------------------
+  const revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && revealEls.length) {
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
+    );
+    revealEls.forEach((el) => observer.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("is-visible"));
+  }
+
+  // --- Gallery lightbox --------------------------------------------------
+  const lightbox = document.querySelector("[data-lightbox]");
+  if (lightbox) {
+    const lightboxImg = lightbox.querySelector("img");
+    const closeBtn = lightbox.querySelector("[data-lightbox-close]");
+
+    const openLightbox = (src, alt) => {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || "";
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImg.src = "";
+      document.body.style.overflow = "";
+    };
+
+    document.querySelectorAll("[data-gallery] figure img").forEach((img) => {
+      img.parentElement.addEventListener("click", () => openLightbox(img.src, img.alt));
+    });
+
+    closeBtn && closeBtn.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && lightbox.classList.contains("is-open")) closeLightbox();
+    });
+  }
+})();

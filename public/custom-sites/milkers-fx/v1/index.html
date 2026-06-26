@@ -3,81 +3,451 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Milkers Fx | Forex Signals & Mentorship</title>
+    <title>Milkers FX Team | Forex Signals &amp; Mentorship</title>
+    <meta
+      name="description"
+      content="Milkers FX Team: free portal access with XM registration — signals, tips, lessons and resources included. One-on-one mentorship available at R15,000."
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="site-header" data-header>
-      <a class="brand" href="index.html" aria-label="Milkers Fx home">
-        <span class="brand-mark">MF</span>
-        <span><strong>Milkers Fx</strong><small>Precision Forex Desk</small></span>
+    <header class="site-header mf-header" data-header>
+      <a class="brand" href="index.html" aria-label="Milkers FX Team home">
+        <img class="brand-logo brand-logo--nav" src="assets/milkers-logo.png" alt="Milkers FX Team" width="168" height="56" />
       </a>
-      <button class="nav-toggle" data-nav-toggle aria-label="Open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
-      <nav class="site-nav" data-nav>
+      <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav mf-nav" data-nav>
         <a href="index.html" aria-current="page">Home</a>
         <a href="about.html">About</a>
         <a href="signals.html">Signals</a>
         <a href="mentorship.html">Mentorship</a>
-        <a href="events.html">Events</a>
         <a href="xm.html">Open XM</a>
-        <a href="signup.html">Sign Up</a>
+        <a class="nav-cta" href="signup.html">Sign Up</a>
         <a class="nav-login" href="login.html">Login</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero">
-        <div class="market-grid" aria-hidden="true"></div>
-        <div class="ticker"><span>EUR/USD 1.0845</span><span>XAU/USD 2331.20</span><span>GBP/JPY 199.72</span><span>USD/ZAR 18.12</span><span>NAS100 19,640</span></div>
-        <div class="hero-chart forex-chart" aria-hidden="true">
-          <span class="candle up" style="--h:78%;--y:8%;--x:6%"></span><span class="candle down" style="--h:46%;--y:32%;--x:14%"></span><span class="candle up" style="--h:62%;--y:18%;--x:22%"></span><span class="candle up" style="--h:80%;--y:6%;--x:30%"></span><span class="candle down" style="--h:54%;--y:26%;--x:38%"></span><span class="candle up" style="--h:70%;--y:12%;--x:46%"></span><span class="candle down" style="--h:42%;--y:38%;--x:54%"></span><span class="candle up" style="--h:84%;--y:4%;--x:62%"></span><span class="candle down" style="--h:58%;--y:22%;--x:70%"></span><span class="candle up" style="--h:76%;--y:8%;--x:78%"></span><span class="candle up" style="--h:52%;--y:24%;--x:86%"></span><span class="candle down" style="--h:64%;--y:18%;--x:94%"></span>
-          <svg viewBox="0 0 600 220" preserveAspectRatio="none"><path d="M10 160 C70 118 128 148 188 96 S296 86 352 120 S448 140 492 74 S558 58 590 42" /></svg>
-        </div>
-        <div class="hero-inner">
-          <div class="hero-copy reveal">
-            <p class="eyebrow">Forex signals, mentorship and XM setup</p>
-            <h1>Read the market with discipline before you take the trade.</h1>
-            <p>Milkers Fx helps traders build confidence through clean analysis, risk-first signals, weekly training, and broker onboarding support.</p>
-            <div class="hero-actions"><a class="btn primary" href="signup.html">Start Student Onboarding</a><a class="btn ghost" href="xm.html">Open XM Account</a></div>
+      <!-- HERO -->
+      <section class="hero left">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-shell">
+          <div class="hero-headline reveal">
+            <span class="kicker"><span class="dot"></span> XM Global · <b>Official Partner</b></span>
+            <h1>We trade what we know, <span>not what we think.</span><span class="type-cursor" aria-hidden="true">_</span></h1>
           </div>
-          <aside class="terminal-card reveal delay-1">
-            <div class="terminal-top"><span>Live Desk</span><strong>MF</strong></div>
-            <div class="mini-chart" aria-hidden="true">
-              <span class="candle up" style="--h:62%;--y:18%;--x:8%"></span><span class="candle down" style="--h:44%;--y:34%;--x:20%"></span><span class="candle up" style="--h:78%;--y:8%;--x:32%"></span><span class="candle down" style="--h:48%;--y:28%;--x:44%"></span><span class="candle up" style="--h:70%;--y:12%;--x:56%"></span><span class="candle up" style="--h:54%;--y:22%;--x:68%"></span><span class="candle down" style="--h:62%;--y:18%;--x:80%"></span><span class="candle up" style="--h:86%;--y:2%;--x:92%"></span>
+
+          <div class="hero-body">
+            <div class="hero-copy reveal delay-1">
+              <p class="lead">
+                Milkers FX Team is a precision forex desk — risk-first signals, trading tips,
+                free portal resources. Register with our broker partner to get in;
+                one-on-one coaching is available separately.
+              </p>
+              <div class="btn-row">
+                <a class="btn primary" href="signup.html">Sign up</a>
+                <a class="btn ghost" href="signals.html">See the signals</a>
+              </div>
+              <p class="hero-cta-note">Portal entry is free — sign up, register with XM Global using our partner code, and unlock signals, tips and resources.</p>
+              <div class="hero-partner">
+                <span class="label">Open your XM account with<b>our XM Global partner code</b></span>
+                <span class="code" data-partner-code>MILKERSFX</span>
+              </div>
             </div>
-            <div class="stats-grid"><div><strong>1:3</strong><span>Risk reward focus</span></div><div><strong>Daily</strong><span>Market watchlists</span></div><div><strong>XM</strong><span>Broker support</span></div></div>
-          </aside>
+
+            <aside class="hero-visual reveal delay-1">
+              <div class="brand-signal">
+                <div class="brand-signal__frame">
+                  <span class="brand-signal__corner brand-signal__corner--tl" aria-hidden="true"></span>
+                  <span class="brand-signal__corner brand-signal__corner--tr" aria-hidden="true"></span>
+                  <span class="brand-signal__corner brand-signal__corner--bl" aria-hidden="true"></span>
+                  <span class="brand-signal__corner brand-signal__corner--br" aria-hidden="true"></span>
+                  <span class="brand-signal__ping brand-signal__ping--gold" aria-hidden="true"></span>
+                  <span class="brand-signal__ping brand-signal__ping--red" aria-hidden="true"></span>
+                  <span class="brand-signal__scan" aria-hidden="true"></span>
+                  <img
+                    class="brand-signal__logo"
+                    src="assets/milkers-logo.png"
+                    alt="Milkers FX Team — Discipline, Strategy, Consistency, Success"
+                    width="280"
+                    height="280"
+                  />
+                </div>
+                <p class="brand-signal__status"><span class="dot" aria-hidden="true"></span> Signal locked</p>
+              </div>
+            </aside>
+          </div>
         </div>
       </section>
 
-      <section class="trust-band">
-        <div><strong>Signals</strong><span>Trade plans, not noise</span></div>
-        <div><strong>Mentorship</strong><span>Weekly trader growth</span></div>
-        <div><strong>Events</strong><span>Seminars and bootcamps</span></div>
-        <div><strong>Portal</strong><span>Students and clients</span></div>
-      </section>
+      <!-- TICKER -->
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-track">
+          <span><b>EUR/USD</b> 1.0845 <i class="up">▲</i></span>
+          <span><b>GBP/JPY</b> 199.72 <i class="up">▲</i></span>
+          <span><b>XAU/USD</b> 2331.20 <i class="down">▼</i></span>
+          <span><b>USD/ZAR</b> 18.12 <i class="up">▲</i></span>
+          <span><b>NAS100</b> 19,640 <i class="up">▲</i></span>
+          <span><b>GBP/USD</b> 1.2710 <i class="down">▼</i></span>
+          <span><b>US30</b> 39,210 <i class="up">▲</i></span>
+          <span><b>EUR/USD</b> 1.0845 <i class="up">▲</i></span>
+          <span><b>GBP/JPY</b> 199.72 <i class="up">▲</i></span>
+          <span><b>XAU/USD</b> 2331.20 <i class="down">▼</i></span>
+          <span><b>USD/ZAR</b> 18.12 <i class="up">▲</i></span>
+          <span><b>NAS100</b> 19,640 <i class="up">▲</i></span>
+          <span><b>GBP/USD</b> 1.2710 <i class="down">▼</i></span>
+          <span><b>US30</b> 39,210 <i class="up">▲</i></span>
+        </div>
+      </div>
 
-      <section class="section split">
-        <div class="section-copy reveal"><p class="eyebrow">Milkers Fx Method</p><h2>Professional, calm and process-driven.</h2><p>The brand is built around market structure, entry patience, risk control and review. Students learn to protect capital first, then scale confidence through repetition.</p></div>
-        <div class="quote-card reveal delay-1"><span>Trader Rule</span><p>"No setup, no trade. No risk plan, no entry."</p><strong>Milkers Fx</strong></div>
-      </section>
-
-      <section class="section cards-section">
-        <div class="section-heading reveal"><p class="eyebrow">Core Services</p><h2>Everything a serious forex community expects.</h2></div>
-        <div class="feature-grid">
-          <article class="feature reveal"><span>01</span><h3>Signal Room</h3><p>Entry zones, stop-loss logic, take-profit targets, confidence rating and review notes.</p><a href="signals.html">View Signals</a></article>
-          <article class="feature reveal delay-1"><span>02</span><h3>Mentorship</h3><p>Beginner to advanced training covering structure, risk, psychology and execution.</p><a href="mentorship.html">View Mentorship</a></article>
-          <article class="feature reveal delay-2"><span>03</span><h3>XM Setup</h3><p>Guided account opening, verification steps and affiliate link placement for new students.</p><a href="xm.html">Setup XM</a></article>
+      <!-- STATS -->
+      <section class="stats" aria-label="Milkers Fx at a glance">
+        <div class="stats-grid">
+          <div class="stat reveal"><b>Daily</b><span>Market watchlists</span></div>
+          <div class="stat reveal delay-1"><b>1:3</b><span>Risk-reward focus</span></div>
+          <div class="stat reveal delay-2"><b>500+</b><span>Traders in the room</span></div>
+          <div class="stat reveal delay-3"><b>XM</b><span>Official broker partner</span></div>
         </div>
       </section>
 
+      <!-- APPROACH + METHOD -->
+      <section class="section deco-grid" id="approach">
+        <div class="chart-deco" aria-hidden="true" style="top: 8%; left: 2%; width: clamp(150px, 16vw, 220px);">
+          <svg viewBox="0 0 200 130">
+            <g class="candle down"><line class="wick" x1="20" y1="60" x2="20" y2="100" /><rect class="down" x="13" y="66" width="14" height="28" rx="1.5" /></g>
+            <g class="candle up"><line class="wick" x1="52" y1="50" x2="52" y2="92" /><rect class="up" x="45" y="56" width="14" height="30" rx="1.5" /></g>
+            <g class="candle up"><line class="wick" x1="84" y1="36" x2="84" y2="78" /><rect class="up" x="77" y="42" width="14" height="28" rx="1.5" /></g>
+            <g class="candle down"><line class="wick" x1="116" y1="44" x2="116" y2="86" /><rect class="down" x="109" y="50" width="14" height="24" rx="1.5" /></g>
+            <g class="candle up"><line class="wick" x1="148" y1="26" x2="148" y2="70" /><rect class="up" x="141" y="32" width="14" height="30" rx="1.5" /></g>
+            <g class="candle up"><line class="wick" x1="180" y1="14" x2="180" y2="58" /><rect class="up" x="173" y="20" width="14" height="28" rx="1.5" /></g>
+          </svg>
+        </div>
+        <div class="split media-left">
+          <div class="media">
+            <div class="desk-panel reveal" aria-label="Milkers live trading desk preview">
+              <div class="desk-top">
+                <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="desk-title">MILKERS // LIVE DESK</span>
+                <span class="desk-live">LIVE</span>
+              </div>
+              <div class="watchlist">
+                <div class="wrow"><span class="sym">EUR/USD</span><span class="px">1.0845</span><span class="ch up">+0.42%</span></div>
+                <div class="wrow"><span class="sym">XAU/USD</span><span class="px">2331.20</span><span class="ch down">-0.18%</span></div>
+                <div class="wrow"><span class="sym">GBP/JPY</span><span class="px">199.72</span><span class="ch up">+0.63%</span></div>
+                <div class="wrow"><span class="sym">USD/ZAR</span><span class="px">18.12</span><span class="ch up">+0.11%</span></div>
+                <div class="wrow"><span class="sym">NAS100</span><span class="px">19,640</span><span class="ch up">+1.04%</span></div>
+              </div>
+              <div class="desk-chart">
+                <div class="lbl"><span>EUR/USD · 15M</span><span>R:R 1:3</span></div>
+                <svg viewBox="0 0 440 120" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="deskFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="rgba(239,68,68,0.28)" />
+                      <stop offset="1" stop-color="rgba(239,68,68,0)" />
+                    </linearGradient>
+                  </defs>
+                  <path class="area" d="M0,88 L40,80 L80,86 L120,66 L160,72 L200,52 L240,60 L280,40 L320,48 L360,30 L400,36 L440,22 L440,120 L0,120 Z" />
+                  <path class="line" d="M0,88 L40,80 L80,86 L120,66 L160,72 L200,52 L240,60 L280,40 L320,48 L360,30 L400,36 L440,22" />
+                  <circle class="pin" cx="440" cy="22" r="4" />
+                </svg>
+              </div>
+              <div class="desk-tag">
+                <span class="badge">1:3</span>
+                <div><b>Risk-first</b><span>Reward &gt; noise</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="reveal delay-1">
+            <p class="eyebrow">The Milkers Fx way</p>
+            <h2>Process over prediction.</h2>
+            <p class="lead">
+              Every call starts with structure, not a hunch. We read the bigger picture,
+              wait for price to reach a level that matters, then act only when the setup
+              confirms — with risk defined before the entry.
+            </p>
+            <div class="method-flow" style="justify-content: flex-start; margin-top: 24px;">
+              <span class="flow-step"><b>01</b> Plan</span>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <span class="flow-step"><b>02</b> Confirm</span>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <span class="flow-step"><b>03</b> Execute</span>
+            </div>
+            <ul class="check-list">
+              <li><b>Risk first.</b> Stops and position size are set before any entry.</li>
+              <li><b>Setups, not noise.</b> No setup, no trade — we wait for our edge.</li>
+              <li><b>Review &amp; repeat.</b> Every trade is logged and learned from.</li>
+            </ul>
+            <div class="btn-row" style="margin-top: 28px;">
+              <a class="btn ghost" href="about.html">About the desk</a>
+              <a class="btn primary" href="signals.html">How signals work</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PORTAL -->
+      <section class="section" id="portal" style="background: rgba(255,255,255,0.015); border-block: 1px solid var(--line-soft);">
+        <div class="section-head center reveal">
+          <p class="eyebrow" style="justify-content:center;">How access works</p>
+          <h2>Three steps to get in.</h2>
+          <p>Entry is free — you sign up with Milkers FX, then register a real account with XM Global using our partner code. That links you to the desk and unlocks the portal.</p>
+        </div>
+        <ol class="steps">
+          <li class="reveal"><div><b>Create your account</b><p>Sign up to set up your Milkers FX profile.</p></div></li>
+          <li class="reveal delay-1"><div><b>Register with XM Global</b><p>Open a real XM account using our partner code so you're linked to Milkers FX Team.</p></div></li>
+          <li class="reveal delay-2"><div><b>Unlock the portal</b><p>Once verified, you get free access — signals, tips, lessons and resources.</p></div></li>
+        </ol>
+        <div class="price-callout reveal">
+          <div class="price-tag"><small>Portal entry</small>Free</div>
+          <p>Getting into the portal costs <b>nothing</b> — no subscriptions or hidden fees. You must be registered with XM Global using our partner code; everything inside the portal (signals, tips, lessons and resources) is <b>free</b>.</p>
+        </div>
+        <div class="price-callout price-callout--paid reveal">
+          <div class="price-tag"><small>One-on-one mentorship</small>R15&nbsp;000</div>
+          <p>Want personal coaching with the desk? <b>One-on-one mentorship</b> is a separate paid programme — <b>R15,000</b>. Reach out via the portal or email to enquire. All other portal content stays free.</p>
+        </div>
+
+        <div class="portal-divider reveal" aria-hidden="true"><span>Then inside the portal</span></div>
+
+        <div class="section-head reveal">
+          <p class="eyebrow">What you get</p>
+          <h2>Sign up once. Unlock your trading portal.</h2>
+          <p>Signing up gives you your own private Milkers Fx portal — the home for everything we share, all in one place.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card reveal">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l5-6 4 4 6-8"/><path d="M3 21h18"/></svg>
+            </span>
+            <h3>Signals &amp; tips</h3>
+            <p>Risk-first trade plans plus trading tips from the desk — entries, stops, targets and the reasoning behind every call.</p>
+          </article>
+          <article class="card reveal delay-1">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>
+            </span>
+            <h3>Free lessons</h3>
+            <p>Self-paced training in the portal — market structure, risk, psychology and execution. Included at no extra cost.</p>
+          </article>
+          <article class="card reveal delay-2">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+            </span>
+            <h3>Portal resources</h3>
+            <p>Guides, checklists and trade templates — available inside the portal once you're registered with the broker.</p>
+          </article>
+          <article class="card reveal delay-1">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 11a4 4 0 1 0-8 0"/><circle cx="12" cy="7" r="3"/><path d="M3 21a6 6 0 0 1 18 0"/></svg>
+            </span>
+            <h3>The community</h3>
+            <p>Learn alongside other Milkers Fx traders — share ideas, ask questions and stay accountable.</p>
+          </article>
+          <article class="card reveal delay-2">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </span>
+            <h3>Everything in one place</h3>
+            <p>Your account keeps your signals, lessons and resources together as you grow.</p>
+          </article>
+        </div>
+        <div style="text-align:center; margin: 44px auto 0;">
+          <a class="btn primary reveal" href="signup.html">Sign up to get access</a>
+        </div>
+      </section>
+
+      <!-- RISK DISCLOSURE -->
+      <section class="section deco-grid">
+        <div class="risk-notice reveal">
+          <div class="risk-ico" aria-hidden="true">⚠</div>
+          <div>
+            <h4>Risk warning &amp; disclaimer</h4>
+            <p>
+              <b>Trading involves significant risk.</b> Forex and CFD trading carries a high level of risk and
+              may not be suitable for everyone — you can lose some or all of your capital, so never trade with
+              money you cannot afford to lose. All signals, content and mentorship offered by Milkers Fx are
+              strictly educational and do <b>not</b> constitute financial, investment or trading advice. Milkers Fx
+              is not a licensed financial advisor. Any trade you place, and any account you open with XM Global, is
+              made entirely at your own risk. Past performance is never a guarantee of future results.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- XM STRIP -->
       <section class="xm-strip">
-        <div><p class="eyebrow">Broker Partner</p><h2>Open your XM account through Milkers Fx.</h2><p>Follow the setup guide, use the partner link, and send your account ID for student onboarding.</p></div>
-        <a class="btn primary" href="xm.html">Start XM Setup</a>
+        <div class="container">
+          <div class="reveal">
+            <span class="xm-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/></svg>
+              Official XM Global Partner
+            </span>
+            <p class="eyebrow">Broker Partner</p>
+            <h2>Open a real XM Global account, the right way.</h2>
+            <p class="lead">Milkers Fx is an official XM Global partner. New traders get a guided setup and use our partner code when opening a real account — so you're connected and supported from day one.</p>
+            <div class="btn-row" style="margin-top: 26px;">
+              <a class="btn primary" href="xm.html">Start XM setup</a>
+              <a class="btn ghost" href="signup.html">Sign up first</a>
+            </div>
+          </div>
+          <div class="xm-code reveal delay-1">
+            <span>XM Global partner code</span>
+            <b data-partner-code>MILKERSFX</b>
+            <small>Enter this code when you open your real XM Global account.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- GO DEEPER / SERVICES -->
+      <section class="section" id="explore">
+        <div class="section-head reveal">
+          <p class="eyebrow">Go deeper</p>
+          <h2>Two ways to grow with Milkers FX Team.</h2>
+          <p>Signals and tips when you want trade plans, free lessons when you want to learn the why, and one-on-one coaching when you want the desk personally.</p>
+        </div>
+        <div class="grid-2" style="max-width:820px;margin-inline:auto;">
+          <article class="explore-card reveal">
+            <div class="body">
+              <h3>Signals &amp; tips</h3>
+              <p>Risk-first trade plans and trading tips — free inside the portal once you're registered with XM.</p>
+              <a class="arrow-link" href="signals.html">View the signal room</a>
+            </div>
+          </article>
+          <article class="explore-card reveal delay-1">
+            <div class="body">
+              <h3>Mentorship</h3>
+              <p>Free self-paced lessons in the portal, or one-on-one coaching with the desk for <b>R15,000</b>.</p>
+              <a class="arrow-link" href="mentorship.html">See mentorship options</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- WHO IT'S FOR -->
+      <section class="section" id="who" style="background: rgba(255,255,255,0.015); border-block: 1px solid var(--line-soft);">
+        <div class="section-head reveal">
+          <p class="eyebrow">Who it's for</p>
+          <h2>Built for traders who want real structure.</h2>
+          <p>Wherever you're starting from, Milkers Fx meets you there and takes you forward.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card reveal">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22v-9"/><path d="M12 13C12 9 8.5 7 4.5 7c0 4 3.5 6 7.5 6Z"/><path d="M12 13c0-4 3.5-6 7.5-6 0 4-3.5 6-7.5 6Z"/></svg>
+            </span>
+            <h3>Brand new to forex</h3>
+            <p>Never placed a trade? Start from the ground up — the platform, the basics and a clear process, without the overwhelm.</p>
+          </article>
+          <article class="card reveal delay-1">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l5-6 4 4 6-8"/><path d="M3 21h18"/></svg>
+            </span>
+            <h3>Trading but inconsistent</h3>
+            <p>Results all over the place? Replace random entries with risk-first signals and a repeatable routine.</p>
+          </article>
+          <article class="card reveal delay-2">
+            <span class="ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2V5Z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2V5Z"/></svg>
+            </span>
+            <h3>Self-taught, want structure</h3>
+            <p>Picked up bits online and want it to finally click? Get one clear framework, taught properly.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section class="section" id="testimonials">
+        <div class="section-head reveal">
+          <p class="eyebrow">Trader voices</p>
+          <h2>What the room says about Milkers Fx.</h2>
+          <p>Real feedback on the experience — not promises about profit.</p>
+        </div>
+        <div class="quotes">
+          <figure class="quote reveal">
+            <span class="stars" aria-label="5 out of 5">★★★★★</span>
+            <blockquote>The signals come with a reason, not just levels. I finally understand why I'm in a trade and when to stay out.</blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">TM</span>
+              <div><b>Thabo M.</b><span>Johannesburg</span></div>
+            </figcaption>
+          </figure>
+          <figure class="quote reveal delay-1">
+            <span class="stars" aria-label="5 out of 5">★★★★★</span>
+            <blockquote>Risk-first changed everything for me. I stopped blowing accounts and started protecting my capital first.</blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">LK</span>
+              <div><b>Lerato K.</b><span>Online · Cape Town</span></div>
+            </figcaption>
+          </figure>
+          <figure class="quote reveal delay-2">
+            <span class="stars" aria-label="5 out of 5">★★★★★</span>
+            <blockquote>The mentorship lessons made it click. Calm, structured and zero hype — exactly what I needed.</blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">SD</span>
+              <div><b>Sipho D.</b><span>Pretoria</span></div>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- CTA / CONTACT -->
+      <section class="section" id="contact">
+        <div class="cta reveal">
+          <p class="eyebrow" style="justify-content:center;">Get started</p>
+          <h2>Ready to trade what you know?</h2>
+          <p>Sign up to unlock the portal, or reach out to ask about signals, mentorship and XM Global setup.</p>
+          <div class="btn-row" style="justify-content:center;">
+            <a class="btn primary" href="signup.html">Sign up</a>
+            <a class="btn ghost" href="login.html">Member login</a>
+          </div>
+          <div class="contact-rows">
+            <a href="mailto:Maphanga0712711990@gmail.com">Maphanga0712711990@gmail.com</a>
+            <a href="https://wa.me/27712711990" data-whatsapp>WhatsApp the desk</a>
+            <a href="xm.html">Open XM with our code</a>
+            <span style="display:inline-flex;align-items:center;padding:12px 20px;color:var(--muted);">South Africa · Online worldwide</span>
+          </div>
+        </div>
       </section>
     </main>
 
-    <footer class="site-footer"><div><span class="brand-mark small">MF</span><strong>Milkers Fx</strong></div><p>Trading involves risk. Education and signals are not financial advice.</p><nav><a href="about.html">About</a><a href="signals.html">Signals</a><a href="mentorship.html">Mentorship</a><a href="events.html">Events</a><a href="signup.html">Sign Up</a><a href="login.html">Login</a></nav></footer>
+    <footer class="site-footer mf-footer">
+      <div class="mf-footer-accent" aria-hidden="true"></div>
+      <div class="mf-footer-wrap">
+        <div class="mf-footer-grid">
+          <div class="mf-footer-brand">
+            <div class="footer-brand">
+              <img class="brand-logo brand-logo--footer" src="assets/milkers-logo.png" alt="" width="140" height="140" />
+            </div>
+            <p>We trade what we know, not what we think. Risk-first signals, tips and mentorship.</p>
+            <a class="mf-footer-email" href="mailto:Maphanga0712711990@gmail.com">Maphanga0712711990@gmail.com</a>
+          </div>
+          <div class="mf-footer-cols">
+            <div>
+              <h4>Explore</h4>
+              <a href="about.html">About</a>
+              <a href="signals.html">Signals</a>
+              <a href="mentorship.html">Mentorship</a>
+            </div>
+            <div>
+              <h4>Get started</h4>
+              <a href="xm.html">Open XM Global</a>
+              <a href="signup.html">Sign up</a>
+              <a href="login.html">Member login</a>
+            </div>
+          </div>
+          <div class="mf-footer-code">
+            <span>XM Partner</span>
+            <b data-partner-code>MILKERSFX</b>
+          </div>
+        </div>
+        <div class="mf-footer-bar">
+          <span>© Milkers FX Team · Discipline · Strategy · Consistency</span>
+          <span>Trading involves significant risk. Signals and educational content are not financial advice.</span>
+        </div>
+      </div>
+    </footer>
+
     <script src="app.js"></script>
   </body>
 </html>
