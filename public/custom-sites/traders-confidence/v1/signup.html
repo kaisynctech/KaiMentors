@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up | Traders Confidence</title>
+    <meta name="description" content="Create your Traders Confidence student account. Get access to the private portal — resources, video tutorials, and one-on-one session booking with Bongani MD415." />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Signup-specific overrides ─────────────────────────────── */
+      .auth-wrap {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 32px) 80px;
+      }
+
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 36px;
+        text-decoration: none;
+      }
+
+      .auth-brand img { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; }
+      .auth-brand strong { font-family: Sora, sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+      .auth-brand small { display: block; font-size: 11px; color: var(--muted); }
+
+      .signup-card {
+        width: 100%;
+        max-width: 540px;
+        background: var(--bg-card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: clamp(28px, 5vw, 48px);
+      }
+
+      /* Progress indicator */
+      .step-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 32px;
+      }
+
+      .step-bar-item {
+        flex: 1;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.08);
+        transition: background 300ms;
+      }
+
+      .step-bar-item.done { background: var(--gold); }
+      .step-bar-item.active { background: var(--gold-bright); }
+
+      .step-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 8px;
+      }
+
+      .signup-card h2 {
+        font-family: Sora, sans-serif;
+        font-size: clamp(20px, 3vw, 26px);
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+
+      .signup-card > p, .step > p {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0 0 28px;
+        line-height: 1.6;
+      }
+
+      /* Steps */
+      .step { display: none; }
+      .step.active { display: block; }
+
+      /* Field */
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+      .field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+      .field input,
+      .field select,
+      .field textarea {
+        background: var(--bg-elev);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        outline: none;
+        transition: border-color 200ms;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus { border-color: var(--gold); }
+
+      .field textarea { resize: vertical; min-height: 90px; }
+
+      .field select option { background: #1b1b22; }
+
+      /* Level cards */
+      .level-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .level-card {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .level-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .level-card-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        background: var(--bg-elev);
+        transition: border-color 200ms, background 200ms;
+        cursor: pointer;
+      }
+
+      .level-card input:checked + .level-card-inner {
+        border-color: var(--gold);
+        background: rgba(216,172,51,0.08);
+      }
+
+      .level-card-inner b {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .level-card-inner span {
+        font-size: 11px;
+        color: var(--muted-2);
+      }
+
+      /* Broker toggle */
+      .broker-toggle {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .broker-btn {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        background: var(--bg-elev);
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 200ms, background 200ms, color 200ms;
+      }
+
+      .broker-btn.selected {
+        border-color: var(--gold);
+        background: rgba(216,172,51,0.08);
+        color: var(--gold-soft);
+      }
+
+      /* Inline XM guide */
+      .xm-guide {
+        display: none;
+        background: rgba(216,172,51,0.06);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 18px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--muted);
+      }
+
+      .xm-guide.visible { display: block; }
+
+      .xm-guide strong { color: var(--gold-soft); }
+      .xm-guide a { color: var(--gold); text-decoration: underline; }
+
+      .xm-code-inline {
+        display: inline-block;
+        background: var(--bg-card-2);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-family: monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--gold-bright);
+        letter-spacing: 0.06em;
+      }
+
+      /* Review step */
+      .review-block {
+        background: var(--bg-elev);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .review-block h4 {
+        font-family: Sora, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 8px;
+      }
+
+      .review-block ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .review-block ul li { margin-bottom: 4px; }
+
+      .disclaimer-card {
+        background: rgba(216,172,51,0.06);
+        border: 1.5px solid rgba(216,172,51,0.3);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 16px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .disclaimer-card strong { color: var(--gold-soft); font-weight: 700; }
+
+      .consent-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .consent-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        margin-top: 2px;
+        accent-color: var(--gold);
+        cursor: pointer;
+      }
+
+      .consent-row label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.5;
+        cursor: pointer;
+      }
+
+      /* Buttons */
+      .btn-row-auth {
+        display: flex;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .btn-back {
+        flex: 0 0 auto;
+        padding: 0 22px;
+        height: 46px;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 200ms, color 200ms;
+      }
+
+      .btn-back:hover { border-color: var(--gold); color: var(--gold-soft); }
+
+      .btn-next {
+        flex: 1;
+        height: 46px;
+        border: none;
+        border-radius: 10px;
+        background: var(--gold);
+        color: #08080a;
+        font-family: Sora, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 200ms;
+      }
+
+      .btn-next:hover { background: var(--gold-bright); }
+      .btn-next:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      .login-link {
+        text-align: center;
+        margin-top: 22px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .login-link a { color: var(--gold); font-weight: 600; }
+
+      /* Confirmation screen */
+      .confirmation {
+        display: none;
+        text-align: center;
+        padding: 16px 0 8px;
+      }
+
+      .confirmation.visible { display: block; }
+
+      .conf-ico {
+        font-size: 44px;
+        margin-bottom: 16px;
+      }
+
+      .confirmation h2 {
+        font-family: Sora, sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 10px;
+      }
+
+      .confirmation p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0 0 24px;
+      }
+
+      /* Approved banner */
+      .approved-banner {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        background: rgba(47,174,122,0.1);
+        border: 1px solid rgba(47,174,122,0.3);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 28px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #2fae7a;
+      }
+
+      .approved-banner.visible { display: flex; }
+
+      @media (max-width: 480px) {
+        .level-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-wrap">
+
+      <!-- Brand -->
+      <a class="auth-brand" href="index.html">
+        <img src="assets/tc-logo.png" alt="Traders Confidence logo" />
+        <span>
+          <strong>Traders Confidence</strong>
+          <small>MD415</small>
+        </span>
+      </a>
+
+      <!-- Approved banner (shown via ?approved=1) -->
+      <div class="approved-banner" id="approvedBanner">
+        <span>✓</span>
+        <span>Your account has been approved — you now have full portal access.</span>
+      </div>
+
+      <!-- Signup card -->
+      <div class="signup-card" id="signupCard">
+
+        <!-- Progress bar -->
+        <div class="step-bar" id="stepBar">
+          <div class="step-bar-item active" data-bar="0"></div>
+          <div class="step-bar-item" data-bar="1"></div>
+          <div class="step-bar-item" data-bar="2"></div>
+          <div class="step-bar-item" data-bar="3"></div>
+        </div>
+
+        <!-- Step 1 — Profile -->
+        <div class="step active" data-step="0">
+          <p class="step-label">Step 1 of 4</p>
+          <h2>Your profile</h2>
+          <p>Start with the basics — your name, email address, and WhatsApp number so Bongani can reach you directly.</p>
+
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input id="fullName" name="fullName" type="text" placeholder="e.g. Thabo Mokoena" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="whatsapp">WhatsApp number</label>
+            <input id="whatsapp" name="whatsapp" type="tel" placeholder="+27 000 000 0000" autocomplete="tel" required />
+          </div>
+          <div class="field">
+            <label for="password">Create a password <span style="color:var(--muted);font-weight:400;font-size:12px;">(min 10 characters)</span></label>
+            <input id="password" name="password" type="password" placeholder="Choose a strong password" autocomplete="new-password" minlength="10" required />
+          </div>
+
+          <div class="btn-row-auth">
+            <button class="btn-next" onclick="nextStep(0)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 2 — Experience -->
+        <div class="step" data-step="1">
+          <p class="step-label">Step 2 of 4</p>
+          <h2>Your trading background</h2>
+          <p>This helps Bongani understand where you are so your first session is relevant from the start.</p>
+
+          <div class="field">
+            <label>Where are you right now?</label>
+          </div>
+          <div class="level-grid">
+            <label class="level-card">
+              <input type="radio" name="level" value="beginner" required />
+              <span class="level-card-inner">
+                <b>Beginner</b>
+                <span>Just getting started</span>
+              </span>
+            </label>
+            <label class="level-card">
+              <input type="radio" name="level" value="intermediate" />
+              <span class="level-card-inner">
+                <b>Intermediate</b>
+                <span>Trading but inconsistent</span>
+              </span>
+            </label>
+            <label class="level-card">
+              <input type="radio" name="level" value="advanced" />
+              <span class="level-card-inner">
+                <b>Advanced</b>
+                <span>Experienced, refining edge</span>
+              </span>
+            </label>
+            <label class="level-card">
+              <input type="radio" name="level" value="funded" />
+              <span class="level-card-inner">
+                <b>Funded Trader</b>
+                <span>Prop firm or funded</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="yearsTrading">How long have you been trading?</label>
+            <select id="yearsTrading" name="yearsTrading">
+              <option value="">Select one…</option>
+              <option value="less_than_1">Less than 1 year</option>
+              <option value="1_to_3">1 – 3 years</option>
+              <option value="3_to_5">3 – 5 years</option>
+              <option value="5_plus">5+ years</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="challenge">What is your biggest trading challenge right now?</label>
+            <textarea id="challenge" name="challenge" placeholder="e.g. I keep second-guessing my entries and don't have a clear process…"></textarea>
+          </div>
+
+          <div class="btn-row-auth">
+            <button class="btn-back" onclick="prevStep(1)">← Back</button>
+            <button class="btn-next" onclick="nextStep(1)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 3 — Broker Setup -->
+        <div class="step" data-step="2">
+          <p class="step-label">Step 3 of 4</p>
+          <h2>Your XM Global account</h2>
+          <p>Access to the Traders Confidence portal is linked to a real XM Global account opened with partner code <strong style="color:var(--gold-soft)">MD415</strong>. Do you already have one?</p>
+
+          <div class="broker-toggle">
+            <button type="button" class="broker-btn" id="brokerYes" onclick="setBroker('yes')">✓ Yes, I have one</button>
+            <button type="button" class="broker-btn" id="brokerNo" onclick="setBroker('no')">✗ Not yet</button>
+          </div>
+
+          <input type="hidden" name="hasBrokerAccount" id="hasBrokerAccountInput" value="" />
+
+          <!-- Inline guide shown when "No" -->
+          <div class="xm-guide" id="xmGuide">
+            <strong>How to open your XM Global real account with code MD415:</strong>
+            <ol style="margin:10px 0 0;padding-left:18px;line-height:2;">
+              <li>Visit <a href="https://www.xm.com/register" target="_blank" rel="noopener">xm.com/register</a></li>
+              <li>Select <b>Real Account</b> and fill in your personal details</li>
+              <li>In the <b>Partner Code / Referral Code</b> field, enter <span class="xm-code-inline">MD415</span></li>
+              <li>Complete verification, then come back and finish your signup</li>
+            </ol>
+            <p style="margin:12px 0 0;">Once your account is open, enter your XM account ID below.</p>
+          </div>
+
+          <div class="field" id="accountIdField" style="display:none;">
+            <label for="accountId">XM Global account ID</label>
+            <input id="accountId" name="accountId" type="text" placeholder="e.g. 12345678" />
+          </div>
+
+          <div class="btn-row-auth">
+            <button class="btn-back" onclick="prevStep(2)">← Back</button>
+            <button class="btn-next" onclick="nextStep(2)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- Step 4 — Review -->
+        <div class="step" data-step="3">
+          <p class="step-label">Step 4 of 4</p>
+          <h2>Review &amp; submit</h2>
+          <p>Almost done. Read the information below, confirm you agree, and submit your application.</p>
+
+          <div class="review-block">
+            <h4>What happens next?</h4>
+            <ul>
+              <li>Bongani reviews your application — usually within 24 hours.</li>
+              <li>You'll receive a WhatsApp message confirming your access.</li>
+              <li>Once approved, log in to your private Traders Confidence portal using your email and password.</li>
+              <li>Your portal includes resources, video tutorials, and session booking.</li>
+            </ul>
+          </div>
+
+          <div class="disclaimer-card">
+            <strong>Risk warning &amp; disclaimer —</strong> Trading forex and CFDs involves significant risk of loss and is not suitable for all investors. You can lose some or all of your capital. All coaching, content and the MD415 method offered by Traders Confidence are <strong>strictly educational</strong> and do not constitute financial, investment or trading advice. Traders Confidence and Bongani MD415 are not licensed financial advisors. Any trades you place and any accounts you open are entirely at your own risk. Past performance does not guarantee future results.
+          </div>
+
+          <div class="consent-row">
+            <input type="checkbox" id="consent" name="consent" required />
+            <label for="consent">
+              <strong>I understand and agree</strong> — I have read the risk warning above, I confirm that the information I have provided is accurate, and I consent to Traders Confidence contacting me on WhatsApp about my application.
+            </label>
+          </div>
+
+          <div class="btn-row-auth">
+            <button class="btn-back" onclick="prevStep(3)">← Back</button>
+            <button class="btn-next" id="submitBtn" onclick="submitForm()">Submit application</button>
+          </div>
+        </div>
+
+        <!-- Confirmation screen -->
+        <div class="confirmation" id="confirmation">
+          <div class="conf-ico">✅</div>
+          <h2>Application submitted!</h2>
+          <p>Thanks for signing up, <span id="confName"></span>. Bongani will review your application and reach out on WhatsApp within 24 hours to confirm your access.</p>
+          <a class="btn primary" href="index.html">Back to home</a>
+        </div>
+
+      </div>
+
+      <!-- Login link -->
+      <p class="login-link">Already have an account? <a href="login.html">Log in here</a></p>
+
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      // ── State ──────────────────────────────────────────────────────
+      let currentStep = 0;
+      const totalSteps = 4;
+
+      // ── Approved banner ────────────────────────────────────────────
+      if (new URLSearchParams(window.location.search).get("approved") === "1") {
+        document.getElementById("approvedBanner").classList.add("visible");
+      }
+
+      // ── Step navigation ────────────────────────────────────────────
+      function showStep(n) {
+        document.querySelectorAll(".step").forEach((s) => s.classList.remove("active"));
+        document.querySelectorAll("[data-step='" + n + "']").forEach((s) => s.classList.add("active"));
+
+        document.querySelectorAll("[data-bar]").forEach((b, i) => {
+          b.classList.remove("active", "done");
+          if (i < n) b.classList.add("done");
+          if (i === n) b.classList.add("active");
+        });
+
+        currentStep = n;
+      }
+
+      function nextStep(from) {
+        if (from === 0) {
+          const name = document.getElementById("fullName").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const wa = document.getElementById("whatsapp").value.trim();
+          const pw = document.getElementById("password").value;
+          if (!name || !email || !wa || !pw) { alert("Please fill in all fields before continuing."); return; }
+          if (pw.length < 10) { alert("Your password must be at least 10 characters."); return; }
+        }
+        if (from === 1) {
+          const level = document.querySelector('input[name="level"]:checked');
+          if (!level) { alert("Please select your trading level."); return; }
+        }
+        if (from === 2) {
+          const broker = document.getElementById("hasBrokerAccountInput").value;
+          if (!broker) { alert("Please indicate whether you have an XM Global account."); return; }
+        }
+        showStep(from + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function prevStep(from) {
+        if (from > 0) showStep(from - 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // ── Broker toggle ──────────────────────────────────────────────
+      function setBroker(val) {
+        document.getElementById("hasBrokerAccountInput").value = val;
+        document.getElementById("brokerYes").classList.toggle("selected", val === "yes");
+        document.getElementById("brokerNo").classList.toggle("selected", val === "no");
+        document.getElementById("xmGuide").classList.toggle("visible", val === "no");
+        document.getElementById("accountIdField").style.display = (val === "yes" || val === "no") ? "flex" : "none";
+      }
+
+      // ── Submit ─────────────────────────────────────────────────────
+      async function submitForm() {
+        const consent = document.getElementById("consent").checked;
+        if (!consent) { alert("Please read and accept the risk warning to continue."); return; }
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "Submitting…";
+
+        const fd = new FormData();
+        fd.append("fullName", document.getElementById("fullName").value.trim());
+        fd.append("email", document.getElementById("email").value.trim());
+        fd.append("phoneNumber", document.getElementById("whatsapp").value.trim());
+        fd.append("password", document.getElementById("password").value);
+        fd.append("tradingLevel", (document.querySelector('input[name="level"]:checked') || {}).value || "");
+        fd.append("yearsTrading", document.getElementById("yearsTrading").value);
+        fd.append("tradingChallenge", document.getElementById("challenge").value.trim());
+        fd.append("portalSlug", "traders-confidence");
+        fd.append("consent", "on");
+
+        const payload = { fullName: fd.get("fullName") };
+
+        try {
+          const res = await fetch("/api/student/register", {
+            method: "POST",
+            body: fd,
+          });
+
+          if (res.ok) {
+            document.getElementById("signupCard").querySelectorAll(".step, .step-bar").forEach((el) => { el.style.display = "none"; });
+            document.getElementById("confName").textContent = payload.fullName.split(" ")[0];
+            document.getElementById("confirmation").classList.add("visible");
+          } else {
+            const data = await res.json().catch(() => ({}));
+            alert(data.error || "Something went wrong. Please try again.");
+            btn.disabled = false;
+            btn.textContent = "Submit application";
+          }
+        } catch {
+          alert("Could not connect. Please check your internet and try again.");
+          btn.disabled = false;
+          btn.textContent = "Submit application";
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Member Login | Traders Confidence</title>
+    <meta name="description" content="Log in to your Traders Confidence student portal — access resources, video tutorials, and book one-on-one sessions with Bongani MD415." />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Login-specific layout ─────────────────────────────────────── */
+      body.auth-page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .auth-shell {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 100vh;
+      }
+
+      /* ── Left visual panel ─────────────────────────────────────────── */
+      .auth-visual {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(32px, 5vw, 60px);
+        background: var(--bg-card);
+        border-right: 1px solid var(--line);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .auth-visual::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(600px 500px at 80% -10%, rgba(216,172,51,0.12), transparent 60%),
+          radial-gradient(500px 400px at -10% 90%, rgba(216,172,51,0.06), transparent 55%);
+        pointer-events: none;
+      }
+
+      .visual-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+      }
+
+      .visual-brand img { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; }
+      .visual-brand strong { font-family: Sora, sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
+      .visual-brand small { display: block; font-size: 11px; color: var(--muted); }
+
+      .visual-body {
+        position: relative;
+        z-index: 1;
+      }
+
+      .visual-body .eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 12px;
+      }
+
+      .visual-body h2 {
+        font-family: Sora, sans-serif;
+        font-size: clamp(24px, 3.5vw, 36px);
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+        margin: 0 0 16px;
+      }
+
+      .visual-body h2 span { color: var(--gold); }
+
+      .visual-body p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+        max-width: 360px;
+        margin: 0;
+      }
+
+      /* Decorative chart */
+      .visual-chart {
+        position: relative;
+        z-index: 1;
+        margin-top: 36px;
+        opacity: 0.7;
+      }
+
+      .visual-chart svg { width: 100%; max-width: 360px; }
+
+      /* ── Right login panel ─────────────────────────────────────────── */
+      .auth-form-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(32px, 5vw, 60px);
+        background: var(--bg);
+      }
+
+      .login-box {
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-box h1 {
+        font-family: Sora, sans-serif;
+        font-size: clamp(22px, 3vw, 28px);
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+
+      .login-box > p {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0 0 32px;
+        line-height: 1.6;
+      }
+
+      /* Fields */
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+      .field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+      .field input {
+        background: var(--bg-elev);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        outline: none;
+        transition: border-color 200ms;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .field input:focus { border-color: var(--gold); }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+
+      .remember-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .remember-row input[type="checkbox"] {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--gold);
+        cursor: pointer;
+      }
+
+      .forgot-link {
+        font-size: 13px;
+        color: var(--gold);
+        font-weight: 600;
+      }
+
+      /* Portal sign-in button */
+      .btn-portal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 10px;
+        background: var(--gold);
+        color: #08080a;
+        font-family: Sora, sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 200ms;
+        margin-bottom: 20px;
+      }
+
+      .btn-portal:hover { background: var(--gold-bright); }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: rgba(255,255,255,0.07);
+      }
+
+      .divider span { font-size: 12px; color: var(--muted-2); white-space: nowrap; }
+
+      .portal-note {
+        background: var(--bg-card);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        padding: 16px 18px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+
+      .portal-note strong { color: var(--text); }
+
+      .signup-prompt {
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+
+      .signup-prompt a { color: var(--gold); font-weight: 600; }
+
+      /* ── Mobile: stack vertically ──────────────────────────────────── */
+      @media (max-width: 768px) {
+        .auth-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .auth-visual {
+          border-right: none;
+          border-bottom: 1px solid var(--line);
+          padding: 32px 24px;
+          min-height: unset;
+        }
+
+        .visual-chart { display: none; }
+
+        .visual-body p { display: none; }
+
+        .auth-form-panel {
+          padding: 36px 20px 60px;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body class="auth-page">
+
+    <div class="auth-shell">
+
+      <!-- Left — visual panel -->
+      <div class="auth-visual">
+        <a class="visual-brand" href="index.html">
+          <img src="assets/tc-logo.png" alt="Traders Confidence logo" />
+          <span>
+            <strong>Traders Confidence</strong>
+            <small>MD415</small>
+          </span>
+        </a>
+
+        <div class="visual-body">
+          <p class="eyebrow">Student portal</p>
+          <h2>Welcome back to your <span>Traders Confidence</span> portal.</h2>
+          <p>Access your resources, video tutorials, session bookings, and live class schedule — all in one place.</p>
+
+          <div class="visual-chart">
+            <svg viewBox="0 0 360 200" role="img" aria-label="Decorative candlestick chart">
+              <line stroke="rgba(216,172,51,0.25)" stroke-width="1" stroke-dasharray="4,4" x1="0" y1="120" x2="360" y2="120" />
+              <text x="8" y="116" font-size="10" fill="rgba(216,172,51,0.5)" font-family="Inter,sans-serif">Key level</text>
+              <polyline fill="none" stroke="rgba(216,172,51,0.3)" stroke-width="1.5"
+                points="20,160 55,142 90,128 125,138 160,110 195,88 230,108 265,130 300,86 335,62" />
+              <g stroke-width="1.5">
+                <g class="candle down"><line stroke="rgba(212,96,79,0.7)" x1="20" y1="140" x2="20" y2="168"/><rect fill="rgba(212,96,79,0.5)" stroke="rgba(212,96,79,0.7)" x="13" y="146" width="14" height="18" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="55" y1="136" x2="55" y2="164"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="48" y="142" width="14" height="18" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="90" y1="122" x2="90" y2="150"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="83" y="128" width="14" height="18" rx="1.5"/></g>
+                <g class="candle down"><line stroke="rgba(212,96,79,0.7)" x1="125" y1="124" x2="125" y2="150"/><rect fill="rgba(212,96,79,0.5)" stroke="rgba(212,96,79,0.7)" x="118" y="130" width="14" height="14" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="160" y1="104" x2="160" y2="136"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="153" y="110" width="14" height="22" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="195" y1="82" x2="195" y2="116"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="188" y="88" width="14" height="24" rx="1.5"/></g>
+                <g class="candle down"><line stroke="rgba(212,96,79,0.7)" x1="230" y1="86" x2="230" y2="114"/><rect fill="rgba(212,96,79,0.5)" stroke="rgba(212,96,79,0.7)" x="223" y="90" width="14" height="18" rx="1.5"/></g>
+                <g class="candle down"><line stroke="rgba(212,96,79,0.7)" x1="265" y1="108" x2="265" y2="138"/><rect fill="rgba(212,96,79,0.5)" stroke="rgba(212,96,79,0.7)" x="258" y="112" width="14" height="20" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="300" y1="80" x2="300" y2="130"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="293" y="86" width="14" height="40" rx="1.5"/></g>
+                <g class="candle up"><line stroke="rgba(47,174,122,0.7)" x1="335" y1="56" x2="335" y2="90"/><rect fill="rgba(47,174,122,0.5)" stroke="rgba(47,174,122,0.7)" x="328" y="62" width="14" height="24" rx="1.5"/></g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div></div><!-- spacer -->
+      </div>
+
+      <!-- Right — login form -->
+      <div class="auth-form-panel">
+        <div class="login-box">
+          <h1>Sign in</h1>
+          <p>Log in to your Traders Confidence student portal.</p>
+
+          <div class="portal-note">
+            <strong>Traders Confidence portal login</strong><br />
+            Use the email and password you created when your account was approved. If you haven't signed up yet, <a href="signup.html" style="color:var(--gold);font-weight:600;">create an account first</a>.
+          </div>
+
+          <a class="btn-portal" href="/academy/login?portal=traders-confidence">
+            Sign in to portal →
+          </a>
+
+          <div class="divider"><span>or</span></div>
+
+          <div class="field">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" type="email" placeholder="you@email.com" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password" />
+          </div>
+
+          <div class="field-row">
+            <label class="remember-row">
+              <input type="checkbox" id="rememberMe" />
+              Remember me
+            </label>
+            <a class="forgot-link" href="/academy/login?portal=traders-confidence&tab=reset">Forgot password?</a>
+          </div>
+
+          <a class="btn-portal" href="/academy/login?portal=traders-confidence">
+            Sign in →
+          </a>
+
+          <p class="signup-prompt">New student? <a href="signup.html">Sign up here</a></p>
+        </div>
+      </div>
+
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
