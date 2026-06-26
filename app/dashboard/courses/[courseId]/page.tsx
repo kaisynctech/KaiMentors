@@ -47,7 +47,7 @@ export default async function CourseDetailPage({
       .maybeSingle(),
     supabase
       .from("course_modules")
-      .select("id,title,description,status,sort_order,is_required")
+      .select("id,title,description,status,sort_order,is_required,requires_previous_completion")
       .eq("course_id", courseId)
       .eq("trader_id", tid)
       .order("sort_order")

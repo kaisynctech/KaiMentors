@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Circle,
   Clock,
+  Lock,
   Plus,
 } from "lucide-react";
 import { formatDuration } from "@/lib/courses";
@@ -37,6 +38,7 @@ interface Module {
   status: Status;
   sort_order: number;
   is_required: boolean;
+  requires_previous_completion: boolean;
   lessons: Lesson[];
 }
 
@@ -57,6 +59,7 @@ interface Props {
   createModule: (fd: FormData) => Promise<void>;
   createLessonWithBlocks: (lesson: LessonWithBlocksInput) => Promise<void>;
   updateLessonWithBlocks: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<void>;
+  updateModule: (moduleId: string, updates: { requiresPreviousCompletion: boolean }) => Promise<void>;
   patchCurriculum: (payload: CurriculumPatch) => Promise<void>;
 }
 
@@ -71,6 +74,7 @@ export function CurriculumTab({
   createModule,
   createLessonWithBlocks,
   updateLessonWithBlocks,
+  updateModule,
   patchCurriculum,
 }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -118,6 +122,10 @@ export function CurriculumTab({
     setSelectedLesson(null);
   }
 
+  async function handleUpdateModule(moduleId: string, requiresPreviousCompletion: boolean) {
+    await updateModule(moduleId, { requiresPreviousCompletion });
+  }
+
   return (
     <div className={styles.split}>
       {/* Left: Module/lesson tree */}
@@ -141,7 +149,7 @@ export function CurriculumTab({
           <p className={styles.treeEmpty}>Create the first module to begin.</p>
         )}
 
-        {modules.map((module) => {
+        {modules.map((module, moduleIndex) => {
           const open = !isCollapsed(module.id);
           const moduleLessons = lessons.filter((l) => l.module_id === module.id);
           return (
@@ -171,6 +179,24 @@ export function CurriculumTab({
                   <option value="published">Published</option>
                   <option value="archived">Archived</option>
                 </select>
+                {moduleIndex > 0 && (
+                  <button
+                    className={`${styles.gateBtn} ${module.requires_previous_completion ? styles.gateBtnActive : ""}`}
+                    disabled={busy}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpdateModule(module.id, !module.requires_previous_completion);
+                    }}
+                    title={
+                      module.requires_previous_completion
+                        ? "Sequential gating ON — click to disable"
+                        : "Sequential gating OFF — click to enable"
+                    }
+                    type="button"
+                  >
+                    <Lock size={12} />
+                  </button>
+                )}
               </div>
 
               {open && (

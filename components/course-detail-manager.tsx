@@ -46,6 +46,7 @@ type Module = {
   status: Status;
   sort_order: number;
   is_required: boolean;
+  requires_previous_completion: boolean;
   lessons: Lesson[];
 };
 
@@ -147,6 +148,28 @@ export function CourseDetailManager({
 
   async function createLessonWithBlocks(lesson: LessonWithBlocksInput) {
     await call(`/api/courses/${course.id}/lessons`, lesson);
+  }
+
+  async function updateModule(
+    moduleId: string,
+    updates: { requiresPreviousCompletion: boolean },
+  ) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    const response = await fetch(`/api/courses/${course.id}/modules/${moduleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    const payload = await response.json();
+    setBusy(false);
+    if (!response.ok) {
+      setError(payload.error ?? "Module could not be updated.");
+      return;
+    }
+    setMessage("Module updated.");
+    router.refresh();
   }
 
   async function updateLessonWithBlocks(lessonId: string, lesson: LessonWithBlocksInput) {
@@ -329,6 +352,7 @@ export function CourseDetailManager({
           createModule={createModule}
           createLessonWithBlocks={createLessonWithBlocks}
           updateLessonWithBlocks={updateLessonWithBlocks}
+          updateModule={updateModule}
           patchCurriculum={patchCurriculum}
         />
       )}

@@ -318,3 +318,24 @@
     align-items: center;
   }
 }
+
+/* Module sequential gating */
+.moduleCardLocked .moduleHeader {
+  background: #f8f9fa;
+  opacity: 0.75;
+}
+
+.moduleLockIcon {
+  color: #6c747a;
+  flex-shrink: 0;
+}
+
+.moduleLockedMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 20px;
+  color: #6c747a;
+  font-size: 12px;
+  font-weight: 600;
+}

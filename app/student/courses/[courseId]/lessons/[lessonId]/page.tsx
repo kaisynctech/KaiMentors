@@ -45,7 +45,7 @@ export default async function LessonPage({
     supabase
       .from("lessons")
       .select(
-        "id,title,description,module_id,sort_order,course:courses!inner(id,title,status),module:course_modules!inner(title,status),lesson_content_blocks(id,block_type,sort_order,media_id,content,media:course_media(id,media_type,title,processing_state),gallery_media:lesson_content_block_media(sort_order,caption,media:course_media(id,media_type,title,processing_state)))",
+        "id,title,description,module_id,sort_order,course:courses!inner(id,title,status),module:course_modules!inner(title,status,sort_order,requires_previous_completion),lesson_content_blocks(id,block_type,sort_order,media_id,content,media:course_media(id,media_type,title,processing_state),gallery_media:lesson_content_block_media(sort_order,caption,media:course_media(id,media_type,title,processing_state)))",
       )
       .eq("id", lessonId)
       .eq("course_id", courseId)
@@ -83,6 +83,46 @@ export default async function LessonPage({
   ]);
   if (!lesson) notFound();
 
+  const lessonModule = Array.isArray(lesson.module) ? lesson.module[0] : lesson.module;
+
+  // ── Sequential gate check ────────────────────────────────────────────────────
+  if (lessonModule?.requires_previous_completion) {
+    const { data: prevMod } = await supabase
+      .from("course_modules")
+      .select("id")
+      .eq("course_id", courseId)
+      .eq("trader_id", app.trader_id)
+      .eq("status", "published")
+      .lt("sort_order", lessonModule.sort_order ?? 0)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (prevMod) {
+      const { data: prevRequired } = await supabase
+        .from("lessons")
+        .select("id")
+        .eq("module_id", prevMod.id)
+        .eq("trader_id", app.trader_id)
+        .eq("status", "published")
+        .eq("is_required", true);
+
+      if (prevRequired && prevRequired.length > 0) {
+        const { count: doneCount } = await supabase
+          .from("lesson_progress")
+          .select("id", { count: "exact", head: true })
+          .eq("student_user_id", user.id)
+          .in("lesson_id", prevRequired.map((l) => l.id))
+          .eq("is_completed", true);
+
+        if ((doneCount ?? 0) < prevRequired.length) {
+          redirect(`${academy.basePath}/courses/${courseId}${academy.querySuffix}`);
+        }
+      }
+    }
+  }
+  // ── End gate check ────────────────────────────────────────────────────────────
+
   const ordered = (curriculum ?? []).sort((a, b) => {
     const am = Array.isArray(a.module) ? a.module[0] : a.module;
     const bm = Array.isArray(b.module) ? b.module[0] : b.module;
@@ -97,9 +137,6 @@ export default async function LessonPage({
 
   const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
   const course = Array.isArray(lesson.course) ? lesson.course[0] : lesson.course;
-  const lessonModule = Array.isArray(lesson.module)
-    ? lesson.module[0]
-    : lesson.module;
   const base = academy.basePath;
   const suffix = academy.querySuffix;
 

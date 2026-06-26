@@ -1,4 +1,4 @@
-import { AlignLeft, BookOpen, CheckCircle2, Clock3, ExternalLink, FileImage, FileText, Film, LayoutGrid, PlayCircle } from "lucide-react";
+import { AlignLeft, BookOpen, CheckCircle2, Clock3, ExternalLink, FileImage, FileText, Film, LayoutGrid, Lock, PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -65,7 +65,7 @@ export default async function StudentCoursePage({
         .maybeSingle(),
       supabase
         .from("course_modules")
-        .select("id,title,description,sort_order,is_required")
+        .select("id,title,description,sort_order,is_required,requires_previous_completion")
         .eq("course_id", courseId)
         .eq("trader_id", app.trader_id)
         .eq("status", "published")
@@ -108,6 +108,31 @@ export default async function StudentCoursePage({
       (b.last_activity_at ?? "").localeCompare(a.last_activity_at ?? ""),
     );
   const resumeLessonId = inProgressSorted[0]?.lesson_id ?? null;
+
+  // Compute which modules are accessible (sequential gating)
+  const accessibleModuleIds = new Set<string>();
+  (modules ?? []).forEach((module, idx) => {
+    if (!module.requires_previous_completion || idx === 0) {
+      accessibleModuleIds.add(module.id);
+      return;
+    }
+    const prev = (modules ?? [])[idx - 1];
+    if (!prev) {
+      accessibleModuleIds.add(module.id);
+      return;
+    }
+    const prevRequired = (lessons ?? []).filter(
+      (l) => l.module_id === prev.id && l.is_required,
+    );
+    const allDone =
+      prevRequired.length > 0 &&
+      prevRequired.every((l) =>
+        (progress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
+      );
+    if (prevRequired.length === 0 || allDone) {
+      accessibleModuleIds.add(module.id);
+    }
+  });
 
   const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
   const base = academy.basePath;
@@ -166,8 +191,9 @@ export default async function StudentCoursePage({
             moduleRequiredLessons.every((l) =>
               (progress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
             );
+          const isAccessible = accessibleModuleIds.has(module.id);
           return (
-            <div className={styles.moduleCard} key={module.id}>
+            <div className={`${styles.moduleCard} ${!isAccessible ? styles.moduleCardLocked : ""}`} key={module.id}>
               <div className={styles.moduleHeader}>
                 <div className={styles.moduleMeta}>
                   <h2>{module.title}</h2>
@@ -176,7 +202,9 @@ export default async function StudentCoursePage({
                   ) : null}
                 </div>
                 <div className={styles.moduleHeaderRight}>
-                  {isModuleComplete ? (
+                  {!isAccessible ? (
+                    <Lock size={15} className={styles.moduleLockIcon} />
+                  ) : isModuleComplete ? (
                     <CheckCircle2 className={styles.moduleComplete} size={16} />
                   ) : null}
                   <span>
@@ -184,6 +212,7 @@ export default async function StudentCoursePage({
                   </span>
                 </div>
               </div>
+              {isAccessible ? (
               <div className={styles.lessonList}>
                 {moduleLessons.map((lesson) => {
                   const done = (progress ?? []).some(
@@ -245,6 +274,12 @@ export default async function StudentCoursePage({
                   );
                 })}
               </div>
+              ) : (
+              <div className={styles.moduleLockedMessage}>
+                <Lock size={13} />
+                Complete the previous module to unlock this one.
+              </div>
+              )}
             </div>
           );
         })}

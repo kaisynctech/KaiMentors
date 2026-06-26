@@ -1113,3 +1113,28 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Module gate toggle */
+.gateBtn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #dfe3e5;
+  border-radius: 5px;
+  background: transparent;
+  color: #6c747a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gateBtn:hover {
+  background: #e9edef;
+  color: #111315;
+}
+
+.gateBtnActive {
+  border-color: #1d6ef9;
+  background: #eff5ff;
+  color: #1d6ef9;
+}
