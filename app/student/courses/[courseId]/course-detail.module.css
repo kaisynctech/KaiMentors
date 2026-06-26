@@ -102,7 +102,7 @@
 
 .moduleHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid #e9edef;
@@ -230,6 +230,66 @@
 .empty p {
   margin: 0;
   font-size: 13px;
+}
+
+/* ── Module enhancements ─────────────────────────────────── */
+
+.moduleMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.moduleDesc {
+  margin: 0;
+  font-size: 11px;
+  color: #6c747a;
+  font-weight: 400;
+  line-height: 1.5;
+  max-width: 480px;
+}
+
+.moduleHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.moduleComplete {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+/* ── Lesson enhancements ─────────────────────────────────── */
+
+.optionalBadge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6c747a;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.watchBar {
+  margin-top: 5px;
+  height: 3px;
+  max-width: 120px;
+  border-radius: 999px;
+  background: #e9edef;
+  overflow: hidden;
+}
+
+.watchBar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #1d6ef9;
 }
 
 @media (max-width: 900px) {

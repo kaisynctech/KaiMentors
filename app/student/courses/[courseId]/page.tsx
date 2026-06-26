@@ -1,4 +1,4 @@
-import { BookOpen, CheckCircle2, Clock3, PlayCircle } from "lucide-react";
+import { AlignLeft, BookOpen, CheckCircle2, Clock3, ExternalLink, FileImage, FileText, Film, LayoutGrid, PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -8,6 +8,24 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./course-detail.module.css";
+
+const BLOCK_TYPE_PRIORITY = ["video", "pdf", "gallery", "image", "rich_text", "link"] as const;
+
+function getPrimaryBlockType(blocks: { block_type: string }[]): string | null {
+  if (!blocks.length) return null;
+  const types = new Set(blocks.map((b) => b.block_type));
+  return BLOCK_TYPE_PRIORITY.find((t) => types.has(t)) ?? null;
+}
+
+function ContentTypeIcon({ type }: { type: string | null }) {
+  if (type === "video") return <Film size={16} />;
+  if (type === "pdf") return <FileText size={16} />;
+  if (type === "gallery") return <LayoutGrid size={16} />;
+  if (type === "image") return <FileImage size={16} />;
+  if (type === "rich_text") return <AlignLeft size={16} />;
+  if (type === "link") return <ExternalLink size={16} />;
+  return <BookOpen size={16} />;
+}
 
 export default async function StudentCoursePage({
   params,
@@ -54,7 +72,7 @@ export default async function StudentCoursePage({
         .order("sort_order"),
       supabase
         .from("lessons")
-        .select("id,module_id,title,description,duration_seconds,sort_order,is_required")
+        .select("id,module_id,title,description,duration_seconds,sort_order,is_required,blocks:lesson_content_blocks(block_type)")
         .eq("course_id", courseId)
         .eq("trader_id", app.trader_id)
         .eq("status", "published")
@@ -142,11 +160,29 @@ export default async function StudentCoursePage({
           const moduleLessons = (lessons ?? []).filter(
             (l) => l.module_id === module.id,
           );
+          const moduleRequiredLessons = moduleLessons.filter((l) => l.is_required);
+          const isModuleComplete =
+            moduleRequiredLessons.length > 0 &&
+            moduleRequiredLessons.every((l) =>
+              (progress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
+            );
           return (
             <div className={styles.moduleCard} key={module.id}>
               <div className={styles.moduleHeader}>
-                <h2>{module.title}</h2>
-                <span>{moduleLessons.length} lesson{moduleLessons.length === 1 ? "" : "s"}</span>
+                <div className={styles.moduleMeta}>
+                  <h2>{module.title}</h2>
+                  {module.description ? (
+                    <p className={styles.moduleDesc}>{module.description}</p>
+                  ) : null}
+                </div>
+                <div className={styles.moduleHeaderRight}>
+                  {isModuleComplete ? (
+                    <CheckCircle2 className={styles.moduleComplete} size={16} />
+                  ) : null}
+                  <span>
+                    {moduleLessons.length} lesson{moduleLessons.length === 1 ? "" : "s"}
+                  </span>
+                </div>
               </div>
               <div className={styles.lessonList}>
                 {moduleLessons.map((lesson) => {
@@ -154,6 +190,15 @@ export default async function StudentCoursePage({
                     (p) => p.lesson_id === lesson.id && p.is_completed,
                   );
                   const isResume = !done && lesson.id === resumeLessonId;
+                  const lessonProg = (progress ?? []).find((p) => p.lesson_id === lesson.id);
+                  const isInProgress = !!lessonProg?.is_started && !lessonProg?.is_completed;
+                  const watchPercent =
+                    isInProgress && lesson.duration_seconds && lessonProg?.position_seconds
+                      ? Math.min(99, Math.round((lessonProg.position_seconds / lesson.duration_seconds) * 100))
+                      : 0;
+                  const primaryType = getPrimaryBlockType(
+                    (lesson.blocks ?? []) as { block_type: string }[],
+                  );
                   return (
                     <Link
                       className={`${styles.lessonRow} ${done ? styles.lessonDone : ""} ${isResume ? styles.lessonResume : ""}`}
@@ -164,19 +209,34 @@ export default async function StudentCoursePage({
                         {done ? (
                           <CheckCircle2 size={18} />
                         ) : (
-                          <span>{lesson.sort_order}</span>
+                          <ContentTypeIcon type={primaryType} />
                         )}
                       </div>
                       <div className={styles.lessonMeta}>
                         <strong>{lesson.title}</strong>
-                        <p>{lesson.description || "Mixed-media lesson"}</p>
+                        {lesson.description ? <p>{lesson.description}</p> : null}
+                        {!lesson.is_required ? (
+                          <span className={styles.optionalBadge}>Optional</span>
+                        ) : null}
+                        {isInProgress && watchPercent > 0 ? (
+                          <div
+                            aria-label={`${watchPercent}% watched`}
+                            aria-valuemax={100}
+                            aria-valuemin={0}
+                            aria-valuenow={watchPercent}
+                            className={styles.watchBar}
+                            role="progressbar"
+                          >
+                            <span style={{ width: `${watchPercent}%` }} />
+                          </div>
+                        ) : null}
                       </div>
                       <div className={styles.lessonRight}>
-                        {isResume && (
+                        {isResume ? (
                           <span className={styles.resumeLabel}>
                             <PlayCircle size={13} /> Resume
                           </span>
-                        )}
+                        ) : null}
                         <span className={styles.duration}>
                           <Clock3 size={11} /> {formatDuration(lesson.duration_seconds)}
                         </span>
