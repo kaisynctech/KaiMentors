@@ -58,7 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
     ];
     if (allMediaIds.length > 0) {
       const { count } = await context.supabase
-        .from("media")
+        .from("course_media")
         .select("id", { count: "exact", head: true })
         .in("id", allMediaIds)
         .eq("trader_id", context.traderId);
