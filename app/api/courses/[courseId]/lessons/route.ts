@@ -73,7 +73,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
         .from("lesson_content_blocks")
         .insert({
           lesson_id: data.id,
+          course_id: courseId,
           trader_id: context.traderId,
+          created_by: context.user.id,
           block_type: block.blockType,
           sort_order: block.sortOrder,
           media_id: block.mediaId ?? null,
@@ -92,6 +94,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
         for (const [i, mediaId] of (block.galleryMediaIds ?? []).entries()) {
           await context.supabase.from("lesson_content_block_media").insert({
             block_id: blockData.id,
+            trader_id: context.traderId,
+            course_id: courseId,
+            lesson_id: data.id,
             media_id: mediaId,
             sort_order: i,
           });
