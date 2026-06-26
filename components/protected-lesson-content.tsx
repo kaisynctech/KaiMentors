@@ -21,6 +21,7 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(completed);
   const lastWrite = useRef(0);
+  const autoCompleted = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
@@ -60,7 +61,20 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
       }
       const url = block.media_id ? urls[block.media_id] : null;
       if (!url) return <div className={styles.unavailable} key={block.id}>This protected media is unavailable or still processing.</div>;
-      return <section className={styles.media} key={block.id}><div className={styles.watermark}>{watermark}</div>{block.block_type === "video" ? <video controls controlsList="nodownload noremoteplayback" disablePictureInPicture onEnded={(event) => progress(event.currentTarget.duration, true)} onLoadedMetadata={(event) => { if (resumeSeconds > 0) event.currentTarget.currentTime = Math.min(resumeSeconds, event.currentTarget.duration || resumeSeconds); }} onPause={(event) => progress(event.currentTarget.currentTime)} onTimeUpdate={(event) => progress(event.currentTarget.currentTime)} playsInline preload="metadata" src={url} /> : block.block_type === "pdf" ? <iframe src={`${url}#toolbar=0&navpanes=0`} title={block.media?.title ?? "Protected document"} /> : <Image alt={String(value.caption ?? block.media?.title ?? "")} height={900} src={url} unoptimized width={1600} />}<p>{String(value.caption ?? block.media?.title ?? "")}</p></section>;
+      return <section className={styles.media} key={block.id}><div className={styles.watermark}>{watermark}</div>{block.block_type === "video" ? <video controls controlsList="nodownload noremoteplayback" disablePictureInPicture onEnded={(event) => progress(event.currentTarget.duration, true)} onLoadedMetadata={(event) => { if (resumeSeconds > 0) event.currentTarget.currentTime = Math.min(resumeSeconds, event.currentTarget.duration || resumeSeconds); }} onPause={(event) => progress(event.currentTarget.currentTime)} onTimeUpdate={(event) => {
+                const video = event.currentTarget;
+                if (
+                  !done &&
+                  !autoCompleted.current.has(block.id) &&
+                  video.duration > 0 &&
+                  video.currentTime / video.duration >= 0.9
+                ) {
+                  autoCompleted.current.add(block.id);
+                  progress(video.currentTime, true);
+                  return;
+                }
+                progress(video.currentTime);
+              }} playsInline preload="metadata" src={url} /> : block.block_type === "pdf" ? <iframe src={`${url}#toolbar=0&navpanes=0`} title={block.media?.title ?? "Protected document"} /> : <Image alt={String(value.caption ?? block.media?.title ?? "")} height={900} src={url} unoptimized width={1600} />}<p>{String(value.caption ?? block.media?.title ?? "")}</p></section>;
     })}
     <button className={styles.complete} disabled={done} onClick={() => progress(resumeSeconds, true)}>{done ? <><CheckCircle2 /> Lesson completed</> : "Mark lesson complete"}</button>
   </div>;
