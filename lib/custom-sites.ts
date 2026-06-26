@@ -353,10 +353,19 @@ async function loadCustomSite(
   const page = pageForPath(sitePackage, routePath ?? []);
   if (!page) return null;
 
-  const html = await readFile(
-    safePackageFilePath(sitePackage.asset_base_path, page.file),
-    "utf8",
-  );
+  let html: string;
+  try {
+    html = await readFile(
+      safePackageFilePath(sitePackage.asset_base_path, page.file),
+      "utf8",
+    );
+  } catch (err) {
+    console.error(
+      `[custom-site] Failed to read file for portal "${portal.slug}", page "${page.file}":`,
+      err,
+    );
+    return null;
+  }
 
   return {
     portal,
