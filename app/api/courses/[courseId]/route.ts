@@ -159,6 +159,26 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
     );
   }
 
+  // Cascade: when a course transitions to published for the first time,
+  // auto-publish all its modules and lessons so mentors don't have to
+  // manually publish each piece of content.
+  const isPublishTransition =
+    existing.status !== "published" && parsed.data.status === "published";
+  if (isPublishTransition) {
+    await Promise.all([
+      supabase
+        .from("course_modules")
+        .update({ status: "published" })
+        .eq("course_id", courseId)
+        .eq("trader_id", membership.trader_id),
+      supabase
+        .from("lessons")
+        .update({ status: "published" })
+        .eq("course_id", courseId)
+        .eq("trader_id", membership.trader_id),
+    ]);
+  }
+
   if (existing.cover_path && coverPath !== existing.cover_path) {
     await supabase.storage
       .from("course-content")
