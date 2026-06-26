@@ -5,6 +5,7 @@ import { Pencil, Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
 import { MediaBlockUploader } from "@/components/media-block-uploader";
 import { MediaBlockGalleryUploader } from "@/components/media-block-gallery-uploader";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import styles from "../course-detail-manager.module.css";
 
 type Media = { id: string; title: string; media_type: "video" | "pdf" | "image"; processing_state: string };
@@ -76,7 +77,12 @@ export function EditLessonPanel({
       .then((data: FetchedLesson) => {
         if (!active) return;
         setInitialData(data);
-        setBlocks(data.blocks);
+        setBlocks(
+          data.blocks.map((b: LessonBlockInput) => ({
+            ...b,
+            _clientKey: crypto.randomUUID(),
+          })),
+        );
         setLoading(false);
       })
       .catch(() => {
@@ -88,7 +94,10 @@ export function EditLessonPanel({
   }, [courseId, lessonId]);
 
   function appendBlock(blockType: LessonBlockInput["blockType"]) {
-    setBlocks((prev) => [...prev, { blockType, sortOrder: prev.length }]);
+    setBlocks((prev) => [
+      ...prev,
+      { blockType, sortOrder: prev.length, _clientKey: crypto.randomUUID() },
+    ]);
   }
 
   function removeBlock(index: number) {
@@ -242,7 +251,7 @@ export function EditLessonPanel({
       </div>
 
       {blocks.map((block, index) => (
-        <div className={styles.blockCard} key={index}>
+        <div className={styles.blockCard} key={block._clientKey ?? index}>
           <div className={styles.blockCardHeader}>
             <strong>{BLOCK_TYPE_LABELS[block.blockType]}</strong>
             <button
@@ -257,10 +266,9 @@ export function EditLessonPanel({
           {block.blockType === "rich_text" && (
             <label>
               Content
-              <textarea
-                onChange={(e) => updateBlock(index, { text: e.target.value })}
-                placeholder="Enter written content…"
-                value={block.text ?? ""}
+              <RichTextEditor
+                defaultContent={block.text ?? ""}
+                onChange={(html) => updateBlock(index, { text: html })}
               />
             </label>
           )}

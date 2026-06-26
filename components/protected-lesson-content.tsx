@@ -53,7 +53,15 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
   return <div className={styles.content}>
     {blocks.map((block) => {
       const value = block.content ?? {};
-      if (block.block_type === "rich_text") return <section className={styles.text} key={block.id}>{String(value.html ?? "").split("\n").map((line, index) => <p key={index}>{line}</p>)}</section>;
+      if (block.block_type === "rich_text") return (
+        <section
+          className={styles.text}
+          key={block.id}
+          // Content is authored by verified mentors — dangerouslySetInnerHTML is intentional.
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: String(value.html ?? "") }}
+        />
+      );
       if (block.block_type === "link") return <a className={styles.link} href={String(value.url ?? "#")} key={block.id} rel="noopener noreferrer" target="_blank">{String(value.label ?? "Open supporting link")}<ExternalLink /></a>;
       if (block.block_type === "gallery") {
         const items = (block.galleryMedia ?? []).filter((item) => item.media && urls[item.media.id]).sort((a, b) => a.sort_order - b.sort_order);

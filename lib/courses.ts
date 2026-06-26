@@ -8,6 +8,7 @@ export interface LessonBlockInput {
   label?: string;
   caption?: string;
   isRequired?: boolean;
+  _clientKey?: string; // React key only — never sent to the API
 }
 
 export interface LessonWithBlocksInput {

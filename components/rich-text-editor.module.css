@@ -1,0 +1,105 @@
+.editor {
+  border: 1px solid #dfe3e5;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e9edef;
+  background: #f8f9fa;
+}
+
+.toolbarBtn {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #3b4248;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toolbarBtn:hover {
+  background: #e9edef;
+}
+
+.active {
+  background: #e0e8fc !important;
+  color: #1d6ef9;
+}
+
+.sep {
+  display: block;
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: #dfe3e5;
+  flex-shrink: 0;
+}
+
+.editorContent :global(.ProseMirror) {
+  min-height: 120px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #111315;
+}
+
+.editorContent :global(.ProseMirror p) {
+  margin: 0 0 10px;
+}
+
+.editorContent :global(.ProseMirror p:last-child) {
+  margin-bottom: 0;
+}
+
+.editorContent :global(.ProseMirror h2) {
+  margin: 14px 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.editorContent :global(.ProseMirror h3) {
+  margin: 12px 0 4px;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.editorContent :global(.ProseMirror ul),
+.editorContent :global(.ProseMirror ol) {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.editorContent :global(.ProseMirror li) {
+  margin-bottom: 4px;
+}
+
+.editorContent :global(.ProseMirror li p) {
+  margin: 0;
+}
+
+.editorContent :global(.ProseMirror.is-editor-empty::before) {
+  content: "Write content\2026";
+  position: absolute;
+  pointer-events: none;
+  color: #a0a8ae;
+  font-style: italic;
+}
+
+.editorContent :global(.ProseMirror.is-editor-empty) {
+  position: relative;
+}
