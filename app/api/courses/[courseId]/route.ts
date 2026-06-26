@@ -159,12 +159,9 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
     );
   }
 
-  // Cascade: when a course transitions to published for the first time,
-  // auto-publish all its modules and lessons so mentors don't have to
-  // manually publish each piece of content.
-  const isPublishTransition =
-    existing.status !== "published" && parsed.data.status === "published";
-  if (isPublishTransition) {
+  // Cascade: whenever a course is saved as published, auto-publish all
+  // its modules and lessons — published course means all content is live.
+  if (parsed.data.status === "published") {
     await Promise.all([
       supabase
         .from("course_modules")
