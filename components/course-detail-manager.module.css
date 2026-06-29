@@ -36,6 +36,25 @@
   background: #111315 !important;
 }
 
+.previewLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4e565b;
+  text-decoration: none;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.previewLink:hover {
+  background: #f2f4f5;
+}
+
 /* Banners */
 .error,
 .success {

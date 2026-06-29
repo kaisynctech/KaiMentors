@@ -1,0 +1,143 @@
+/* ── Shell ───────────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: #f4f6f7;
+}
+
+/* ── Preview nav ─────────────────────────────────────────── */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e9edef;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.backLink {
+  font-size: 11px;
+  font-weight: 800;
+  color: #6c747a;
+  text-decoration: none;
+}
+.backLink:hover {
+  color: #111315;
+}
+
+.courseTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111315;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Curriculum ──────────────────────────────────────────── */
+.curriculum {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  display: grid;
+  gap: 16px;
+}
+
+.moduleCard {
+  border: 1px solid #dfe3e5;
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px 12px;
+}
+
+.moduleHeader h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111315;
+}
+
+.moduleDesc {
+  margin: 0 0 12px;
+  padding: 0 20px;
+  font-size: 12px;
+  color: #687078;
+  line-height: 1.6;
+}
+
+.draftBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #f4f6f7;
+  border: 1px solid #dfe3e5;
+  font-size: 10px;
+  font-weight: 800;
+  color: #6c747a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.lessonList {
+  border-top: 1px solid #f0f2f3;
+}
+
+.lessonRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  border-bottom: 1px solid #f0f2f3;
+  text-decoration: none;
+  color: #111315;
+  font-size: 13px;
+  transition: background 100ms;
+}
+.lessonRow:last-child {
+  border-bottom: none;
+}
+.lessonRow:hover {
+  background: #f8fafb;
+}
+
+.lessonTitle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #8c979d;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #687078;
+}
+.empty h2 {
+  margin: 12px 0 4px;
+  font-size: 16px;
+}

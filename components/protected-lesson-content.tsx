@@ -16,7 +16,7 @@ type Block = {
   galleryMedia?: Array<{ sort_order: number; caption: string | null; media: Media | null }>;
 };
 
-export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, completed, watermark }: { lessonId: string; blocks: Block[]; resumeSeconds: number; completed: boolean; watermark: string }) {
+export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, completed, watermark, previewMode }: { lessonId: string; blocks: Block[]; resumeSeconds: number; completed: boolean; watermark: string; previewMode?: boolean }) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(completed);
@@ -41,6 +41,7 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
   }, [blocks]);
 
   async function progress(position: number, isCompleted = false) {
+    if (previewMode) return;
     const now = Date.now();
     if (!isCompleted && now - lastWrite.current < 15000) return;
     lastWrite.current = now;

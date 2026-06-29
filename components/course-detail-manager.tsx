@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Eye } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./course-detail-manager.module.css";
 import type { LessonWithBlocksInput } from "@/lib/courses";
@@ -351,6 +352,13 @@ export function CourseDetailManager({
             {item}
           </button>
         ))}
+        <Link
+          className={styles.previewLink}
+          href={`/dashboard/courses/${course.id}/preview`}
+          target="_blank"
+        >
+          <Eye size={12} /> Preview
+        </Link>
       </nav>
 
       {error ? <p className={styles.error}>{error}</p> : null}
