@@ -23,4 +23,16 @@
 @media(max-width:600px) { .media iframe { height: 65vh; } .gallery { grid-template-columns: 1fr; } .watermark { right: 8px; bottom: 44px; } }
 .courseCompleteOverlay { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 24px 0 0; padding: 32px 24px; border-radius: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; text-align: center; animation: fadeUp 0.4s ease both; }
 .courseCompleteOverlay h2 { margin: 0; font-size: 20px; font-weight: 800; color: #176c42; }
-.courseCompleteOverlay p { margin: 0; 
+.courseCompleteOverlay p { margin: 0; font-size: 13px; color: #176c42; opacity: 0.8; }
+.courseCompleteIcon { color: #16a34a; }
+.courseCompleteLink { margin-top: 4px; display: inline-block; padding: 8px 20px; border-radius: 8px; background: #16a34a; color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+.courseCompleteLink:hover { background: #15803d; }
+.text h2 { margin: 16px 0 6px; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: #111315; }
+.text h3 { margin: 12px 0 4px; font-size: 14px; font-weight: 750; letter-spacing: -0.01em; color: #111315; }
+.text ul, .text ol { margin: 0 0 12px; padding-left: 22px; }
+.text li { margin-bottom: 4px; line-height: 1.75; }
+.text li p { margin: 0; }
+.text strong { font-weight: 800; }
+.text em { font-style: italic; }
+.text u { text-decoration: underline; }
+.text p:last-child { margin-bottom: 0; }
