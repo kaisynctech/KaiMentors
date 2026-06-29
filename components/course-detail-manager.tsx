@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import styles from "./course-detail-manager.module.css";
@@ -112,8 +112,19 @@ export function CourseDetailManager({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
+  const [pendingSelectId, setPendingSelectId] = useState<string | null>(null);
 
   const lessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
+
+  // Open the duplicated lesson once it appears in the refreshed list
+  useEffect(() => {
+    if (!pendingSelectId) return;
+    const exists = lessons.some((l) => l.id === pendingSelectId);
+    if (exists) {
+      setSelectedLesson(pendingSelectId);
+      setPendingSelectId(null);
+    }
+  }, [lessons, pendingSelectId]);
   const readyMedia = media.filter((m) => m.processing_state === "ready");
 
   async function call(url: string, body: unknown) {
@@ -170,6 +181,24 @@ export function CourseDetailManager({
     }
     setMessage("Module updated.");
     router.refresh();
+  }
+
+  async function duplicateLesson(lessonId: string) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    const res = await fetch(
+      `/api/courses/${course.id}/lessons/${lessonId}/duplicate`,
+      { method: "POST" },
+    );
+    if (!res.ok) {
+      setBusy(false);
+      return;
+    }
+    const { lessonId: newId } = await res.json();
+    setPendingSelectId(newId);
+    router.refresh();
+    setBusy(false);
   }
 
   async function updateLessonWithBlocks(lessonId: string, lesson: LessonWithBlocksInput) {
@@ -353,6 +382,7 @@ export function CourseDetailManager({
           createLessonWithBlocks={createLessonWithBlocks}
           updateLessonWithBlocks={updateLessonWithBlocks}
           updateModule={updateModule}
+          duplicateLesson={duplicateLesson}
           patchCurriculum={patchCurriculum}
         />
       )}

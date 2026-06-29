@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Circle,
   Clock,
+  Copy,
   Lock,
   Plus,
 } from "lucide-react";
@@ -60,6 +61,7 @@ interface Props {
   createLessonWithBlocks: (lesson: LessonWithBlocksInput) => Promise<void>;
   updateLessonWithBlocks: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<void>;
   updateModule: (moduleId: string, updates: { requiresPreviousCompletion: boolean }) => Promise<void>;
+  duplicateLesson: (lessonId: string) => Promise<void>;
   patchCurriculum: (payload: CurriculumPatch) => Promise<void>;
 }
 
@@ -75,6 +77,7 @@ export function CurriculumTab({
   createLessonWithBlocks,
   updateLessonWithBlocks,
   updateModule,
+  duplicateLesson,
   patchCurriculum,
 }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -222,6 +225,19 @@ export function CurriculumTab({
                         <Clock size={10} />
                         {formatDuration(lesson.duration_seconds)}
                       </span>
+                      <button
+                        aria-label="Duplicate lesson"
+                        className={styles.lessonDuplicateBtn}
+                        disabled={busy}
+                        title="Duplicate lesson"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateLesson(lesson.id);
+                        }}
+                        type="button"
+                      >
+                        <Copy size={12} />
+                      </button>
                     </div>
                   ))}
                   <div

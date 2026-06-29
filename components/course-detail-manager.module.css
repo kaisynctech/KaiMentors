@@ -424,6 +424,32 @@
   flex-shrink: 0;
 }
 
+.lessonDuplicateBtn {
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 0;
+  color: #6b7280;
+  flex-shrink: 0;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.lessonTreeRow:hover .lessonDuplicateBtn {
+  opacity: 1;
+}
+
+.lessonDuplicateBtn:hover {
+  background: #f3f4f6;
+  color: #111315;
+}
+
 .addLessonRow {
   display: flex;
   align-items: center;
