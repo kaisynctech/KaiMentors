@@ -204,6 +204,13 @@ export default async function StudentCoursePage({
               (progress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
             );
           const isAccessible = accessibleModuleIds.has(module.id);
+          const moduleCompletedRequired = moduleRequiredLessons.filter((l) =>
+            (progress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
+          ).length;
+          const modulePct =
+            moduleRequiredLessons.length > 0
+              ? Math.round((moduleCompletedRequired / moduleRequiredLessons.length) * 100)
+              : 0;
           return (
             <div className={`${styles.moduleCard} ${!isAccessible ? styles.moduleCardLocked : ""}`} key={module.id}>
               <div className={styles.moduleHeader}>
@@ -218,6 +225,22 @@ export default async function StudentCoursePage({
                     <Lock size={15} className={styles.moduleLockIcon} />
                   ) : isModuleComplete ? (
                     <CheckCircle2 className={styles.moduleComplete} size={16} />
+                  ) : moduleRequiredLessons.length > 0 ? (
+                    <div className={styles.moduleProgress}>
+                      <div
+                        aria-label={`${modulePct}% of module complete`}
+                        aria-valuemax={100}
+                        aria-valuemin={0}
+                        aria-valuenow={modulePct}
+                        className={styles.moduleProgressBar}
+                        role="progressbar"
+                      >
+                        <span style={{ width: `${modulePct}%` }} />
+                      </div>
+                      <span className={styles.moduleProgressLabel}>
+                        {moduleCompletedRequired}/{moduleRequiredLessons.length}
+                      </span>
+                    </div>
                   ) : null}
                   <span>
                     {moduleLessons.length} lesson{moduleLessons.length === 1 ? "" : "s"}

@@ -285,6 +285,36 @@
   flex-shrink: 0;
 }
 
+.moduleProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moduleProgressBar {
+  width: 72px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e9edef;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.moduleProgressBar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #1d6ef9;
+  transition: width 400ms ease;
+}
+
+.moduleProgressLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6c747a;
+  white-space: nowrap;
+}
+
 /* ── Lesson enhancements ─────────────────────────────────── */
 
 .optionalBadge {
