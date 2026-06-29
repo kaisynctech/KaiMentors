@@ -221,6 +221,153 @@
   font-size: 10px;
 }
 
+/* Card wrapper + action menu */
+.cardWrap {
+  position: relative;
+}
+
+.cardMenuBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 2;
+}
+
+.cardWrap:hover .cardMenuBtn,
+.cardMenuBtnOpen {
+  opacity: 1;
+}
+
+.cardMenu {
+  position: absolute;
+  top: 36px;
+  right: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  min-width: 140px;
+  z-index: 10;
+  padding: 4px 0;
+}
+
+.cardMenu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.cardMenu button:hover {
+  background: #f3f4f6;
+}
+
+.cardMenuDelete {
+  color: #dc2626;
+}
+
+/* Delete confirm modal */
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(17, 19, 21, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.confirmModal {
+  width: min(440px, 100%);
+  border: 1px solid #dfe3e5;
+  border-radius: 18px;
+  padding: 28px 28px 24px;
+  background: #fff;
+  box-shadow: 0 32px 80px rgba(17, 19, 21, 0.22);
+}
+
+.confirmModal h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.confirmModal p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #555d62;
+  line-height: 1.6;
+}
+
+.confirmWarning {
+  margin: 10px 0 0 !important;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #92400e !important;
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.confirmCancel {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dfe3e5;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmCancel:hover {
+  background: #f5f7f8;
+}
+
+.confirmDelete {
+  min-height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.confirmDelete:hover {
+  background: #b91c1c;
+}
+
+.confirmDelete:disabled {
+  opacity: 0.6;
+}
+
 /* Add card */
 .addCard {
   display: flex;

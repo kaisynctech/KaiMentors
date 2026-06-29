@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ImagePlus,
   Loader2,
+  MoreHorizontal,
   Plus,
   Users,
   X,
@@ -45,54 +46,160 @@ const FILTERS: Array<{ label: string; value: FilterStatus }> = [
 ];
 
 function CourseLibraryCard({ course }: { course: CourseListItem }) {
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [learnerCount, setLearnerCount] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [menuOpen]);
+
+  async function handleToggleStatus() {
+    setMenuOpen(false);
+    setBusy(true);
+    const next = course.status === "published" ? "draft" : "published";
+    await fetch(`/api/courses/${course.id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: next }),
+    });
+    router.refresh();
+    setBusy(false);
+  }
+
+  async function handleDelete(acknowledge: boolean) {
+    setBusy(true);
+    const res = await fetch(`/api/courses/${course.id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acknowledgeImpact: acknowledge }),
+    });
+    if (res.status === 409) {
+      const body = await res.json();
+      setLearnerCount(body.learnerCount);
+      setBusy(false);
+      return;
+    }
+    router.refresh();
+  }
+
   const completionPct =
     course.lessonCount > 0
       ? Math.round((course.publishedLessonCount / course.lessonCount) * 100)
       : 0;
 
   return (
-    <Link className={styles.card} href={`/dashboard/courses/${course.id}`}>
-      <div className={styles.cardThumb}>
-        {course.thumbnailUrl ? (
-          <Image
-            alt=""
-            fill
-            sizes="(max-width: 700px) 50vw, 200px"
-            src={course.thumbnailUrl}
-            unoptimized
-          />
-        ) : (
-          <BookOpen size={22} />
-        )}
-      </div>
-      <div className={styles.cardBody}>
-        <span
-          className={`${styles.cardStatus} ${styles[course.status]}`}
+    <>
+      <div className={`${styles.cardWrap} ${busy ? styles.cardWrapBusy : ""}`}>
+        <Link className={styles.card} href={`/dashboard/courses/${course.id}`}>
+          <div className={styles.cardThumb}>
+            {course.thumbnailUrl ? (
+              <Image
+                alt=""
+                fill
+                sizes="(max-width: 700px) 50vw, 200px"
+                src={course.thumbnailUrl}
+                unoptimized
+              />
+            ) : (
+              <BookOpen size={22} />
+            )}
+          </div>
+          <div className={styles.cardBody}>
+            <span className={`${styles.cardStatus} ${styles[course.status]}`}>
+              {course.status === "published" ? <CheckCircle2 size={9} /> : null}
+              {course.status}
+            </span>
+            <p className={styles.cardTitle}>{course.title}</p>
+            <p className={styles.cardMeta}>
+              {course.moduleCount} module{course.moduleCount === 1 ? "" : "s"} ·{" "}
+              {course.lessonCount} lesson{course.lessonCount === 1 ? "" : "s"}
+            </p>
+            <div className={styles.cardProgress}>
+              <span style={{ width: `${completionPct}%` }} />
+            </div>
+            {course.activeLearnerCount > 0 ? (
+              <p className={styles.cardLearners}>
+                <Users size={10} style={{ marginRight: 3, verticalAlign: "middle" }} />
+                {course.activeLearnerCount} active learner
+                {course.activeLearnerCount === 1 ? "" : "s"}
+              </p>
+            ) : (
+              <p className={styles.cardLearnersNone}>No learners yet</p>
+            )}
+          </div>
+        </Link>
+
+        <button
+          aria-label="Course actions"
+          className={`${styles.cardMenuBtn} ${menuOpen ? styles.cardMenuBtnOpen : ""}`}
+          disabled={busy}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen((o) => !o); }}
+          type="button"
         >
-          {course.status === "published" ? (
-            <CheckCircle2 size={9} />
-          ) : null}
-          {course.status}
-        </span>
-        <p className={styles.cardTitle}>{course.title}</p>
-        <p className={styles.cardMeta}>
-          {course.moduleCount} module{course.moduleCount === 1 ? "" : "s"} ·{" "}
-          {course.lessonCount} lesson{course.lessonCount === 1 ? "" : "s"}
-        </p>
-        <div className={styles.cardProgress}>
-          <span style={{ width: `${completionPct}%` }} />
-        </div>
-        {course.activeLearnerCount > 0 ? (
-          <p className={styles.cardLearners}>
-            <Users size={10} style={{ marginRight: 3, verticalAlign: "middle" }} />
-            {course.activeLearnerCount} active learner
-            {course.activeLearnerCount === 1 ? "" : "s"}
-          </p>
-        ) : (
-          <p className={styles.cardLearnersNone}>No learners yet</p>
+          <MoreHorizontal size={15} />
+        </button>
+
+        {menuOpen && (
+          <div className={styles.cardMenu} ref={menuRef}>
+            <button onClick={handleToggleStatus} type="button">
+              {course.status === "published" ? "Unpublish" : "Publish"}
+            </button>
+            <button
+              className={styles.cardMenuDelete}
+              onClick={() => { setMenuOpen(false); setConfirmDelete(true); }}
+              type="button"
+            >
+              Delete
+            </button>
+          </div>
         )}
       </div>
-    </Link>
+
+      {confirmDelete && (
+        <div
+          className={styles.confirmBackdrop}
+          onClick={(e) => { if (e.target === e.currentTarget) { setConfirmDelete(false); setLearnerCount(null); } }}
+        >
+          <div className={styles.confirmModal}>
+            <h3>Delete &ldquo;{course.title}&rdquo;?</h3>
+            <p>This will permanently remove the course, all modules, lessons and content.</p>
+            {learnerCount !== null && learnerCount > 0 && (
+              <p className={styles.confirmWarning}>
+                Warning: {learnerCount} learner{learnerCount === 1 ? "" : "s"} have progress on this course.
+              </p>
+            )}
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.confirmCancel}
+                onClick={() => { setConfirmDelete(false); setLearnerCount(null); }}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.confirmDelete}
+                disabled={busy}
+                onClick={() => handleDelete(true)}
+                type="button"
+              >
+                {busy ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
