@@ -81,7 +81,7 @@ export default async function StudentLiveClassesPage({
   const [{ data: upcoming }, { data: past }] = await Promise.all([
     supabase
       .from("live_classes")
-      .select("id,title,description,provider,join_url,starts_at,ends_at")
+      .select("id,title,description,provider,meeting_id,join_url,starts_at,ends_at")
       .eq("trader_id", app.trader_id)
       .eq("status", "published")
       .gte("starts_at", now)
@@ -143,10 +143,18 @@ export default async function StudentLiveClassesPage({
                       <p className={styles.cardDesc}>{cls.description}</p>
                     ) : null}
                   </div>
-                  {(cls as { join_url?: string }).join_url ? (
+                  {cls.provider === "zoom" && cls.meeting_id ? (
                     <a
                       className={styles.joinBtn}
-                      href={(cls as { join_url: string }).join_url}
+                      href={`/student/live-classes/${cls.id}`}
+                    >
+                      <Video size={14} />
+                      Join
+                    </a>
+                  ) : cls.join_url ? (
+                    <a
+                      className={styles.joinBtn}
+                      href={cls.join_url}
                       rel="noreferrer"
                       target="_blank"
                     >
