@@ -28,7 +28,7 @@ export default async function LessonPage({
   let aq = supabase
     .from("student_applications")
     .select(
-      "trader_id,full_name,email,portal:portals!inner(portal_name,slug)",
+      "trader_id,full_name,portal:portals!inner(portal_name,slug)",
     )
     .eq("student_user_id", user.id)
     .eq("status", "verified");
@@ -259,7 +259,7 @@ export default async function LessonPage({
               completed={progress?.is_completed ?? false}
               lessonId={lesson.id}
               resumeSeconds={progress?.position_seconds ?? 0}
-              watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${app.email}`}
+              watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${user.email ?? ""}`}
             />
           </div>
 
