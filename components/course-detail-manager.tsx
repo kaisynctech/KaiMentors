@@ -68,6 +68,7 @@ interface Props {
     status: Status;
     sort_order: number;
     access_mode: AccessMode;
+    thumbnailUrl: string | null;
   };
   modules: Module[];
   media: Media[];
@@ -423,7 +424,12 @@ export function CourseDetailManager({
       )}
 
       {tab === "Settings" && (
-        <SettingsTab course={course} busy={busy} saveCourse={saveCourse} />
+        <SettingsTab
+          course={course}
+          busy={busy}
+          saveCourse={saveCourse}
+          thumbnailUrl={course.thumbnailUrl}
+        />
       )}
     </div>
   );

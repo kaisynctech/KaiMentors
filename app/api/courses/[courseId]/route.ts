@@ -111,6 +111,11 @@ export async function PATCH(request: Request, { params }: CourseRouteProps) {
   }
 
   let coverPath = existing.cover_path as string | null;
+  const removeThumbnail = formData.get("removeThumbnail") === "true";
+  if (removeThumbnail && coverPath) {
+    await supabase.storage.from("course-content").remove([coverPath]);
+    coverPath = null;
+  }
   const thumbnail = formData.get("thumbnail");
   if (thumbnail instanceof File && thumbnail.size > 0) {
     const extension = thumbnailTypes.get(thumbnail.type);

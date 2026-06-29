@@ -36,6 +36,84 @@
   background: #111315 !important;
 }
 
+/* ── Thumbnail field ─────────────────────────────────────────── */
+.thumbnailField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground, #111);
+}
+
+.thumbnailPreview {
+  position: relative;
+  width: 160px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.thumbnailRemoveBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+.thumbnailRemoveBtn:hover {
+  background: rgba(0,0,0,0.75);
+}
+
+.thumbnailUploadArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 160px;
+  height: 100px;
+  border-radius: 8px;
+  border: 1.5px dashed #d1d5db;
+  background: #fafafa;
+  cursor: pointer;
+  font-size: 12px;
+  color: #6b7280;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.thumbnailUploadArea:hover {
+  border-color: #9ca3af;
+  background: #f3f4f6;
+}
+
+.thumbnailHint {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.thumbnailInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .previewLink {
   display: inline-flex;
   align-items: center;

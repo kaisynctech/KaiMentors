@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { CourseDetailManager } from "@/components/course-detail-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CourseDetailPage({
@@ -41,7 +42,7 @@ export default async function CourseDetailPage({
   ] = await Promise.all([
     supabase
       .from("courses")
-      .select("id,title,description,status,sort_order,access_mode")
+      .select("id,title,description,status,sort_order,access_mode,cover_path")
       .eq("id", courseId)
       .eq("trader_id", tid)
       .maybeSingle(),
@@ -102,6 +103,15 @@ export default async function CourseDetailPage({
       .order("sort_order"),
   ]);
   if (!course) notFound();
+
+  let thumbnailUrl: string | null = null;
+  const admin = createAdminClient();
+  if (course.cover_path && admin) {
+    const { data: signed } = await admin.storage
+      .from("course-content")
+      .createSignedUrl(course.cover_path, 3600);
+    thumbnailUrl = signed?.signedUrl ?? null;
+  }
 
   const blocks = blockRows ?? [];
   const lessons = (lessonRows ?? []).map((l) => ({
@@ -173,7 +183,7 @@ export default async function CourseDetailPage({
       userLabel={trader?.display_name ?? "Mentor workspace"}
     >
       <CourseDetailManager
-        course={course}
+        course={{ ...course, thumbnailUrl }}
         modules={modules}
         media={media ?? []}
         groups={groups ?? []}
