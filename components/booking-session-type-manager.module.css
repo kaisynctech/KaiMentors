@@ -1,11 +1,47 @@
-.workspace {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  min-height: 560px;
+/* ── Outer wrapper ───────────────────────────────────── */
+.bookingManager {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: white;
+}
+
+/* ── Tab bar ─────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfb;
+}
+
+.tabBtn {
+  min-height: 36px;
+  border: 0;
+  border-radius: 9px;
+  padding: 0 16px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4e565b;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  background: #f0f2f3;
+}
+
+.activeTabBtn {
+  color: #fff !important;
+  background: #111315 !important;
+}
+
+/* ── Two-panel workspace (Session Types tab) ─────────── */
+.workspace {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 560px;
 }
 
 /* ── Left panel ────────────────────────────────────── */
@@ -552,6 +588,378 @@
   background: #b3261e;
 }
 
+/* ── Availability tab ────────────────────────────────── */
+.availabilityContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tzNotice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 24px 0;
+  border: 1px solid #d8e8f5;
+  border-radius: 11px;
+  padding: 11px 14px;
+  color: #285f8d;
+  background: #f2f8fd;
+  font-size: 11px;
+}
+
+.tzNotice svg {
+  flex-shrink: 0;
+}
+
+.availSection {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.availSection:last-child {
+  border-bottom: 0;
+}
+
+.availSectionTitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111315;
+  letter-spacing: -0.02em;
+}
+
+/* Weekly grid */
+.weekGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dayRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f2f3;
+}
+
+.dayRow:last-child {
+  border-bottom: 0;
+}
+
+.dayName {
+  width: 90px;
+  flex-shrink: 0;
+  padding-top: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  color: #343a3f;
+}
+
+.daySlots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.windowChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid #dce1e4;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.windowChipInactive {
+  opacity: 0.45;
+}
+
+.windowChipTime {
+  padding: 5px 9px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111315;
+  cursor: pointer;
+}
+
+.windowChipTime:hover {
+  background: #f4f6f7;
+}
+
+.windowChipDelete {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 100%;
+  border: 0;
+  border-left: 1px solid #eceef0;
+  background: transparent;
+  color: #9aa0a5;
+  cursor: pointer;
+}
+
+.windowChipDelete:hover {
+  background: #fce8e6;
+  color: #d93025;
+}
+
+.addWindowInline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.timeInput {
+  min-height: 34px;
+  border: 1px solid #dce1e4;
+  border-radius: 8px;
+  padding: 0 8px;
+  font-size: 12px;
+  outline: 0;
+  background: white;
+  width: 100px;
+}
+
+.timeInput:focus {
+  border-color: #111315;
+}
+
+.timeSep {
+  color: #697178;
+  font-size: 12px;
+}
+
+.saveWindowBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 48px;
+  border: 1px solid #111315;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: white;
+  background: #111315;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.saveWindowBtn:disabled {
+  opacity: 0.55;
+}
+
+.cancelWindowBtn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dce1e4;
+  border-radius: 8px;
+  background: white;
+  color: #697178;
+  cursor: pointer;
+}
+
+.cancelWindowBtn:hover {
+  background: #f4f6f7;
+}
+
+.inlineError {
+  color: #a52b2b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.addWindowBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  border: 1px dashed #dce1e4;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #697178;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.addWindowBtn:hover {
+  border-color: #111315;
+  color: #111315;
+}
+
+/* Override list */
+.overrideList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.overrideRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f2f3;
+  font-size: 11px;
+}
+
+.overrideRow:last-child {
+  border-bottom: 0;
+}
+
+.blockedBadge,
+.extraBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.blockedBadge {
+  color: #a52b2b;
+  background: #fff0f0;
+}
+
+.extraBadge {
+  color: #176c42;
+  background: #e9f7ef;
+}
+
+.overrideDate {
+  font-weight: 700;
+  color: #111315;
+}
+
+.overrideTime {
+  color: #596168;
+}
+
+.overrideReason {
+  color: #9aa0a5;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overrideDeleteBtn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #eceef0;
+  border-radius: 6px;
+  background: white;
+  color: #9aa0a5;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.overrideDeleteBtn:hover {
+  background: #fce8e6;
+  color: #d93025;
+  border-color: #fce8e6;
+}
+
+/* Add override form */
+.addOverrideForm {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eceef0;
+  border-radius: 12px;
+  background: #fafbfb;
+}
+
+.addOverrideTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #343a3f;
+  letter-spacing: 0.02em;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #343a3f;
+  cursor: pointer;
+}
+
+.radioLabel input {
+  accent-color: #111315;
+  width: 14px;
+  height: 14px;
+}
+
+.overrideFormRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.overrideFormRow .input {
+  min-width: 140px;
+  flex: 0 0 auto;
+}
+
+.saveOverrideBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid #111315;
+  border-radius: 10px;
+  padding: 0 16px;
+  color: white;
+  background: #111315;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.saveOverrideBtn:disabled {
+  opacity: 0.55;
+}
+
+.saveOverrideBtn:not(:disabled):hover {
+  background: #2a2f33;
+}
+
+/* Spinner */
 .spin {
   animation: spin 800ms linear infinite;
 }
@@ -575,5 +983,14 @@
 
   .twoColumns {
     grid-template-columns: 1fr;
+  }
+
+  .dayRow {
+    flex-wrap: wrap;
+  }
+
+  .dayName {
+    width: 100%;
+    padding-top: 0;
   }
 }

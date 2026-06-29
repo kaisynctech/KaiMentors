@@ -21,14 +21,32 @@ export default async function BookingsPage() {
     .maybeSingle();
   if (!membership) redirect("/dashboard");
 
-  const { data: sessionTypes } = await supabase
-    .from("booking_session_types")
-    .select(
-      "id,name,description,duration_minutes,max_participants,buffer_minutes,requires_approval,advance_booking_days,min_notice_hours,cancellation_hours,zoom_meeting_id,is_active,sort_order",
-    )
-    .eq("trader_id", membership.trader_id)
-    .order("sort_order")
-    .order("created_at");
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [{ data: sessionTypes }, { data: windows }, { data: overrides }] =
+    await Promise.all([
+      supabase
+        .from("booking_session_types")
+        .select(
+          "id,name,description,duration_minutes,max_participants,buffer_minutes,requires_approval,advance_booking_days,min_notice_hours,cancellation_hours,zoom_meeting_id,is_active,sort_order",
+        )
+        .eq("trader_id", membership.trader_id)
+        .order("sort_order")
+        .order("created_at"),
+      supabase
+        .from("mentor_availability")
+        .select("id,day_of_week,start_time,end_time,is_active")
+        .eq("trader_id", membership.trader_id)
+        .order("day_of_week")
+        .order("start_time"),
+      supabase
+        .from("availability_overrides")
+        .select("id,override_date,start_time,end_time,is_blocked,reason")
+        .eq("trader_id", membership.trader_id)
+        .gte("override_date", today)
+        .order("override_date")
+        .limit(60),
+    ]);
 
   const trader = Array.isArray(membership.trader)
     ? membership.trader[0]
@@ -43,7 +61,9 @@ export default async function BookingsPage() {
     >
       <BookingSessionTypeManager
         mentorTimezone={trader?.timezone ?? "UTC"}
+        overrides={overrides ?? []}
         sessionTypes={sessionTypes ?? []}
+        windows={windows ?? []}
       />
     </DashboardShell>
   );
