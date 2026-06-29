@@ -10,6 +10,7 @@ import {
   Loader2,
   MessageSquareMore,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -110,6 +111,9 @@ export function StudentReviewList({
   const [detail, setDetail] = useState<StudentApplicationRow | null>(null);
   const [dialog, setDialog] = useState<ReviewDialogState | null>(null);
   const [reason, setReason] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<StudentApplicationRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [proofLoading, setProofLoading] = useState(false);
   const [error, setError] = useState("");
@@ -257,6 +261,28 @@ export function StudentReviewList({
       } updated successfully.`,
     );
     router.refresh();
+  }
+
+  async function handleDelete() {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/students/${deleteConfirm.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setDeleteError(body.error ?? "The student could not be deleted.");
+        return;
+      }
+      setDeleteConfirm(null);
+      router.refresh();
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function openProof(application: StudentApplicationRow) {
@@ -501,6 +527,19 @@ export function StudentReviewList({
                         type="button"
                       >
                         <Eye size={16} />
+                      </button>
+                      <button
+                        aria-label={`Delete ${application.studentName}`}
+                        className={styles.deleteIcon}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirm(application);
+                          setDeleteError("");
+                        }}
+                        title="Delete student"
+                        type="button"
+                      >
+                        <Trash2 size={16} />
                       </button>
                       {reviewable ? (
                         <>
@@ -782,6 +821,58 @@ export function StudentReviewList({
                 Confirm {actionLabels[dialog.action].toLowerCase()}
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteConfirm ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal} role="dialog" aria-modal="true">
+            <div className={styles.modalHeader}>
+              <h3>Delete student</h3>
+              <button
+                aria-label="Close"
+                onClick={() => setDeleteConfirm(null)}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p>
+                Permanently delete <strong>{deleteConfirm.studentName}</strong>? This
+                will remove their application record and revoke all course access.
+                Lesson progress history is retained.
+              </p>
+              <p style={{ color: "#d93025", fontSize: 13, marginTop: 8 }}>
+                This action cannot be undone.
+              </p>
+              {deleteError ? (
+                <p className={styles.error} style={{ marginTop: 8 }}>
+                  {deleteError}
+                </p>
+              ) : null}
+            </div>
+            <footer className={styles.modalFooter}>
+              <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                <button
+                  disabled={deleting}
+                  onClick={() => setDeleteConfirm(null)}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.deleteConfirmButton}
+                  disabled={deleting}
+                  onClick={handleDelete}
+                  type="button"
+                >
+                  {deleting ? <Loader2 className={styles.spin} size={15} /> : null}
+                  Delete student
+                </button>
+              </div>
+            </footer>
           </div>
         </div>
       ) : null}

@@ -9,6 +9,7 @@ import {
   MessageCircle,
   Plus,
   Search,
+  Trash2,
   UserMinus,
   UsersRound,
   X,
@@ -22,7 +23,7 @@ import type {
 } from "@/lib/community";
 import styles from "./student-group-manager.module.css";
 
-type MemberDialogMode = "create" | "manage" | null;
+type MemberDialogMode = "create" | "manage" | "delete" | null;
 
 export function StudentGroupManager({
   groups,
@@ -40,6 +41,8 @@ export function StudentGroupManager({
   const [groupSearch, setGroupSearch] = useState("");
   const [studentSearch, setStudentSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [groupDeleting, setGroupDeleting] = useState(false);
+  const [groupDeleteError, setGroupDeleteError] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -92,6 +95,29 @@ export function StudentGroupManager({
     setSelectedMembers(new Set(selectedGroup.memberIds));
     setStudentSearch("");
     setDialogMode("manage");
+  }
+
+  async function handleDeleteGroup() {
+    if (!selectedGroup || selectedGroup.isSystem) return;
+    setGroupDeleting(true);
+    setGroupDeleteError("");
+    try {
+      const response = await fetch(`/api/groups/${selectedGroup.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setGroupDeleteError(body.error ?? "The group could not be deleted.");
+        return;
+      }
+      setDialogMode(null);
+      setSelectedGroupId("");
+      router.refresh();
+    } catch {
+      setGroupDeleteError("Something went wrong. Please try again.");
+    } finally {
+      setGroupDeleting(false);
+    }
   }
 
   function toggleStudent(applicationId: string) {
@@ -337,6 +363,19 @@ export function StudentGroupManager({
                   <Plus size={16} /> Add or remove students
                 </button>
               ) : null}
+              {!selectedGroup.isSystem ? (
+                <button
+                  className={styles.deleteGroupButton}
+                  onClick={() => {
+                    resetFeedback();
+                    setGroupDeleteError("");
+                    setDialogMode("delete");
+                  }}
+                  type="button"
+                >
+                  <Trash2 size={16} /> Delete group
+                </button>
+              ) : null}
             </div>
           </header>
 
@@ -437,28 +476,22 @@ export function StudentGroupManager({
 
       {dialogMode ? (
         <div className={styles.modalOverlay}>
-          <form
-            className={styles.modal}
-            onSubmit={
-              dialogMode === "create"
-                ? createGroup
-                : (event) => {
-                    event.preventDefault();
-                    void saveMembers();
-                  }
-            }
-          >
+          <div className={styles.modal}>
             <header>
               <div>
                 <p className={styles.eyebrow}>
                   {dialogMode === "create"
                     ? "New student audience"
-                    : "Group membership"}
+                    : dialogMode === "delete"
+                      ? "Delete group"
+                      : "Group membership"}
                 </p>
                 <h2>
                   {dialogMode === "create"
                     ? "Create a group"
-                    : `Manage ${selectedGroup?.name}`}
+                    : dialogMode === "delete"
+                      ? "Delete group"
+                      : `Manage ${selectedGroup?.name}`}
                 </h2>
               </div>
               <button
@@ -470,6 +503,59 @@ export function StudentGroupManager({
                 <X size={18} />
               </button>
             </header>
+
+            {dialogMode === "delete" ? (
+              <>
+                <div className={styles.modalBody}>
+                  <p>
+                    Permanently delete <strong>{selectedGroup?.name}</strong>? All{" "}
+                    {selectedGroup?.memberIds.length ?? 0} member
+                    {(selectedGroup?.memberIds.length ?? 0) === 1 ? "" : "s"} will be
+                    unlinked and any course access granted to this group will be revoked.
+                  </p>
+                  <p style={{ color: "#d93025", fontSize: 13, marginTop: 8 }}>
+                    This action cannot be undone.
+                  </p>
+                  {groupDeleteError ? (
+                    <p className={styles.error} style={{ marginTop: 8 }}>
+                      {groupDeleteError}
+                    </p>
+                  ) : null}
+                </div>
+                <footer className={styles.modalFooter}>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                    <button
+                      disabled={groupDeleting}
+                      onClick={() => setDialogMode(null)}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className={styles.deleteConfirmButton}
+                      disabled={groupDeleting}
+                      onClick={handleDeleteGroup}
+                      type="button"
+                    >
+                      {groupDeleting ? (
+                        <Loader2 className={styles.spin} size={16} />
+                      ) : null}
+                      Delete group
+                    </button>
+                  </div>
+                </footer>
+              </>
+            ) : (
+            <form
+              onSubmit={
+                dialogMode === "create"
+                  ? createGroup
+                  : (event) => {
+                      event.preventDefault();
+                      void saveMembers();
+                    }
+              }
+            >
 
             {dialogMode === "create" ? (
               <section className={styles.formSection}>
@@ -581,7 +667,9 @@ export function StudentGroupManager({
                 </button>
               </div>
             </footer>
-          </form>
+            </form>
+            )}
+          </div>
         </div>
       ) : null}
     </section>
