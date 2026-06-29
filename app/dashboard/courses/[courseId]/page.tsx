@@ -79,7 +79,7 @@ export default async function CourseDetailPage({
       .order("name"),
     supabase
       .from("student_applications")
-      .select("student_user_id,full_name,email")
+      .select("student_user_id,full_name")
       .eq("trader_id", tid)
       .eq("status", "verified")
       .not("student_user_id", "is", null)

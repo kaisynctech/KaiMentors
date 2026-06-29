@@ -16,7 +16,6 @@ interface Group {
 interface Student {
   student_user_id: string;
   full_name: string;
-  email: string;
 }
 
 interface Props {
@@ -158,7 +157,6 @@ export function AccessTab({
                         value={s.student_user_id}
                       />
                       {s.full_name}
-                      <span className={styles.choiceEmail}>{s.email}</span>
                     </label>
                   ))
                 )}

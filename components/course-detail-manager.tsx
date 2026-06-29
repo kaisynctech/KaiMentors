@@ -73,7 +73,7 @@ interface Props {
   modules: Module[];
   media: Media[];
   groups: Array<{ id: string; name: string; color: string }>;
-  students: Array<{ student_user_id: string; full_name: string; email: string }>;
+  students: Array<{ student_user_id: string; full_name: string }>;
   selectedGroupIds: string[];
   selectedStudentIds: string[];
   progress: Array<{

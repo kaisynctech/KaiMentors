@@ -370,7 +370,6 @@ values
         {"slug": "about", "file": "about.html", "label": "About", "path": "/about"},
         {"slug": "signals", "file": "signals.html", "label": "Signals", "path": "/signals"},
         {"slug": "mentorship", "file": "mentorship.html", "label": "Mentorship", "path": "/mentorship"},
-        {"slug": "events", "file": "events.html", "label": "Events", "path": "/events"},
         {"slug": "xm", "file": "xm.html", "label": "Open XM", "path": "/xm"}
       ],
       "reservedLinks": {
