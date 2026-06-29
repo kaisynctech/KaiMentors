@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, PartyPopper } from "lucide-react";
 import Image from "next/image";
 import styles from "./protected-lesson-content.module.css";
 
@@ -16,10 +16,29 @@ type Block = {
   galleryMedia?: Array<{ sort_order: number; caption: string | null; media: Media | null }>;
 };
 
-export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, completed, watermark, previewMode }: { lessonId: string; blocks: Block[]; resumeSeconds: number; completed: boolean; watermark: string; previewMode?: boolean }) {
+export function ProtectedLessonContent({
+  lessonId,
+  blocks,
+  resumeSeconds,
+  completed,
+  watermark,
+  previewMode = false,
+  courseWillBeComplete = false,
+  courseId,
+}: {
+  lessonId: string;
+  blocks: Block[];
+  resumeSeconds: number;
+  completed: boolean;
+  watermark: string;
+  previewMode?: boolean;
+  courseWillBeComplete?: boolean;
+  courseId?: string;
+}) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(completed);
+  const [courseComplete, setCourseComplete] = useState(false);
   const lastWrite = useRef(0);
   const autoCompleted = useRef<Set<string>>(new Set());
 
@@ -46,7 +65,10 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
     if (!isCompleted && now - lastWrite.current < 15000) return;
     lastWrite.current = now;
     await fetch("/api/course-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lessonId, positionSeconds: Math.max(0, Math.floor(position)), completed: isCompleted }) });
-    if (isCompleted) setDone(true);
+    if (isCompleted) {
+      setDone(true);
+      if (courseWillBeComplete) setCourseComplete(true);
+    }
   }
 
   if (loading) return <div className={styles.loading}><Loader2 /> Preparing protected lesson...</div>;
@@ -86,5 +108,15 @@ export function ProtectedLessonContent({ lessonId, blocks, resumeSeconds, comple
               }} playsInline preload="metadata" src={url} /> : block.block_type === "pdf" ? <iframe src={`${url}#toolbar=0&navpanes=0`} title={block.media?.title ?? "Protected document"} /> : <Image alt={String(value.caption ?? block.media?.title ?? "")} height={900} src={url} unoptimized width={1600} />}<p>{String(value.caption ?? block.media?.title ?? "")}</p></section>;
     })}
     <button className={styles.complete} disabled={done} onClick={() => progress(resumeSeconds, true)}>{done ? <><CheckCircle2 /> Lesson completed</> : "Mark lesson complete"}</button>
+    {courseComplete && courseId && (
+      <div className={styles.courseCompleteOverlay}>
+        <PartyPopper size={28} className={styles.courseCompleteIcon} />
+        <h2>Course complete!</h2>
+        <p>You&apos;ve finished all required lessons. Well done.</p>
+        <a className={styles.courseCompleteLink} href={`/student/courses/${courseId}`}>
+          View your progress
+        </a>
+      </div>
+    )}
   </div>;
 }

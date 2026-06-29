@@ -86,6 +86,30 @@
   font-weight: 750;
 }
 
+.completionBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #176c42;
+  margin-top: 4px;
+}
+
+.completionBanner strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.completionBanner p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
 .curriculum {
   display: grid;
   gap: 14px;

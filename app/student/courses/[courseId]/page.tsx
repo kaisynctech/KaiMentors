@@ -1,4 +1,4 @@
-import { AlignLeft, BookOpen, CheckCircle2, Clock3, ExternalLink, FileImage, FileText, Film, LayoutGrid, Lock, PlayCircle } from "lucide-react";
+import { AlignLeft, BookOpen, CheckCircle2, Clock3, ExternalLink, FileImage, FileText, Film, LayoutGrid, Lock, PartyPopper, PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -164,19 +164,31 @@ export default async function StudentCoursePage({
           <p className="eyebrow">{portal?.portal_name ?? "Academy"}</p>
           <h1>Course curriculum</h1>
           <p className={styles.courseDesc}>{course.description || "Work through the curriculum below."}</p>
-          <div
-            className={styles.progressBar}
-            role="progressbar"
-            aria-valuenow={percent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Course completion"
-          >
-            <span style={{ width: `${percent}%` }} />
-          </div>
-          <p className={styles.progressLabel}>
-            {percent}% complete · {completed}/{required.length} required lessons done
-          </p>
+          {percent === 100 ? (
+            <div className={styles.completionBanner} role="status">
+              <PartyPopper size={20} />
+              <div>
+                <strong>Course complete!</strong>
+                <p>You&apos;ve finished all required lessons. Well done.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div
+                className={styles.progressBar}
+                role="progressbar"
+                aria-valuenow={percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Course completion"
+              >
+                <span style={{ width: `${percent}%` }} />
+              </div>
+              <p className={styles.progressLabel}>
+                {percent}% complete · {completed}/{required.length} required lessons done
+              </p>
+            </>
+          )}
         </div>
       </section>
 

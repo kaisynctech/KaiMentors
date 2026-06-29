@@ -46,7 +46,7 @@ export default async function LessonPage({
     supabase
       .from("lessons")
       .select(
-        "id,title,description,module_id,sort_order,course:courses!inner(id,title,status),module:course_modules!inner(title,status,sort_order,requires_previous_completion),lesson_content_blocks(id,block_type,sort_order,media_id,content,media:course_media(id,media_type,title,processing_state),gallery_media:lesson_content_block_media(sort_order,caption,media:course_media(id,media_type,title,processing_state)))",
+        "id,title,description,module_id,sort_order,is_required,course:courses!inner(id,title,status),module:course_modules!inner(title,status,sort_order,requires_previous_completion),lesson_content_blocks(id,block_type,sort_order,media_id,content,media:course_media(id,media_type,title,processing_state),gallery_media:lesson_content_block_media(sort_order,caption,media:course_media(id,media_type,title,processing_state)))",
       )
       .eq("id", lessonId)
       .eq("course_id", courseId)
@@ -59,7 +59,7 @@ export default async function LessonPage({
     supabase
       .from("lessons")
       .select(
-        "id,title,module_id,sort_order,module:course_modules!inner(id,title,sort_order,status)",
+        "id,title,module_id,sort_order,is_required,module:course_modules!inner(id,title,sort_order,status)",
       )
       .eq("course_id", courseId)
       .eq("trader_id", app.trader_id)
@@ -134,6 +134,19 @@ export default async function LessonPage({
   const index = ordered.findIndex((l) => l.id === lessonId);
   const prev = ordered[index - 1] ?? null;
   const next = ordered[index + 1] ?? null;
+
+  const currentLessonIsRequired = lesson.is_required ?? true;
+  const otherRequired = ordered.filter(
+    (l) => l.is_required && l.id !== lessonId,
+  );
+  const otherRequiredDone = otherRequired.every((l) =>
+    (allProgress ?? []).some((p) => p.lesson_id === l.id && p.is_completed),
+  );
+  const alreadyComplete = (allProgress ?? []).some(
+    (p) => p.lesson_id === lessonId && p.is_completed,
+  );
+  const courseWillBeComplete =
+    currentLessonIsRequired && otherRequiredDone && !alreadyComplete;
 
   const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
   const course = Array.isArray(lesson.course) ? lesson.course[0] : lesson.course;
@@ -257,6 +270,8 @@ export default async function LessonPage({
             <ProtectedLessonContent
               blocks={blocks}
               completed={progress?.is_completed ?? false}
+              courseId={courseId}
+              courseWillBeComplete={courseWillBeComplete}
               lessonId={lesson.id}
               resumeSeconds={progress?.position_seconds ?? 0}
               watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${user.email ?? ""}`}
