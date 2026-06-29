@@ -1,0 +1,184 @@
+/* ── Desktop sidebar ───────────────────────────────────── */
+.sidebar {
+  display: none;
+  flex-direction: column;
+  width: 272px;
+  min-width: 272px;
+  height: calc(100vh - 64px); /* 64px = top nav height */
+  position: sticky;
+  top: 64px;
+  border-right: 1px solid #e9edef;
+  background: #fff;
+  overflow-y: auto;
+}
+
+@media (min-width: 900px) {
+  .sidebar { display: flex; }
+}
+
+/* ── Shared inner layout ───────────────────────────────── */
+.inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid #eef1f2;
+}
+
+.courseTitle {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 800;
+  color: #111315;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+}
+
+.closeBtn {
+  display: none; /* shown only in drawer via .drawer override */
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: #6c747a;
+  cursor: pointer;
+}
+
+.closeBtn:hover { background: #f0f2f3; color: #111315; }
+
+.moduleList {
+  flex: 1;
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+/* ── Module toggle ─────────────────────────────────────── */
+.moduleSection { margin-bottom: 2px; }
+
+.moduleToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+  color: #6c747a;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.moduleToggle:hover { background: #f8f9fa; }
+
+.moduleToggleTitle {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Lesson rows ───────────────────────────────────────── */
+.lessonList { display: flex; flex-direction: column; }
+
+.lessonRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 14px 8px 18px;
+  border-left: 2px solid transparent;
+  color: #3b4248;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 80ms;
+}
+
+.lessonRow:hover { background: #f8f9fa; }
+
+.lessonActive {
+  border-left-color: #111315;
+  background: #f4f6f7;
+  color: #111315;
+  font-weight: 700;
+}
+
+.lessonDone { color: #176c42; }
+
+.lessonIcon {
+  display: flex;
+  align-items: center;
+  padding-top: 2px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.lessonDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #b0bac0;
+  border-radius: 50%;
+  margin: 3px;
+}
+
+.lessonTitle { line-height: 1.5; }
+
+/* ── Mobile floating trigger ───────────────────────────── */
+.mobileToggle { display: none; }
+
+@media (max-width: 899px) {
+  .mobileToggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    height: 44px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 22px;
+    background: #111315;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(17,19,21,0.25);
+    white-space: nowrap;
+  }
+}
+
+/* ── Mobile drawer ─────────────────────────────────────── */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(17,19,21,0.45);
+}
+
+.drawer {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 300px;
+  background: #fff;
+  overflow-y: auto;
+  box-shadow: 4px 0 32px rgba(17,19,21,0.15);
+}
+
+.drawer .closeBtn { display: flex; }

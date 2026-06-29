@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
+import { LessonSidebar } from "@/components/lesson-sidebar";
 import { ProtectedLessonContent } from "@/components/protected-lesson-content";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -39,7 +40,7 @@ export default async function LessonPage({
   const [
     { data: lesson },
     { data: curriculum },
-    { data: progress },
+    { data: allProgress },
     { data: resources },
   ] = await Promise.all([
     supabase
@@ -58,7 +59,7 @@ export default async function LessonPage({
     supabase
       .from("lessons")
       .select(
-        "id,module_id,sort_order,module:course_modules!inner(sort_order,status)",
+        "id,title,module_id,sort_order,module:course_modules!inner(id,title,sort_order,status)",
       )
       .eq("course_id", courseId)
       .eq("trader_id", app.trader_id)
@@ -66,10 +67,9 @@ export default async function LessonPage({
       .eq("module.status", "published"),
     supabase
       .from("lesson_progress")
-      .select("position_seconds,is_completed")
-      .eq("lesson_id", lessonId)
-      .eq("student_user_id", user.id)
-      .maybeSingle(),
+      .select("lesson_id,position_seconds,is_completed,is_started")
+      .eq("course_id", courseId)
+      .eq("student_user_id", user.id),
     supabase
       .from("resources")
       .select(
@@ -140,6 +140,39 @@ export default async function LessonPage({
   const base = academy.basePath;
   const suffix = academy.querySuffix;
 
+  const progress = (allProgress ?? []).find((p) => p.lesson_id === lessonId) ?? null;
+
+  // Build sidebar modules from curriculum + progress
+  const modulesMap = new Map<string, {
+    id: string;
+    title: string;
+    sort_order: number;
+    lessons: Array<{ id: string; title: string; is_completed: boolean }>;
+  }>();
+
+  for (const l of (curriculum ?? [])) {
+    const m = Array.isArray(l.module) ? l.module[0] : l.module;
+    if (!m?.id || !m?.title) continue;
+    if (!modulesMap.has(m.id)) {
+      modulesMap.set(m.id, {
+        id: m.id,
+        title: m.title,
+        sort_order: m.sort_order ?? 0,
+        lessons: [],
+      });
+    }
+    const prog = (allProgress ?? []).find((p) => p.lesson_id === l.id);
+    modulesMap.get(m.id)!.lessons.push({
+      id: l.id,
+      title: l.title ?? "",
+      is_completed: prog?.is_completed ?? false,
+    });
+  }
+
+  const sidebarModules = Array.from(modulesMap.values()).sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
+
   const blocks = [
     ...(lesson.lesson_content_blocks ?? [])
       .filter((block) => {
@@ -186,10 +219,10 @@ export default async function LessonPage({
   ].sort((a, b) => a.sort_order - b.sort_order);
 
   return (
-    <main className={styles.page}>
-      <nav className={styles.nav}>
+    <div className={styles.root}>
+      <nav className={styles.topNav}>
         <BrandMark
-          href={`${base}/courses${suffix}`}
+          href={`${base}/courses/${courseId}${suffix}`}
           label={
             base === "/academy"
               ? (portal?.portal_name ?? "Academy")
@@ -197,69 +230,71 @@ export default async function LessonPage({
           }
         />
         <div className={styles.navActions}>
-          <Link href={`${base}/courses/${courseId}${suffix}`}>
-            Course curriculum
-          </Link>
           <Link href="/auth/signout">Sign out</Link>
         </div>
       </nav>
 
-      <Link
-        className={styles.backLink}
-        href={`${base}/courses/${courseId}${suffix}`}
-      >
-        <ArrowLeft size={13} />
-        Course curriculum
-      </Link>
-
-      <div className={styles.lessonHeader}>
-        <p className="eyebrow">
-          {course?.title} · {lessonModule?.title}
-        </p>
-        <h1>{lesson.title}</h1>
-        {lesson.description ? <p>{lesson.description}</p> : null}
-      </div>
-
-      <div className={styles.playerCard}>
-        <ProtectedLessonContent
-          blocks={blocks}
-          completed={progress?.is_completed ?? false}
-          lessonId={lesson.id}
-          resumeSeconds={progress?.position_seconds ?? 0}
-          watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${app.email}`}
+      <div className={styles.layout}>
+        <LessonSidebar
+          base={base}
+          courseId={courseId}
+          courseTitle={course?.title ?? ""}
+          currentLessonId={lessonId}
+          modules={sidebarModules}
+          suffix={suffix}
         />
-      </div>
 
-      {progress?.is_completed ? (
-        <div className={styles.completionNotice} role="status">
-          <CheckCircle2 size={18} />
-          You have completed this lesson.
-        </div>
-      ) : null}
+        <main className={styles.main}>
+          <div className={styles.lessonHeader}>
+            <p className="eyebrow">
+              {course?.title} · {lessonModule?.title}
+            </p>
+            <h1>{lesson.title}</h1>
+            {lesson.description ? <p>{lesson.description}</p> : null}
+          </div>
 
-      {prev || next ? (
-        <nav className={styles.lessonNav} aria-label="Lesson navigation">
-          {prev ? (
-            <Link
-              className={styles.prevBtn}
-              href={`${base}/courses/${courseId}/lessons/${prev.id}${suffix}`}
-            >
-              <ArrowLeft size={13} />
-              Previous lesson
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Link
-              className={styles.nextBtn}
-              href={`${base}/courses/${courseId}/lessons/${next.id}${suffix}`}
-            >
-              Next lesson
-            </Link>
+          <div className={styles.playerCard}>
+            <ProtectedLessonContent
+              blocks={blocks}
+              completed={progress?.is_completed ?? false}
+              lessonId={lesson.id}
+              resumeSeconds={progress?.position_seconds ?? 0}
+              watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${app.email}`}
+            />
+          </div>
+
+          {progress?.is_completed ? (
+            <div className={styles.completionNotice} role="status">
+              <CheckCircle2 size={18} />
+              You have completed this lesson.
+            </div>
           ) : null}
-        </nav>
-      ) : null}
-    </main>
+
+          {prev || next ? (
+            <nav aria-label="Lesson navigation" className={styles.lessonNav}>
+              {prev ? (
+                <Link
+                  className={styles.prevBtn}
+                  href={`${base}/courses/${courseId}/lessons/${prev.id}${suffix}`}
+                >
+                  <ArrowLeft size={13} />
+                  Previous lesson
+                </Link>
+              ) : (
+                <span />
+              )}
+              {next ? (
+                <Link
+                  className={styles.nextBtn}
+                  href={`${base}/courses/${courseId}/lessons/${next.id}${suffix}`}
+                >
+                  Next lesson
+                </Link>
+              ) : null}
+            </nav>
+          ) : null}
+        </main>
+      </div>
+    </div>
   );
 }
