@@ -4,10 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function DELETE(
   _request: Request,
-  context: { params: Promise<{ overrideId: string }> },
+  context: { params: Promise<{ invitationId: string }> },
 ) {
   const params = z
-    .object({ overrideId: z.string().uuid() })
+    .object({ invitationId: z.string().uuid() })
     .safeParse(await context.params);
   if (!params.success) return NextResponse.json({ error: "Invalid ID." }, { status: 400 });
 
@@ -17,22 +17,26 @@ export async function DELETE(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+
   const { data: membership } = await supabase
     .from("trader_members")
-    .select("trader_id")
+    .select("trader_id, role")
     .eq("user_id", user.id)
     .order("created_at")
     .limit(1)
     .maybeSingle();
-  if (!membership) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+
+  if (!membership || membership.role !== "owner") {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
+  }
 
   const { error } = await supabase
-    .from("availability_overrides")
+    .from("workspace_invitations")
     .delete()
-    .eq("id", params.data.overrideId)
+    .eq("id", params.data.invitationId)
     .eq("trader_id", membership.trader_id)
-    .eq("mentor_user_id", user.id);
+    .is("accepted_at", null);
 
-  if (error) return NextResponse.json({ error: "Could not delete override." }, { status: 500 });
-  return NextResponse.json({ deleted: params.data.overrideId });
+  if (error) return NextResponse.json({ error: "Could not cancel invitation." }, { status: 500 });
+  return NextResponse.json({ cancelled: params.data.invitationId });
 }

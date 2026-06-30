@@ -56,6 +56,7 @@ interface BookingRecord {
   cancellation_reason: string | null;
   cancelled_by: "mentor" | "student" | null;
   live_class_id: string | null;
+  mentor_user_id: string | null;
   application:
     | { profile: BookingProfile | BookingProfile[] | null }
     | Array<{ profile: BookingProfile | BookingProfile[] | null }>
@@ -66,12 +67,21 @@ interface BookingRecord {
     | null;
 }
 
+interface Mentor {
+  userId: string;
+  role: "owner" | "mentor";
+  name: string;
+}
+
 interface Props {
   sessionTypes: SessionType[];
   windows: AvailabilityWindow[];
   overrides: AvailabilityOverride[];
   bookings: BookingRecord[];
   mentorTimezone: string;
+  mentors: Mentor[];
+  callerRole: "owner" | "mentor";
+  callerUserId: string;
 }
 
 // ── Constants ────────────────────────────────────────
@@ -147,6 +157,9 @@ export function BookingSessionTypeManager({
   overrides: initialOverrides,
   bookings: initialBookings,
   mentorTimezone,
+  mentors,
+  callerRole,
+  callerUserId,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"session-types" | "availability" | "bookings">(
     "session-types",
@@ -197,7 +210,13 @@ export function BookingSessionTypeManager({
       )}
 
       {activeTab === "bookings" && (
-        <BookingsPanel initialBookings={initialBookings} mentorTimezone={mentorTimezone} />
+        <BookingsPanel
+          callerRole={callerRole}
+          callerUserId={callerUserId}
+          initialBookings={initialBookings}
+          mentorTimezone={mentorTimezone}
+          mentors={mentors}
+        />
       )}
     </div>
   );
@@ -940,12 +959,19 @@ function statusClass(status: BookingRecord["status"], styles: Record<string, str
 function BookingsPanel({
   initialBookings,
   mentorTimezone,
+  callerRole,
+  callerUserId,
+  mentors,
 }: {
   initialBookings: BookingRecord[];
   mentorTimezone: string;
+  callerRole: "owner" | "mentor";
+  callerUserId: string;
+  mentors: Mentor[];
 }) {
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
   const [filter, setFilter] = useState<BookingFilter>("all");
+  const [mentorFilter, setMentorFilter] = useState<string>(callerUserId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [mentorNoteDrafts, setMentorNoteDrafts] = useState<Record<string, string>>({});
   const [savingNotes, setSavingNotes] = useState<Record<string, boolean>>({});
@@ -962,7 +988,12 @@ function BookingsPanel({
     .filter((b) => b.status === "confirmed" && b.starts_at > now && b.starts_at <= next24h)
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
 
-  const filtered = bookings.filter((b) => {
+  const mentorFiltered =
+    mentorFilter === "all"
+      ? bookings
+      : bookings.filter((b) => b.mentor_user_id === mentorFilter);
+
+  const filtered = mentorFiltered.filter((b) => {
     if (filter === "all") return true;
     if (filter === "pending") return b.status === "pending";
     if (filter === "upcoming") return b.status === "confirmed" && b.starts_at > now;
@@ -1062,6 +1093,33 @@ function BookingsPanel({
 
   return (
     <div className={styles.bookingsContent}>
+      {callerRole === "owner" && mentors.length > 1 && (
+        <div style={{ padding: "12px 20px 0", display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 12, color: "#6b7280" }}>Mentor:</label>
+          <select
+            onChange={(e) => setMentorFilter(e.target.value)}
+            style={{
+              fontSize: 13,
+              border: "1px solid #d1d5db",
+              borderRadius: 6,
+              padding: "4px 8px",
+              background: "#fff",
+            }}
+            value={mentorFilter}
+          >
+            <option value={callerUserId}>My bookings</option>
+            <option value="all">All mentors</option>
+            {mentors
+              .filter((m) => m.userId !== callerUserId)
+              .map((m) => (
+                <option key={m.userId} value={m.userId}>
+                  {m.name}
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
+
       {upcomingBanner && (
         <div className={styles.bUpcomingBanner}>
           <span className={styles.bBannerLabel}>Coming up</span>

@@ -7,6 +7,7 @@ import { createNotification } from "@/lib/notifications";
 const createSchema = z.object({
   sessionTypeId: z.string().uuid(),
   traderId: z.string().uuid(),
+  mentorUserId: z.string().uuid(),
   startsAt: z.string().datetime(),
   endsAt: z.string().datetime(),
   studentNotes: z.string().trim().max(500).optional(),
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { sessionTypeId, traderId, startsAt, endsAt, studentNotes } = parsed.data;
+  const { sessionTypeId, traderId, mentorUserId, startsAt, endsAt, studentNotes } = parsed.data;
 
   const { data: app } = await supabase
     .from("student_applications")
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
     .from("bookings")
     .insert({
       trader_id: traderId,
+      mentor_user_id: mentorUserId,
       session_type_id: sessionTypeId,
       student_user_id: user.id,
       application_id: app.id,

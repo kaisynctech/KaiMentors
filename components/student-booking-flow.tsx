@@ -26,11 +26,18 @@ interface Slot {
   endsAt: string;
 }
 
+interface Mentor {
+  userId: string;
+  role: "owner" | "mentor";
+  name: string;
+}
+
 interface Props {
   sessionTypes: SessionType[];
   upcomingBookings: UpcomingBooking[];
   traderId: string;
   academyName: string;
+  mentors: Mentor[];
 }
 
 function formatDateTime(iso: string) {
@@ -74,8 +81,16 @@ export function StudentBookingFlow({
   upcomingBookings,
   traderId,
   academyName,
+  mentors,
 }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3 | "success">(1);
+  const isMultiMentor = mentors.length > 1;
+
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | "success">(() =>
+    isMultiMentor ? 0 : 1,
+  );
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(() =>
+    isMultiMentor ? null : (mentors[0] ?? null),
+  );
   const [selectedType, setSelectedType] = useState<SessionType | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -88,13 +103,18 @@ export function StudentBookingFlow({
   const [bookedStartsAt, setBookedStartsAt] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!selectedType || step !== 2) return;
+    if (!selectedType || !selectedMentor || step !== 2) return;
     setSlotsLoading(true);
     setSlotsError(null);
     setSlots([]);
     setSelectedDate(null);
     setSelectedSlot(null);
-    fetch(`/api/bookings/slots?traderId=${traderId}&typeId=${selectedType.id}`)
+    const params = new URLSearchParams({
+      traderId,
+      typeId: selectedType.id,
+      mentorUserId: selectedMentor.userId,
+    });
+    fetch(`/api/bookings/slots?${params.toString()}`)
       .then((r) => {
         if (!r.ok) throw new Error("Failed to load slots.");
         return r.json() as Promise<Slot[]>;
@@ -107,7 +127,7 @@ export function StudentBookingFlow({
         setSlotsError("Could not load available slots. Please try again.");
         setSlotsLoading(false);
       });
-  }, [selectedType, traderId, step]);
+  }, [selectedType, selectedMentor, traderId, step]);
 
   const slotsByDate = slots.reduce<Record<string, Slot[]>>((acc, slot) => {
     const key = getLocalDateKey(slot.startsAt);
@@ -117,7 +137,7 @@ export function StudentBookingFlow({
   const availableDates = Object.keys(slotsByDate).sort();
 
   async function handleBook() {
-    if (!selectedType || !selectedSlot) return;
+    if (!selectedType || !selectedSlot || !selectedMentor) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -127,6 +147,7 @@ export function StudentBookingFlow({
         body: JSON.stringify({
           sessionTypeId: selectedType.id,
           traderId,
+          mentorUserId: selectedMentor.userId,
           startsAt: selectedSlot.startsAt,
           endsAt: selectedSlot.endsAt,
           studentNotes: studentNotes || undefined,
@@ -148,7 +169,8 @@ export function StudentBookingFlow({
   }
 
   function resetFlow() {
-    setStep(1);
+    setStep(isMultiMentor ? 0 : 1);
+    setSelectedMentor(isMultiMentor ? null : (mentors[0] ?? null));
     setSelectedType(null);
     setSlots([]);
     setSelectedDate(null);
@@ -165,6 +187,11 @@ export function StudentBookingFlow({
           <CheckCircle className={styles.successIcon} size={48} />
           <h2>Booking requested!</h2>
           <p className={styles.successType}>{selectedType?.name}</p>
+          {selectedMentor && isMultiMentor ? (
+            <p className={styles.successType} style={{ fontSize: "0.85rem", opacity: 0.7 }}>
+              with {selectedMentor.name}
+            </p>
+          ) : null}
           {bookedStartsAt ? (
             <p className={styles.successTime}>{formatDateTime(bookedStartsAt)}</p>
           ) : null}
@@ -182,6 +209,14 @@ export function StudentBookingFlow({
       </div>
     );
   }
+
+  // Step nav labels
+  const stepLabels = isMultiMentor
+    ? ["Select mentor", "Session type", "Pick a slot", "Confirm"]
+    : ["Session type", "Pick a slot", "Confirm"];
+  // Map visual step index to internal step number
+  const stepIndexToNum = isMultiMentor ? [0, 1, 2, 3] : [1, 2, 3];
+  const currentStepIndex = typeof step === "number" ? stepIndexToNum.indexOf(step) : -1;
 
   return (
     <div className={styles.page}>
@@ -212,9 +247,9 @@ export function StudentBookingFlow({
       ) : null}
 
       <div className={styles.stepNav}>
-        {(["Session type", "Pick a slot", "Confirm"] as const).map((label, i) => (
+        {stepLabels.map((label, i) => (
           <div
-            className={`${styles.stepItem} ${step === i + 1 ? styles.stepActive : ""} ${typeof step === "number" && step > i + 1 ? styles.stepDone : ""}`}
+            className={`${styles.stepItem} ${currentStepIndex === i ? styles.stepActive : ""} ${currentStepIndex > i ? styles.stepDone : ""}`}
             key={label}
           >
             <span className={styles.stepNum}>{i + 1}</span>
@@ -223,9 +258,41 @@ export function StudentBookingFlow({
         ))}
       </div>
 
-      {/* Step 1 */}
+      {/* Step 0 — Select mentor (multi-mentor workspaces only) */}
+      {step === 0 ? (
+        <section className={styles.section}>
+          <p className={styles.sectionTitle}>Choose your mentor</p>
+          <div className={styles.mentorGrid}>
+            {mentors.map((m) => (
+              <div className={styles.mentorCard} key={m.userId}>
+                <p className={styles.mentorName}>{m.name}</p>
+                <span className={styles.mentorRoleBadge}>
+                  {m.role === "owner" ? "Lead mentor" : "Mentor"}
+                </span>
+                <button
+                  className={styles.primaryBtn}
+                  onClick={() => {
+                    setSelectedMentor(m);
+                    setStep(1);
+                  }}
+                >
+                  Book with {m.name.split(" ")[0]}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Step 1 — Session type */}
       {step === 1 ? (
         <section className={styles.section}>
+          {isMultiMentor ? (
+            <button className={styles.backBtn} onClick={() => setStep(0)}>
+              <ChevronLeft size={16} />
+              Back
+            </button>
+          ) : null}
           {sessionTypes.length === 0 ? (
             <div className={styles.emptyState}>
               <CalendarCheck size={32} />
@@ -268,7 +335,7 @@ export function StudentBookingFlow({
         </section>
       ) : null}
 
-      {/* Step 2 */}
+      {/* Step 2 — Pick a slot */}
       {step === 2 && selectedType ? (
         <section className={styles.section}>
           <button className={styles.backBtn} onClick={() => setStep(1)}>
@@ -327,7 +394,7 @@ export function StudentBookingFlow({
         </section>
       ) : null}
 
-      {/* Step 3 */}
+      {/* Step 3 — Confirm */}
       {step === 3 && selectedType && selectedSlot ? (
         <section className={styles.section}>
           <button className={styles.backBtn} onClick={() => setStep(2)}>
@@ -336,6 +403,12 @@ export function StudentBookingFlow({
           </button>
           <p className={styles.sectionTitle}>Confirm your booking</p>
           <div className={styles.confirmCard}>
+            {selectedMentor && isMultiMentor ? (
+              <div className={styles.confirmRow}>
+                <span className={styles.confirmLabel}>Mentor</span>
+                <span>{selectedMentor.name}</span>
+              </div>
+            ) : null}
             <div className={styles.confirmRow}>
               <span className={styles.confirmLabel}>Session</span>
               <span>{selectedType.name}</span>

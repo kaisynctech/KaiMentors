@@ -33,7 +33,7 @@ async function getMembership(supabase: Awaited<ReturnType<typeof createClient>>)
     .order("created_at")
     .limit(1)
     .maybeSingle();
-  return membership ? { tid: membership.trader_id } : null;
+  return membership ? { tid: membership.trader_id, uid: user.id } : null;
 }
 
 export async function GET(request: Request) {
@@ -52,6 +52,7 @@ export async function GET(request: Request) {
     .from("availability_overrides")
     .select("id,override_date,start_time,end_time,is_blocked,reason")
     .eq("trader_id", ctx.tid)
+    .eq("mentor_user_id", ctx.uid)
     .gte("override_date", from)
     .lte("override_date", to)
     .order("override_date");
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
     .from("availability_overrides")
     .insert({
       trader_id: ctx.tid,
+      mentor_user_id: ctx.uid,
       override_date: d.overrideDate,
       is_blocked: d.isBlocked,
       start_time: d.isBlocked ? null : d.startTime,

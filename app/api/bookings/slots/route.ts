@@ -36,6 +36,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const traderId = url.searchParams.get("traderId");
   const typeId = url.searchParams.get("typeId");
+  const mentorUserIdParam = url.searchParams.get("mentorUserId");
   if (!traderId || !typeId) {
     return NextResponse.json({ error: "traderId and typeId required." }, { status: 400 });
   }
@@ -57,6 +58,40 @@ export async function GET(request: Request) {
     .limit(1)
     .maybeSingle();
   if (!app) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+
+  // Resolve mentorUserId: explicit param or fall back to workspace owner
+  let mentorUserId: string;
+  if (mentorUserIdParam) {
+    const { data: mentorCheck } = await supabase
+      .from("trader_members")
+      .select("user_id")
+      .eq("trader_id", traderId)
+      .eq("user_id", mentorUserIdParam)
+      .maybeSingle();
+    if (!mentorCheck) {
+      return NextResponse.json(
+        { error: "Mentor not found in this workspace." },
+        { status: 400 },
+      );
+    }
+    mentorUserId = mentorUserIdParam;
+  } else {
+    const { data: ownerMember } = await supabase
+      .from("trader_members")
+      .select("user_id")
+      .eq("trader_id", traderId)
+      .eq("role", "owner")
+      .order("created_at")
+      .limit(1)
+      .maybeSingle();
+    if (!ownerMember) {
+      return NextResponse.json(
+        { error: "mentorUserId is required for multi-mentor workspaces." },
+        { status: 400 },
+      );
+    }
+    mentorUserId = ownerMember.user_id;
+  }
 
   const { data: st } = await supabase
     .from("booking_session_types")
@@ -86,17 +121,20 @@ export async function GET(request: Request) {
       .from("mentor_availability")
       .select("day_of_week,start_time,end_time")
       .eq("trader_id", traderId)
+      .eq("mentor_user_id", mentorUserId)
       .eq("is_active", true),
     supabase
       .from("availability_overrides")
       .select("override_date,start_time,end_time,is_blocked")
       .eq("trader_id", traderId)
+      .eq("mentor_user_id", mentorUserId)
       .gte("override_date", fromDate)
       .lte("override_date", toDate),
     supabase
       .from("bookings")
       .select("starts_at,ends_at")
       .eq("trader_id", traderId)
+      .eq("mentor_user_id", mentorUserId)
       .in("status", ["pending", "confirmed"])
       .gte("ends_at", now.toISOString())
       .lte("starts_at", endDate.toISOString()),

@@ -43,7 +43,8 @@ export async function PATCH(
     .from("mentor_availability")
     .update(patch)
     .eq("id", params.data.windowId)
-    .eq("trader_id", membership.trader_id);
+    .eq("trader_id", membership.trader_id)
+    .eq("mentor_user_id", user.id);
 
   if (error) return NextResponse.json({ error: "Could not update." }, { status: 500 });
   return NextResponse.json({ updated: true });
@@ -75,7 +76,8 @@ export async function DELETE(
     .from("mentor_availability")
     .delete()
     .eq("id", params.data.windowId)
-    .eq("trader_id", membership.trader_id);
+    .eq("trader_id", membership.trader_id)
+    .eq("mentor_user_id", user.id);
 
   if (error) return NextResponse.json({ error: "Could not delete." }, { status: 500 });
   return NextResponse.json({ deleted: params.data.windowId });

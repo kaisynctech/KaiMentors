@@ -25,7 +25,7 @@ async function getMembership(supabase: Awaited<ReturnType<typeof createClient>>)
     .order("created_at")
     .limit(1)
     .maybeSingle();
-  return membership ? { user, tid: membership.trader_id } : null;
+  return membership ? { user, tid: membership.trader_id, uid: user.id } : null;
 }
 
 export async function GET() {
@@ -37,6 +37,7 @@ export async function GET() {
     .from("mentor_availability")
     .select("id,day_of_week,start_time,end_time,is_active")
     .eq("trader_id", ctx.tid)
+    .eq("mentor_user_id", ctx.uid)
     .order("day_of_week")
     .order("start_time");
 
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     .from("mentor_availability")
     .insert({
       trader_id: ctx.tid,
+      mentor_user_id: ctx.uid,
       day_of_week: parsed.data.dayOfWeek,
       start_time: parsed.data.startTime,
       end_time: parsed.data.endTime,

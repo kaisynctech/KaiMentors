@@ -44,6 +44,7 @@ const traderNavigation = [
   ["Resources", "/dashboard/resources", FileText],
   ["Live classes", "/dashboard/live-classes", CalendarDays],
   ["Bookings", "/dashboard/bookings", CalendarCheck],
+  ["Team", "/dashboard/team", Users],
   ["Broker accounts", "/dashboard/brokers", Building2],
   ["Academy Page", "/dashboard/branding", WandSparkles],
   ["Audit logs", "/dashboard/audit-logs", ScrollText],
