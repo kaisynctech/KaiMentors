@@ -1,0 +1,455 @@
+.page {
+  padding: 32px 24px 64px;
+  max-width: 720px;
+}
+
+.pageHeader {
+  margin-bottom: 32px;
+}
+
+.pageHeader h1 {
+  margin: 4px 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Upcoming bookings ── */
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2, #6b7280);
+  margin: 0 0 12px;
+}
+
+.bookingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bookingCard {
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.bookingMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.bookingName {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.statusBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: capitalize;
+}
+
+.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.bookingTime {
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  margin: 0;
+}
+
+/* ── Step indicator ── */
+
+.stepNav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 28px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+}
+
+.stepItem:not(:last-child)::after {
+  content: "";
+  display: block;
+  flex: 1;
+  height: 1px;
+  background: var(--border, #e5e7eb);
+  margin: 0 8px;
+}
+
+.stepNum {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--border, #e5e7eb);
+  color: var(--text-2, #6b7280);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.stepLabel {
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  white-space: nowrap;
+}
+
+.stepActive .stepNum {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+}
+
+.stepActive .stepLabel {
+  color: var(--text-1, #111827);
+  font-weight: 600;
+}
+
+.stepDone .stepNum {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ── Session type cards ── */
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.typeCard {
+  background: var(--surface, #f9fafb);
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.typeCard:hover {
+  border-color: var(--primary, #4f46e5);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #4f46e5) 12%, transparent);
+}
+
+.typeName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.typeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-2, #6b7280);
+  margin-bottom: 8px;
+}
+
+.typeMeta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.approvalBadge {
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.typeDesc {
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Back button ── */
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color 0.12s;
+}
+
+.backBtn:hover {
+  color: var(--text-1, #111827);
+}
+
+/* ── Slot picker ── */
+
+.dateTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.dateTab {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface, #f9fafb);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.dateTab:hover {
+  border-color: var(--primary, #4f46e5);
+}
+
+.dateTabActive {
+  border-color: var(--primary, #4f46e5);
+  background: color-mix(in srgb, var(--primary, #4f46e5) 8%, transparent);
+  color: var(--primary, #4f46e5);
+  font-weight: 600;
+}
+
+.timeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.timeSlot {
+  padding: 8px 16px;
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface, #f9fafb);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  min-width: 72px;
+  text-align: center;
+}
+
+.timeSlot:hover {
+  border-color: var(--primary, #4f46e5);
+}
+
+.timeSlotActive {
+  border-color: var(--primary, #4f46e5);
+  background: var(--primary, #4f46e5);
+  color: #fff;
+}
+
+.slotActions {
+  margin-top: 4px;
+}
+
+/* ── Confirm ── */
+
+.confirmCard {
+  background: var(--surface, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.confirmRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.confirmRow:last-child {
+  border-bottom: none;
+}
+
+.confirmLabel {
+  color: var(--text-2, #6b7280);
+  font-weight: 500;
+}
+
+.approvalNotice {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.notesGroup {
+  margin-bottom: 20px;
+}
+
+.notesLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2, #6b7280);
+  margin-bottom: 6px;
+}
+
+.notesArea {
+  width: 100%;
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  background: var(--surface, #f9fafb);
+  color: var(--text-1, #111827);
+  transition: border-color 0.12s;
+  box-sizing: border-box;
+}
+
+.notesArea:focus {
+  outline: none;
+  border-color: var(--primary, #4f46e5);
+}
+
+.confirmActions {
+  margin-top: 4px;
+}
+
+/* ── Shared ── */
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.loading {
+  font-size: 0.875rem;
+  color: var(--text-2, #6b7280);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: #dc2626;
+  margin: 0 0 12px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: var(--text-2, #6b7280);
+  border: 1px dashed var(--border, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* ── Success state ── */
+
+.successBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 32px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  text-align: center;
+  max-width: 440px;
+  margin: 40px auto;
+}
+
+.successIcon {
+  color: #16a34a;
+}
+
+.successBox h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.successType {
+  font-weight: 600;
+  margin: 0;
+}
+
+.successTime {
+  font-size: 0.875rem;
+  color: var(--text-2, #6b7280);
+  margin: 0;
+}
+
+.successNote {
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  margin: 0;
+}

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BookOpen,
+  CalendarCheck,
   LayoutDashboard,
   LogOut,
   LockKeyhole,
@@ -63,6 +64,12 @@ export function StudentShellClient({
       href: `${basePath}/live-classes${querySuffix}`,
       label: "Live Classes",
       icon: Video,
+      locked: !isVerified,
+    },
+    {
+      href: `${basePath}/bookings${querySuffix}`,
+      label: "Book a session",
+      icon: CalendarCheck,
       locked: !isVerified,
     },
     {
