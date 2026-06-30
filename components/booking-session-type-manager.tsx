@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Loader2, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, Loader2, Plus, X } from "lucide-react";
 import { useState } from "react";
 import styles from "./booking-session-type-manager.module.css";
 
@@ -39,10 +39,38 @@ interface AvailabilityOverride {
   reason: string | null;
 }
 
+interface BookingProfile {
+  full_name: string;
+  email: string | null;
+}
+
+interface BookingRecord {
+  id: string;
+  student_user_id: string;
+  session_type_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
+  student_notes: string | null;
+  mentor_notes: string | null;
+  cancellation_reason: string | null;
+  cancelled_by: "mentor" | "student" | null;
+  live_class_id: string | null;
+  application:
+    | { profile: BookingProfile | BookingProfile[] | null }
+    | Array<{ profile: BookingProfile | BookingProfile[] | null }>
+    | null;
+  session_type:
+    | { name: string; duration_minutes: number }
+    | Array<{ name: string; duration_minutes: number }>
+    | null;
+}
+
 interface Props {
   sessionTypes: SessionType[];
   windows: AvailabilityWindow[];
   overrides: AvailabilityOverride[];
+  bookings: BookingRecord[];
   mentorTimezone: string;
 }
 
@@ -117,9 +145,12 @@ export function BookingSessionTypeManager({
   sessionTypes: initial,
   windows: initialWindows,
   overrides: initialOverrides,
+  bookings: initialBookings,
   mentorTimezone,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"session-types" | "availability">("session-types");
+  const [activeTab, setActiveTab] = useState<"session-types" | "availability" | "bookings">(
+    "session-types",
+  );
 
   return (
     <div className={styles.bookingManager}>
@@ -139,6 +170,18 @@ export function BookingSessionTypeManager({
         >
           Availability
         </button>
+        <button
+          className={`${styles.tabBtn} ${activeTab === "bookings" ? styles.activeTabBtn : ""}`}
+          onClick={() => setActiveTab("bookings")}
+          type="button"
+        >
+          Bookings
+          {initialBookings.filter((b) => b.status === "pending").length > 0 ? (
+            <span className={styles.pendingCount}>
+              {initialBookings.filter((b) => b.status === "pending").length}
+            </span>
+          ) : null}
+        </button>
       </div>
 
       {activeTab === "session-types" && (
@@ -151,6 +194,10 @@ export function BookingSessionTypeManager({
           initialWindows={initialWindows}
           mentorTimezone={mentorTimezone}
         />
+      )}
+
+      {activeTab === "bookings" && (
+        <BookingsPanel initialBookings={initialBookings} mentorTimezone={mentorTimezone} />
       )}
     </div>
   );
@@ -841,6 +888,351 @@ function AvailabilityPanel({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Bookings Panel ───────────────────────────────────
+
+type BookingFilter = "all" | "pending" | "upcoming" | "past" | "cancelled";
+
+function getStudentName(booking: BookingRecord): string {
+  const app = Array.isArray(booking.application)
+    ? booking.application[0]
+    : booking.application;
+  if (!app) return "Student";
+  const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
+  if (!profile) return "Student";
+  return (
+    profile.full_name ||
+    profile.email?.split("@")[0] ||
+    booking.student_user_id.slice(0, 8) + "…"
+  );
+}
+
+function getBookingTypeName(booking: BookingRecord): string {
+  const st = Array.isArray(booking.session_type)
+    ? booking.session_type[0]
+    : booking.session_type;
+  return st?.name ?? "Session";
+}
+
+function statusLabel(status: BookingRecord["status"]): string {
+  switch (status) {
+    case "pending": return "Pending approval";
+    case "confirmed": return "Confirmed";
+    case "cancelled": return "Cancelled";
+    case "completed": return "Completed";
+    case "no_show": return "No-show";
+  }
+}
+
+function statusClass(status: BookingRecord["status"], styles: Record<string, string>): string {
+  switch (status) {
+    case "pending": return styles.bsPending;
+    case "confirmed": return styles.bsConfirmed;
+    case "cancelled": return styles.bsCancelled;
+    case "completed": return styles.bsCompleted;
+    case "no_show": return styles.bsNoShow;
+  }
+}
+
+function BookingsPanel({
+  initialBookings,
+  mentorTimezone,
+}: {
+  initialBookings: BookingRecord[];
+  mentorTimezone: string;
+}) {
+  const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
+  const [filter, setFilter] = useState<BookingFilter>("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [mentorNoteDrafts, setMentorNoteDrafts] = useState<Record<string, string>>({});
+  const [savingNotes, setSavingNotes] = useState<Record<string, boolean>>({});
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+  const [actionError, setActionError] = useState<Record<string, string>>({});
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const now = new Date().toISOString();
+
+  const filtered = bookings.filter((b) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return b.status === "pending";
+    if (filter === "upcoming") return b.status === "confirmed" && b.starts_at > now;
+    if (filter === "past") return b.starts_at <= now;
+    if (filter === "cancelled") return b.status === "cancelled";
+    return true;
+  });
+
+  function formatBookingDT(iso: string): string {
+    return new Date(iso).toLocaleString("en-US", {
+      timeZone: mentorTimezone,
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }
+
+  function getNoteValue(b: BookingRecord): string {
+    if (b.id in mentorNoteDrafts) return mentorNoteDrafts[b.id];
+    return b.mentor_notes ?? "";
+  }
+
+  async function saveNote(bookingId: string) {
+    const note = mentorNoteDrafts[bookingId] ?? "";
+    setSavingNotes((prev) => ({ ...prev, [bookingId]: true }));
+    try {
+      await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "notes", mentorNotes: note }),
+      });
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, mentor_notes: note } : b)),
+      );
+    } finally {
+      setSavingNotes((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  }
+
+  async function doAction(
+    bookingId: string,
+    action: "confirm" | "complete" | "no_show" | "cancel",
+    reason?: string,
+  ) {
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+    setActionError((prev) => ({ ...prev, [bookingId]: "" }));
+    try {
+      const body: Record<string, unknown> = { action };
+      if (reason) body.reason = reason;
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        setActionError((prev) => ({ ...prev, [bookingId]: err.error ?? "Action failed." }));
+        return;
+      }
+      const newStatus: BookingRecord["status"] =
+        action === "confirm"
+          ? "confirmed"
+          : action === "complete"
+            ? "completed"
+            : action === "no_show"
+              ? "no_show"
+              : "cancelled";
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingId
+            ? {
+                ...b,
+                status: newStatus,
+                ...(action === "cancel"
+                  ? { cancelled_by: "mentor", cancellation_reason: reason ?? null }
+                  : {}),
+              }
+            : b,
+        ),
+      );
+      if (action === "cancel") setCancelTarget(null);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  }
+
+  const FILTERS: Array<{ key: BookingFilter; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "pending", label: `Pending (${bookings.filter((b) => b.status === "pending").length})` },
+    { key: "upcoming", label: "Upcoming" },
+    { key: "past", label: "Past" },
+    { key: "cancelled", label: "Cancelled" },
+  ];
+
+  return (
+    <div className={styles.bookingsContent}>
+      <div className={styles.bFilterBar}>
+        {FILTERS.map((f) => (
+          <button
+            className={`${styles.bFilterBtn} ${filter === f.key ? styles.bFilterBtnActive : ""}`}
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            type="button"
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className={styles.bEmpty}>
+          <p>No bookings match this filter.</p>
+        </div>
+      ) : (
+        <div className={styles.bList}>
+          {filtered.map((b) => {
+            const isExpanded = expandedId === b.id;
+            const isLoading = actionLoading[b.id];
+            const errMsg = actionError[b.id];
+            const showCancel = cancelTarget === b.id;
+            const isDone =
+              b.status === "completed" || b.status === "cancelled" || b.status === "no_show";
+
+            return (
+              <div className={`${styles.bRow} ${isExpanded ? styles.bRowExpanded : ""}`} key={b.id}>
+                <button
+                  className={styles.bRowHeader}
+                  onClick={() => setExpandedId(isExpanded ? null : b.id)}
+                  type="button"
+                >
+                  <div className={styles.bRowInfo}>
+                    <span className={styles.bStudentName}>{getStudentName(b)}</span>
+                    <span className={styles.bTypeName}>{getBookingTypeName(b)}</span>
+                    <span className={styles.bTime}>{formatBookingDT(b.starts_at)}</span>
+                  </div>
+                  <div className={styles.bRowRight}>
+                    <span className={`${styles.bStatusBadge} ${statusClass(b.status, styles)}`}>
+                      {statusLabel(b.status)}
+                    </span>
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className={styles.bExpanded}>
+                    {b.student_notes ? (
+                      <div className={styles.bNotesSection}>
+                        <p className={styles.bNotesLabel}>Student notes</p>
+                        <p className={styles.bStudentNotes}>{b.student_notes}</p>
+                      </div>
+                    ) : null}
+
+                    <div className={styles.bNotesSection}>
+                      <p className={styles.bNotesLabel}>Mentor notes</p>
+                      <textarea
+                        className={styles.bNotesArea}
+                        disabled={isDone || savingNotes[b.id]}
+                        maxLength={500}
+                        onBlur={() => {
+                          if (getNoteValue(b) !== (b.mentor_notes ?? "")) {
+                            saveNote(b.id);
+                          }
+                        }}
+                        onChange={(e) =>
+                          setMentorNoteDrafts((prev) => ({ ...prev, [b.id]: e.target.value }))
+                        }
+                        placeholder={isDone ? "—" : "Add private notes…"}
+                        rows={3}
+                        value={getNoteValue(b)}
+                      />
+                      {savingNotes[b.id] ? (
+                        <p className={styles.bSavingHint}>Saving…</p>
+                      ) : null}
+                    </div>
+
+                    {errMsg ? <p className={styles.bErrorMsg}>{errMsg}</p> : null}
+
+                    {!isDone && !showCancel && (
+                      <div className={styles.bActions}>
+                        {b.status === "pending" && (
+                          <>
+                            <button
+                              className={styles.bConfirmBtn}
+                              disabled={isLoading}
+                              onClick={() => doAction(b.id, "confirm")}
+                              type="button"
+                            >
+                              {isLoading ? <Loader2 className={styles.spin} size={12} /> : "Confirm"}
+                            </button>
+                            <button
+                              className={styles.bDeclineBtn}
+                              disabled={isLoading}
+                              onClick={() => { setCancelTarget(b.id); setCancelReason(""); }}
+                              type="button"
+                            >
+                              Decline
+                            </button>
+                          </>
+                        )}
+                        {b.status === "confirmed" && (
+                          <>
+                            <button
+                              className={styles.bCompleteBtn}
+                              disabled={isLoading}
+                              onClick={() => doAction(b.id, "complete")}
+                              type="button"
+                            >
+                              {isLoading ? <Loader2 className={styles.spin} size={12} /> : "Mark complete"}
+                            </button>
+                            <button
+                              className={styles.bNoShowBtn}
+                              disabled={isLoading}
+                              onClick={() => doAction(b.id, "no_show")}
+                              type="button"
+                            >
+                              No-show
+                            </button>
+                            <button
+                              className={styles.bCancelBtn}
+                              disabled={isLoading}
+                              onClick={() => { setCancelTarget(b.id); setCancelReason(""); }}
+                              type="button"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {showCancel && (
+                      <div className={styles.bCancelForm}>
+                        <p className={styles.bNotesLabel}>Reason (optional)</p>
+                        <textarea
+                          className={styles.bNotesArea}
+                          maxLength={300}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="Reason for cancellation…"
+                          rows={2}
+                          value={cancelReason}
+                        />
+                        <div className={styles.bActions}>
+                          <button
+                            className={styles.bDeclineBtn}
+                            disabled={isLoading}
+                            onClick={() => doAction(b.id, "cancel", cancelReason || undefined)}
+                            type="button"
+                          >
+                            {isLoading ? <Loader2 className={styles.spin} size={12} /> : "Confirm cancellation"}
+                          </button>
+                          <button
+                            className={styles.bCancelBtn}
+                            onClick={() => setCancelTarget(null)}
+                            type="button"
+                          >
+                            Keep
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {b.status === "cancelled" && b.cancellation_reason ? (
+                      <p className={styles.bCancellationNote}>
+                        Cancelled by {b.cancelled_by}: {b.cancellation_reason}
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

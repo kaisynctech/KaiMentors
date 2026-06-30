@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   BookOpen,
   CalendarCheck,
+  CalendarClock,
   LayoutDashboard,
   LogOut,
   LockKeyhole,
@@ -70,6 +71,12 @@ export function StudentShellClient({
       href: `${basePath}/bookings${querySuffix}`,
       label: "Book a session",
       icon: CalendarCheck,
+      locked: !isVerified,
+    },
+    {
+      href: `${basePath}/bookings/sessions${querySuffix}`,
+      label: "My sessions",
+      icon: CalendarClock,
       locked: !isVerified,
     },
     {

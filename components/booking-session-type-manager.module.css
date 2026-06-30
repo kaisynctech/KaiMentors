@@ -994,3 +994,314 @@
     padding-top: 0;
   }
 }
+
+/* ── Bookings tab ─────────────────────────────────── */
+
+.pendingCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 99px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 6px;
+}
+
+.bookingsContent {
+  padding: 0;
+}
+
+.bFilterBar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  overflow-x: auto;
+}
+
+.bFilterBtn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+
+.bFilterBtnActive {
+  border-bottom-color: var(--primary, #4f46e5);
+  color: var(--primary, #4f46e5);
+}
+
+.bEmpty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.bList {
+  display: flex;
+  flex-direction: column;
+}
+
+.bRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.bRow:last-child {
+  border-bottom: none;
+}
+
+.bRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.bRowHeader:hover {
+  background: #f9fafb;
+}
+
+.bRowExpanded .bRowHeader {
+  background: #f9fafb;
+}
+
+.bRowInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bStudentName {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bTypeName {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.bTime {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.bRowRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.bStatusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+
+.bsPending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.bsConfirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.bsCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.bsCompleted {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.bsNoShow {
+  background: #fce7f3;
+  color: #831843;
+}
+
+.bExpanded {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bNotesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bNotesLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.bStudentNotes {
+  font-size: 13px;
+  color: #374151;
+  margin: 0;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.bNotesArea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  background: #f9fafb;
+  color: #111827;
+  box-sizing: border-box;
+  transition: border-color 0.12s;
+}
+
+.bNotesArea:focus {
+  outline: none;
+  border-color: var(--primary, #4f46e5);
+  background: #fff;
+}
+
+.bNotesArea:disabled {
+  opacity: 0.6;
+  resize: none;
+}
+
+.bSavingHint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.bErrorMsg {
+  font-size: 12px;
+  color: #dc2626;
+  margin: 0;
+}
+
+.bActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bConfirmBtn {
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bConfirmBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bDeclineBtn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bDeclineBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bCompleteBtn {
+  background: #374151;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bCompleteBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bNoShowBtn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+
+.bNoShowBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bCancelBtn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.bCancelForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fef2f2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.bCancellationNote {
+  font-size: 12px;
+  color: #991b1b;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0;
+}

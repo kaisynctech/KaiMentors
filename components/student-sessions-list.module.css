@@ -1,0 +1,264 @@
+.page {
+  padding: 32px 24px 64px;
+  max-width: 680px;
+}
+
+.pageHeader {
+  margin-bottom: 32px;
+}
+
+.pageHeader h1 {
+  margin: 4px 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2, #6b7280);
+  margin: 0 0 12px;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Session card ── */
+
+.sessionCard {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.cardInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sessionName {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.sessionDuration {
+  font-size: 0.75rem;
+  color: var(--text-2, #6b7280);
+  background: var(--surface, #f3f4f6);
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.sessionTime {
+  font-size: 0.8rem;
+  color: var(--text-2, #6b7280);
+  margin: 0 0 12px;
+}
+
+.mentorNoteHint {
+  font-size: 0.75rem;
+  color: var(--text-2, #6b7280);
+  font-style: italic;
+  margin: 0 0 10px;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Status badges ── */
+
+.statusBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sPending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sConfirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.sCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sCompleted {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.sNoShow {
+  background: #fce7f3;
+  color: #831843;
+}
+
+/* ── Actions ── */
+
+.joinBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: opacity 0.12s;
+}
+
+.joinBtn:hover {
+  opacity: 0.9;
+}
+
+.cancelBtn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.cancelBtn:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+/* ── Cancel form ── */
+
+.cancelForm {
+  margin-top: 12px;
+  background: #fef2f2;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cancelFormTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+  color: #991b1b;
+}
+
+.cancelReason {
+  width: 100%;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  resize: vertical;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.cancelReason:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.cancelError {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin: 0;
+}
+
+.cancelFormActions {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelConfirmBtn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelConfirmBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.keepBtn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+/* ── Empty state ── */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 24px;
+  color: var(--text-2, #6b7280);
+  text-align: center;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.bookLink {
+  color: var(--primary, #4f46e5);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bookLink:hover {
+  text-decoration: underline;
+}

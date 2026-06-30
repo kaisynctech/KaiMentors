@@ -23,7 +23,7 @@ export default async function BookingsPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: sessionTypes }, { data: windows }, { data: overrides }] =
+  const [{ data: sessionTypes }, { data: windows }, { data: overrides }, { data: bookings }] =
     await Promise.all([
       supabase
         .from("booking_session_types")
@@ -46,6 +46,14 @@ export default async function BookingsPage() {
         .gte("override_date", today)
         .order("override_date")
         .limit(60),
+      supabase
+        .from("bookings")
+        .select(
+          "id,student_user_id,session_type_id,starts_at,ends_at,status,student_notes,mentor_notes,cancellation_reason,cancelled_by,live_class_id,application:student_applications!application_id(profile:profiles!student_user_id(full_name,email)),session_type:booking_session_types!session_type_id(name,duration_minutes)",
+        )
+        .eq("trader_id", membership.trader_id)
+        .order("starts_at", { ascending: false })
+        .limit(100),
     ]);
 
   const trader = Array.isArray(membership.trader)
@@ -60,6 +68,7 @@ export default async function BookingsPage() {
       userLabel={trader?.display_name ?? "Mentor workspace"}
     >
       <BookingSessionTypeManager
+        bookings={bookings ?? []}
         mentorTimezone={trader?.timezone ?? "UTC"}
         overrides={overrides ?? []}
         sessionTypes={sessionTypes ?? []}
