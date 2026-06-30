@@ -1016,6 +1016,41 @@
   padding: 0;
 }
 
+.bUpcomingBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+  border-bottom: 1px solid #c7d2fe;
+  padding: 14px 20px;
+}
+
+.bBannerLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4f46e5;
+}
+
+.bBannerText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.bBannerJoin {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.bBannerJoin:hover {
+  text-decoration: underline;
+}
+
 .bFilterBar {
   display: flex;
   gap: 0;

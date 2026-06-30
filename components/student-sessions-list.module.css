@@ -1,3 +1,32 @@
+/* ── Upcoming session banner ── */
+
+.upcomingBanner {
+  background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bannerLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4f46e5;
+  margin: 0;
+}
+
+.bannerTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
 .page {
   padding: 32px 24px 64px;
   max-width: 680px;

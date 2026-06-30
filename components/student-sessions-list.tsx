@@ -19,6 +19,7 @@ interface Booking {
   ends_at: string;
   status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
   student_notes: string | null;
+  mentor_notes: string | null;
   cancellation_reason: string | null;
   live_class_id: string | null;
   session_type: SessionType | SessionType[] | null;
@@ -27,6 +28,8 @@ interface Booking {
 interface Props {
   bookings: Booking[];
   academyName: string;
+  basePath: string;
+  querySuffix: string;
 }
 
 function getSessionType(b: Booking): SessionType | null {
@@ -64,7 +67,7 @@ function statusClass(status: Booking["status"]): string {
   }
 }
 
-export function StudentSessionsList({ bookings, academyName }: Props) {
+export function StudentSessionsList({ bookings, academyName, basePath, querySuffix }: Props) {
   const router = useRouter();
   const [now, setNow] = useState(() => new Date());
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
@@ -90,6 +93,12 @@ export function StudentSessionsList({ bookings, academyName }: Props) {
       b.status === "cancelled" ||
       b.status === "no_show",
   );
+
+  // Upcoming session banner: first confirmed booking within 24 hours
+  const next24hMs = nowMs + 24 * 60 * 60 * 1000;
+  const bannerBooking = upcoming.find(
+    (b) => b.status === "confirmed" && new Date(b.starts_at).getTime() <= next24hMs,
+  ) ?? null;
 
   function canJoin(b: Booking): boolean {
     if (b.status !== "confirmed") return false;
@@ -151,8 +160,8 @@ export function StudentSessionsList({ bookings, academyName }: Props) {
         </div>
         <p className={styles.sessionTime}>{formatDateTime(b.starts_at)}</p>
 
-        {b.status === "completed" && b.student_notes ? (
-          <p className={styles.mentorNoteHint}>Notes available — check with your mentor.</p>
+        {b.status === "completed" && b.mentor_notes ? (
+          <p className={styles.mentorNoteHint}>Mentor note: {b.mentor_notes}</p>
         ) : null}
 
         <div className={styles.cardActions}>
@@ -218,11 +227,29 @@ export function StudentSessionsList({ bookings, academyName }: Props) {
         <h1>My Sessions</h1>
       </div>
 
+      {bannerBooking ? (
+        <div className={styles.upcomingBanner}>
+          <p className={styles.bannerLabel}>Coming up</p>
+          <p className={styles.bannerTitle}>
+            {getSessionType(bannerBooking)?.name ?? "Session"} — {formatDateTime(bannerBooking.starts_at)}
+          </p>
+          {canJoin(bannerBooking) && bannerBooking.live_class_id ? (
+            <a
+              className={styles.joinBtn}
+              href={`${basePath}/live-classes/${bannerBooking.live_class_id}${querySuffix}`}
+            >
+              <Video size={14} />
+              Join now →
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
       {upcoming.length === 0 && past.length === 0 ? (
         <div className={styles.emptyState}>
           <CalendarClock size={36} />
           <p>You have no sessions yet.</p>
-          <a className={styles.bookLink} href="./">
+          <a className={styles.bookLink} href={`${basePath}/bookings${querySuffix}`}>
             Book your first session
           </a>
         </div>

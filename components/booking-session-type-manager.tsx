@@ -955,6 +955,12 @@ function BookingsPanel({
   const [cancelReason, setCancelReason] = useState("");
 
   const now = new Date().toISOString();
+  const next24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // Next confirmed session within 24 hours
+  const upcomingBanner = bookings
+    .filter((b) => b.status === "confirmed" && b.starts_at > now && b.starts_at <= next24h)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
 
   const filtered = bookings.filter((b) => {
     if (filter === "all") return true;
@@ -1056,6 +1062,22 @@ function BookingsPanel({
 
   return (
     <div className={styles.bookingsContent}>
+      {upcomingBanner && (
+        <div className={styles.bUpcomingBanner}>
+          <span className={styles.bBannerLabel}>Coming up</span>
+          <span className={styles.bBannerText}>
+            {getBookingTypeName(upcomingBanner)} with {getStudentName(upcomingBanner)} — {formatBookingDT(upcomingBanner.starts_at)}
+          </span>
+          {upcomingBanner.live_class_id && (
+            <a
+              className={styles.bBannerJoin}
+              href={`/dashboard/live-classes/${upcomingBanner.live_class_id}`}
+            >
+              Join now →
+            </a>
+          )}
+        </div>
+      )}
       <div className={styles.bFilterBar}>
         {FILTERS.map((f) => (
           <button

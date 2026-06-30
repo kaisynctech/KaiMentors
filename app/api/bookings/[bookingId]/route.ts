@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendBookingConfirmation, sendCancellationEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 const paramsSchema = z.object({ bookingId: z.string().uuid() });
 
@@ -137,98 +137,68 @@ export async function PATCH(
       }
     }
 
-    // Send confirmation email to student
-    try {
-      const admin = createAdminClient();
-      if (admin) {
-        const [{ data: studentProfile }, { data: trader }, { data: st }] =
-          await Promise.all([
-            admin
-              .from("profiles")
-              .select("full_name,email")
-              .eq("id", booking.student_user_id)
-              .maybeSingle(),
-            admin
-              .from("traders")
-              .select("display_name,timezone")
-              .eq("id", booking.trader_id)
-              .maybeSingle(),
-            admin
-              .from("booking_session_types")
-              .select("name,duration_minutes")
-              .eq("id", booking.session_type_id)
-              .maybeSingle(),
-          ]);
-
-        if (studentProfile?.email && trader && st) {
-          await sendBookingConfirmation({
-            to: studentProfile.email,
-            studentName: studentProfile.full_name || "Student",
-            mentorName: trader.display_name,
-            sessionTypeName: st.name,
-            startsAt: booking.starts_at,
-            durationMinutes: st.duration_minutes,
-            recipientTimezone: "UTC",
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Failed to send confirmation email:", e);
-    }
+    // Notify student
+    const sessionName = sessionType?.name ?? "session";
+    const dateStr = new Date(booking.starts_at).toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    await createNotification({
+      userId: booking.student_user_id,
+      traderId: booking.trader_id,
+      bookingId: booking.id,
+      type: "booking_confirmed",
+      title: "Session confirmed",
+      body: `Your "${sessionName}" session on ${dateStr} has been confirmed.`,
+    });
   }
 
   if (d.action === "cancel") {
-    try {
+    const dateStr = new Date(booking.starts_at).toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    if (isMentor) {
+      // Notify student
+      await createNotification({
+        userId: booking.student_user_id,
+        traderId: booking.trader_id,
+        bookingId: booking.id,
+        type: "booking_cancelled",
+        title: "Session cancelled",
+        body: `Your session on ${dateStr} has been cancelled by your mentor.`,
+      });
+    } else {
+      // Student cancelled — notify all mentor members
       const admin = createAdminClient();
       if (admin) {
-        const [{ data: studentProfile }, { data: trader }, { data: st }] =
-          await Promise.all([
-            admin
-              .from("profiles")
-              .select("full_name,email")
-              .eq("id", booking.student_user_id)
-              .maybeSingle(),
-            admin
-              .from("traders")
-              .select("display_name,timezone,support_email")
-              .eq("id", booking.trader_id)
-              .maybeSingle(),
-            admin
-              .from("booking_session_types")
-              .select("name")
-              .eq("id", booking.session_type_id)
-              .maybeSingle(),
-          ]);
+        const { data: members } = await admin
+          .from("trader_members")
+          .select("user_id")
+          .eq("trader_id", booking.trader_id);
 
-        const cancelledBy = isMentor ? ("mentor" as const) : ("student" as const);
-        const reason = d.reason;
-
-        if (studentProfile?.email && st) {
-          await sendCancellationEmail({
-            to: studentProfile.email,
-            recipientName: studentProfile.full_name || "Student",
-            sessionTypeName: st.name,
-            startsAt: booking.starts_at,
-            recipientTimezone: "UTC",
-            cancelledBy,
-            reason,
-          });
-        }
-
-        if (trader?.support_email && !isMentor && st) {
-          await sendCancellationEmail({
-            to: trader.support_email,
-            recipientName: trader.display_name,
-            sessionTypeName: st.name,
-            startsAt: booking.starts_at,
-            recipientTimezone: trader.timezone ?? "UTC",
-            cancelledBy,
-            reason,
-          });
+        if (members) {
+          await Promise.all(
+            members.map((m) =>
+              createNotification({
+                userId: m.user_id,
+                traderId: booking.trader_id,
+                bookingId: booking.id,
+                type: "booking_cancelled",
+                title: "Session cancelled by student",
+                body: `A student has cancelled their session on ${dateStr}.`,
+              }),
+            ),
+          );
         }
       }
-    } catch (e) {
-      console.error("Failed to send cancellation email:", e);
     }
   }
 

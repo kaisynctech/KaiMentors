@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
 
 const createSchema = z.object({
   sessionTypeId: z.string().uuid(),
@@ -9,6 +11,16 @@ const createSchema = z.object({
   endsAt: z.string().datetime(),
   studentNotes: z.string().trim().max(500).optional(),
 });
+
+function formatDateShort(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -40,7 +52,7 @@ export async function POST(request: Request) {
 
   const { data: st } = await supabase
     .from("booking_session_types")
-    .select("duration_minutes,buffer_minutes,min_notice_hours")
+    .select("name,duration_minutes,buffer_minutes,min_notice_hours,requires_approval")
     .eq("id", sessionTypeId)
     .eq("trader_id", traderId)
     .eq("is_active", true)
@@ -90,5 +102,33 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: "Could not create booking." }, { status: 500 });
+
+  // Notify mentor members when session type requires approval
+  if (st.requires_approval && booking) {
+    const admin = createAdminClient();
+    if (admin) {
+      const { data: members } = await admin
+        .from("trader_members")
+        .select("user_id")
+        .eq("trader_id", traderId);
+
+      if (members) {
+        const dateStr = formatDateShort(startsAt);
+        await Promise.all(
+          members.map((m) =>
+            createNotification({
+              userId: m.user_id,
+              traderId,
+              bookingId: booking.id,
+              type: "booking_request",
+              title: "New booking request",
+              body: `A student has requested a "${st.name}" session on ${dateStr}.`,
+            }),
+          ),
+        );
+      }
+    }
+  }
+
   return NextResponse.json(booking, { status: 201 });
 }

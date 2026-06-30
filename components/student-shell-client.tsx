@@ -17,6 +17,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
 import styles from "./student-shell.module.css";
 
 interface StudentShellClientProps {
@@ -142,9 +143,10 @@ export function StudentShellClient({
         </nav>
 
         <div className={styles.bottom}>
-          <div className={styles.userRow} aria-hidden="true">
-            <span className={styles.userAvatar}>{avatarLetter}</span>
-            <span className={styles.userName}>{displayName}</span>
+          <div className={styles.userRow}>
+            <span className={styles.userAvatar} aria-hidden="true">{avatarLetter}</span>
+            <span className={styles.userName} aria-hidden="true">{displayName}</span>
+            <NotificationBell />
           </div>
           <form action="/auth/signout" method="post">
             <button className={styles.signoutBtn} type="submit">

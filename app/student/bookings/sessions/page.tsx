@@ -70,7 +70,7 @@ export default async function StudentSessionsPage({
   const { data: bookings } = await supabase
     .from("bookings")
     .select(
-      "id,trader_id,session_type_id,starts_at,ends_at,status,student_notes,cancellation_reason,live_class_id,session_type:booking_session_types!session_type_id(name,duration_minutes,cancellation_hours)",
+      "id,trader_id,session_type_id,starts_at,ends_at,status,student_notes,mentor_notes,cancellation_reason,live_class_id,session_type:booking_session_types!session_type_id(name,duration_minutes,cancellation_hours)",
     )
     .eq("student_user_id", user.id)
     .order("starts_at", { ascending: false })
@@ -80,7 +80,9 @@ export default async function StudentSessionsPage({
     <Shell>
       <StudentSessionsList
         academyName={academyName}
+        basePath={base}
         bookings={bookings ?? []}
+        querySuffix={suffix}
       />
     </Shell>
   );

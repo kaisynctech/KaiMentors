@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  Bell,
   BookOpen,
   Building2,
   CalendarCheck,
@@ -23,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
+import { NotificationBell } from "@/components/notification-bell";
 import styles from "./dashboard-shell.module.css";
 
 interface DashboardShellProps {
@@ -192,9 +192,7 @@ export function DashboardShell({
             <h1>{title}</h1>
             <p>{description}</p>
           </div>
-          <button className="button button-secondary" type="button">
-            <Bell size={17} /> Updates
-          </button>
+          <NotificationBell />
         </div>
         {children}
       </main>
