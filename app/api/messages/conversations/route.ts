@@ -8,6 +8,10 @@ const conversationSchema = z.discriminatedUnion("type", [
     applicationId: z.string().uuid(),
   }),
   z.object({
+    type: z.literal("student_direct"),
+    applicationId: z.string().uuid(),
+  }),
+  z.object({
     type: z.literal("announcement"),
     title: z.string().trim().min(2).max(160),
   }),
@@ -43,9 +47,13 @@ export async function POST(request: Request) {
       ? await supabase.rpc("create_direct_conversation", {
           target_application_id: parsed.data.applicationId,
         })
-      : await supabase.rpc("create_announcement_conversation", {
-          target_title: parsed.data.title,
-        });
+      : parsed.data.type === "student_direct"
+        ? await supabase.rpc("create_student_conversation", {
+            target_application_id: parsed.data.applicationId,
+          })
+        : await supabase.rpc("create_announcement_conversation", {
+            target_title: parsed.data.title,
+          });
 
   if (result.error) {
     return NextResponse.json(

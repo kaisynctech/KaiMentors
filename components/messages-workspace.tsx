@@ -35,6 +35,7 @@ export function MessagesWorkspace({
   traderId,
   mode,
   initialConversationId,
+  studentApplicationId,
 }: {
   conversations: ConversationSummary[];
   students: CommunityStudent[];
@@ -42,6 +43,7 @@ export function MessagesWorkspace({
   traderId: string;
   mode: "mentor" | "student";
   initialConversationId?: string;
+  studentApplicationId?: string;
 }) {
   const router = useRouter();
   const [conversationRows, setConversationRows] = useState(conversations);
@@ -175,14 +177,9 @@ export function MessagesWorkspace({
     const formData = new FormData(event.currentTarget);
     const payload =
       createMode === "direct"
-        ? {
-            type: "direct",
-            applicationId: formData.get("applicationId"),
-          }
-        : {
-            type: "announcement",
-            title: formData.get("title"),
-          };
+        ? { type: "direct", applicationId: formData.get("applicationId") }
+        : { type: "announcement", title: formData.get("title") };
+
     const response = await fetch("/api/messages/conversations", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -194,8 +191,59 @@ export function MessagesWorkspace({
       setError(result.error ?? "The conversation could not be created.");
       return;
     }
+
+    // Build a local summary so the new conversation is immediately selectable.
+    const newTitle =
+      createMode === "direct"
+        ? (students.find((s) => s.applicationId === formData.get("applicationId"))
+            ?.fullName ?? "Student")
+        : String(formData.get("title"));
+
+    const newConversation: ConversationSummary = {
+      id: result.conversationId,
+      type: createMode,
+      title: newTitle,
+      lastMessageAt: null,
+      lastMessage: null,
+      unread: false,
+    };
+
+    setConversationRows((prev) => [newConversation, ...prev]);
     setCreateMode(null);
-    router.refresh();
+    setActiveId(result.conversationId);
+    // No router.refresh() — local state is the source of truth until next page load.
+  }
+
+  async function startMentorConversation() {
+    if (!studentApplicationId) return;
+    setCreating(true);
+    setError("");
+    const response = await fetch("/api/messages/conversations", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: "student_direct", applicationId: studentApplicationId }),
+    });
+    const result = await response.json();
+    setCreating(false);
+    if (!response.ok) {
+      setError(result.error ?? "Could not start a conversation.");
+      return;
+    }
+    // If a conversation already existed the RPC returns its ID — add it if not present.
+    setConversationRows((prev) => {
+      if (prev.some((c) => c.id === result.conversationId)) return prev;
+      return [
+        {
+          id: result.conversationId,
+          type: "direct" as const,
+          title: "Academy support",
+          lastMessageAt: null,
+          lastMessage: null,
+          unread: false,
+        },
+        ...prev,
+      ];
+    });
     setActiveId(result.conversationId);
   }
 
@@ -251,6 +299,17 @@ export function MessagesWorkspace({
             type="button"
           >
             <Bell size={15} /> New announcement channel
+          </button>
+        ) : null}
+        {mode === "student" && studentApplicationId && !conversationRows.some((c) => c.type === "direct") ? (
+          <button
+            className={styles.announcementButton}
+            disabled={creating}
+            onClick={startMentorConversation}
+            type="button"
+          >
+            {creating ? <Loader2 className={styles.spin} size={15} /> : <MessageCircle size={15} />}
+            Message your mentor
           </button>
         ) : null}
         <div className={styles.conversations}>

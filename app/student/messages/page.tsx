@@ -114,6 +114,7 @@ export default async function StudentMessagesPage({
         <MessagesWorkspace
           conversations={conversations}
           mode="student"
+          studentApplicationId={application.id}
           students={[]}
           traderId={application.trader_id}
           userId={user.id}
