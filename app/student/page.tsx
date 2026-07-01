@@ -1,9 +1,11 @@
 import {
   AlertCircle,
   BookOpen,
+  CalendarCheck,
   CheckCircle2,
   Clock3,
   ExternalLink,
+  MessageSquare,
   Video,
 } from "lucide-react";
 import Image from "next/image";
@@ -101,10 +103,17 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     published_at: string | null;
   }> = [];
   let courseCount = 0;
+  let nextSession: {
+    id: string;
+    starts_at: string;
+    ends_at: string | null;
+    status: string;
+    session_type: { name: string; duration_minutes: number } | null;
+  } | null = null;
 
   if (isVerified) {
     const now = new Date().toISOString();
-    const [progressResult, liveResult, announcementsResult, coursesResult] =
+    const [progressResult, liveResult, announcementsResult, coursesResult, sessionResult] =
       await Promise.all([
         supabase
           .from("lesson_progress")
@@ -137,6 +146,18 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           .select("id", { count: "exact", head: true })
           .eq("trader_id", application.trader_id)
           .eq("status", "published"),
+        supabase
+          .from("bookings")
+          .select(
+            "id,starts_at,ends_at,status,session_type:booking_session_types!session_type_id(name,duration_minutes)",
+          )
+          .eq("student_user_id", user.id)
+          .eq("trader_id", application.trader_id)
+          .in("status", ["confirmed", "pending"])
+          .gte("starts_at", now)
+          .order("starts_at")
+          .limit(1)
+          .maybeSingle(),
       ]);
 
     lessonProgress = (progressResult.data ?? []) as unknown as typeof lessonProgress;
@@ -150,6 +171,13 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     } | null;
     announcements = announcementsResult.data ?? [];
     courseCount = coursesResult.count ?? 0;
+    nextSession = sessionResult.data as {
+      id: string;
+      starts_at: string;
+      ends_at: string | null;
+      status: string;
+      session_type: { name: string; duration_minutes: number } | null;
+    } | null;
   }
 
   const continueLearning = lessonProgress.find(
@@ -226,6 +254,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       isVerified={isVerified}
       logoPath={portal?.logo_path ?? null}
       querySuffix={querySuffix}
+      traderId={application.trader_id}
     >
       <div className={styles.dashboard}>
         <div className={styles.pageHeader}>
@@ -261,6 +290,31 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 <p className={styles.statValue}>{announcements.length}</p>
                 <p className={styles.statLabel}>Announcements</p>
               </div>
+            </div>
+
+            {/* Quick actions */}
+            <div className={styles.quickActions}>
+              <Link
+                className={styles.quickAction}
+                href={`${basePath}/bookings${querySuffix}`}
+              >
+                <CalendarCheck size={20} />
+                <span>Book a session</span>
+              </Link>
+              <Link
+                className={styles.quickAction}
+                href={`${basePath}/messages${querySuffix}`}
+              >
+                <MessageSquare size={20} />
+                <span>Messages</span>
+              </Link>
+              <Link
+                className={styles.quickAction}
+                href={`${basePath}/live-classes${querySuffix}`}
+              >
+                <Video size={20} />
+                <span>Live classes</span>
+              </Link>
             </div>
 
             {/* Continue learning */}
@@ -311,6 +365,58 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                     </p>
                   </div>
                 </Link>
+              </section>
+            ) : null}
+
+            {/* Upcoming session */}
+            {nextSession ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <h2>Upcoming session</h2>
+                  <Link
+                    className={styles.sectionLink}
+                    href={`${basePath}/bookings/sessions${querySuffix}`}
+                  >
+                    All sessions →
+                  </Link>
+                </div>
+                <div className={styles.liveCard}>
+                  <div className={styles.liveTimeBadge}>
+                    <span className={styles.liveTimeDay}>
+                      {new Date(nextSession.starts_at).toLocaleDateString(
+                        undefined,
+                        { weekday: "short" },
+                      )}
+                    </span>
+                    <span className={styles.liveTimeHour}>
+                      {new Date(nextSession.starts_at).toLocaleTimeString(
+                        undefined,
+                        { hour: "2-digit", minute: "2-digit", hour12: false },
+                      )}
+                    </span>
+                  </div>
+                  <div className={styles.liveBody}>
+                    <p className={styles.liveTitle}>
+                      {nextSession.session_type?.name ?? "Session"}
+                    </p>
+                    <p className={styles.liveMeta}>
+                      {new Date(nextSession.starts_at).toLocaleDateString(
+                        undefined,
+                        { dateStyle: "long" },
+                      )}
+                      {nextSession.session_type?.duration_minutes
+                        ? ` · ${nextSession.session_type.duration_minutes} min`
+                        : ""}
+                      {" · "}
+                      <span
+                        className={styles.sessionStatusBadge}
+                        data-status={nextSession.status}
+                      >
+                        {nextSession.status}
+                      </span>
+                    </p>
+                  </div>
+                </div>
               </section>
             ) : null}
 

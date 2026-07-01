@@ -17,6 +17,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
 import styles from "./student-shell.module.css";
 
@@ -27,6 +28,7 @@ interface StudentShellClientProps {
   basePath: string;
   querySuffix: string;
   displayName: string;
+  traderId?: string;
   children: React.ReactNode;
 }
 
@@ -44,6 +46,7 @@ export function StudentShellClient({
   basePath,
   querySuffix,
   displayName,
+  traderId,
   children,
 }: StudentShellClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -137,6 +140,11 @@ export function StudentShellClient({
               {item.label}
               {item.locked ? (
                 <LockKeyhole className={styles.lockIcon} size={13} />
+              ) : item.label === "Messages" && isVerified && traderId ? (
+                <MessagesUnreadDot
+                  apiPath={`/api/student/messages/unread?traderId=${traderId}`}
+                  traderId={traderId}
+                />
               ) : null}
             </Link>
           ))}

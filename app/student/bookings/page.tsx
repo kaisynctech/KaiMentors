@@ -53,6 +53,7 @@ export default async function StudentBookingsPage({
         isVerified={isVerified}
         logoPath={portal?.logo_path ?? null}
         querySuffix={suffix}
+        traderId={app?.trader_id}
       >
         {children}
       </StudentShell>

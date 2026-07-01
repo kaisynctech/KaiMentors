@@ -59,6 +59,7 @@ export default async function StudentCoursesPage({
         isVerified={isVerified}
         logoPath={portal?.logo_path ?? null}
         querySuffix={suffix}
+        traderId={app?.trader_id}
       >
         {children}
       </StudentShell>

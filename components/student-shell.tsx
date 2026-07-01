@@ -8,6 +8,7 @@ interface StudentShellProps {
   basePath: string;
   querySuffix: string;
   displayName: string;
+  traderId?: string;
   children: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export async function StudentShell({
   basePath,
   querySuffix,
   displayName,
+  traderId,
   children,
 }: StudentShellProps) {
   let logoUrl: string | null = null;
@@ -39,6 +41,7 @@ export async function StudentShell({
       isVerified={isVerified}
       logoUrl={logoUrl}
       querySuffix={querySuffix}
+      traderId={traderId}
     >
       {children}
     </StudentShellClient>

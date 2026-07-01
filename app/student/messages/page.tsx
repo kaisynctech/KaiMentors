@@ -69,6 +69,7 @@ export default async function StudentMessagesPage({
         isVerified={isVerified}
         logoPath={portal?.logo_path ?? null}
         querySuffix={suffix}
+        traderId={application?.trader_id}
       >
         {children}
       </StudentShell>
