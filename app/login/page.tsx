@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
@@ -35,7 +36,16 @@ export default async function LoginPage() {
             your branded portal.
           </p>
         </div>
-        <small>Secure multi-tenant infrastructure powered by Supabase.</small>
+        <div className={styles.partnerBadge}>
+          <Image
+            alt="XM Global"
+            height={16}
+            src="/images/xm-global-logo.svg"
+            unoptimized
+            width={54}
+          />
+          <span>Partnered with XM Global</span>
+        </div>
       </section>
       <section className={styles.content}>
         <div className={styles.card}>

@@ -76,6 +76,16 @@ export function AcademyLoginPage({
             <p className={styles.footerNote}>
               Secure academy access powered by KaiMentors.
             </p>
+            <div className={styles.partnerBadge}>
+              <Image
+                alt="XM Global"
+                height={18}
+                src="/images/xm-global-logo.svg"
+                unoptimized
+                width={60}
+              />
+              <span>Partnered with XM Global</span>
+            </div>
           </section>
       </section>
     </main>

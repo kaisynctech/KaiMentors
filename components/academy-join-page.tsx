@@ -66,6 +66,16 @@ export function AcademyJoinPage({
               primaryColor={data.portal.primary_color}
               studentDestination={studentPortalPath}
             />
+            <div className={styles.partnerBadge}>
+              <Image
+                alt="XM Global"
+                height={18}
+                src="/images/xm-global-logo.svg"
+                unoptimized
+                width={60}
+              />
+              <span>Partnered with XM Global</span>
+            </div>
           </section>
       </section>
     </main>

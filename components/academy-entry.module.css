@@ -108,6 +108,28 @@
   margin-top: 18px;
 }
 
+/* XM Global partner badge */
+.partnerBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(17, 19, 21, 0.08);
+  color: #7a8594;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.partnerBadge img {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
 @media (max-width: 860px) {
   .shell {
     padding: 18px;

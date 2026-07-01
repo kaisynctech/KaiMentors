@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 72" fill="none">
+  <!-- Red triangle accent -->
+  <path d="M0 14 L15 36 L0 58 Z" fill="#CC0000"/>
+
+  <!-- X -->
+  <path d="M22 14 L38 14 L78 58 L62 58 Z" fill="#111314"/>
+  <path d="M78 14 L62 14 L22 58 L38 58 Z" fill="#111314"/>
+
+  <!-- M: left bar, left diagonal, right diagonal, right bar -->
+  <path d="M88 14 L102 14 L102 58 L88 58 Z" fill="#111314"/>
+  <path d="M102 14 L116 14 L134 50 L120 58 Z" fill="#111314"/>
+  <path d="M134 50 L148 58 L166 14 L152 14 Z" fill="#111314"/>
+  <path d="M166 14 L180 14 L180 58 L166 58 Z" fill="#111314"/>
+</svg>

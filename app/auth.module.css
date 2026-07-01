@@ -74,6 +74,25 @@
   font-weight: 800;
 }
 
+/* XM Global partner badge */
+.partnerBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #757d83;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.partnerBadge img {
+  height: 16px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.75;
+}
+
 @media (max-width: 880px) {
   .page {
     grid-template-columns: 1fr;
