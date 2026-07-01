@@ -63,6 +63,10 @@ export function MessagesWorkspace({
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const conversationRowsRef = useRef(conversationRows);
+  useEffect(() => {
+    conversationRowsRef.current = conversationRows;
+  }, [conversationRows]);
 
   const activeConversation =
     conversationRows.find((conversation) => conversation.id === activeId) ??
@@ -120,23 +124,56 @@ export function MessagesWorkspace({
           table: "messages",
           filter: `trader_id=eq.${traderId}`,
         },
-        (payload) => {
+        async (payload) => {
           const conversationId = String(payload.new.conversation_id);
+
           if (conversationId === activeId) {
             void loadMessages(conversationId);
-          } else {
+            return;
+          }
+
+          const known = conversationRowsRef.current.some(
+            (c) => c.id === conversationId,
+          );
+
+          if (known) {
             setConversationRows((current) =>
-              current.map((conversation) =>
-                conversation.id === conversationId
+              current.map((c) =>
+                c.id === conversationId
                   ? {
-                      ...conversation,
+                      ...c,
                       lastMessage: String(payload.new.body),
                       lastMessageAt: String(payload.new.created_at),
                       unread: true,
                     }
-                  : conversation,
+                  : c,
               ),
             );
+          } else {
+            // Unknown conversation — fetch it and prepend to list.
+            const { data } = await supabase
+              .from("conversations")
+              .select("id, type, title, last_message_at, last_message_preview")
+              .eq("id", conversationId)
+              .maybeSingle();
+
+            if (data) {
+              setConversationRows((current) => {
+                if (current.some((c) => c.id === data.id)) return current;
+                return [
+                  {
+                    id: data.id,
+                    type: data.type as ConversationSummary["type"],
+                    title: data.title ?? "Conversation",
+                    lastMessageAt: data.last_message_at ?? null,
+                    lastMessage:
+                      data.last_message_preview ?? String(payload.new.body),
+                    unread: true,
+                  },
+                  ...current,
+                ];
+              });
+            }
           }
         },
       )
