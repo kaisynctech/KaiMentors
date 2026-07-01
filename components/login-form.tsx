@@ -49,12 +49,8 @@ export function LoginForm({
         .single();
 
       if (academyContext) {
-        if (profile?.role === "super_admin") {
-          await supabase.auth.signOut();
-          throw new Error("Platform admin accounts cannot use academy login.");
-        }
-
-        // Mentor of this academy (trader_members row) takes priority.
+        // Mentor/owner check runs first — a super_admin who owns this workspace
+        // must be routed to the mentor dashboard, not blocked.
         const { data: membership } = await supabase
           .from("trader_members")
           .select("id")
@@ -62,12 +58,16 @@ export function LoginForm({
           .eq("trader_id", academyContext.traderId)
           .maybeSingle();
         if (membership) {
-          // Stamp the portal's workspace as active before navigating
-          const secure =
-            window.location.protocol === "https:" ? "; Secure" : "";
+          const secure = window.location.protocol === "https:" ? "; Secure" : "";
           document.cookie = `km_workspace=${academyContext.traderId}; path=/; max-age=2592000; SameSite=Lax${secure}`;
           window.location.href = academyContext.mentorDestination;
           return;
+        }
+
+        // No membership — block super_admin from going further.
+        if (profile?.role === "super_admin") {
+          await supabase.auth.signOut();
+          throw new Error("Platform admin accounts cannot use academy login.");
         }
 
         // Student at this academy.
