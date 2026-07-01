@@ -48,6 +48,7 @@ export default async function TraderDashboard() {
       description="Monitor student access and keep your academy moving."
       title="Overview"
       userLabel={displayName}
+      traderId={traderId ?? undefined}
     >
       <section className={styles.metrics}>
         <MetricCard icon={Users} label="Total students" note="All applications" value={stats.students} />

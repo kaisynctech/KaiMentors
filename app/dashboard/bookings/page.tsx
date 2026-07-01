@@ -72,6 +72,7 @@ export default async function BookingsPage() {
       description="Manage session types, availability, and student bookings."
       title="Bookings"
       userLabel={displayName}
+      traderId={traderId}
     >
       <BookingSessionTypeManager
         bookings={bookings ?? []}

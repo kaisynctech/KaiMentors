@@ -57,9 +57,10 @@ export function MessagesWorkspace({
   const [sending, setSending] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createMode, setCreateMode] = useState<
-    "direct" | "announcement" | null
+    "direct" | "announcement" | "group" | null
   >(null);
   const [search, setSearch] = useState("");
+  const [threadSearch, setThreadSearch] = useState("");
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -80,6 +81,14 @@ export function MessagesWorkspace({
         .includes(query),
     );
   }, [conversationRows, search]);
+
+  const visibleMessages = useMemo(() => {
+    const query = threadSearch.trim().toLowerCase();
+    if (!query) return messages;
+    return messages.filter((message) =>
+      message.body.toLowerCase().includes(query),
+    );
+  }, [messages, threadSearch]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setLoading(true);
@@ -105,11 +114,25 @@ export function MessagesWorkspace({
     requestAnimationFrame(() =>
       bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
     );
+    void fetch("/api/messages/unread", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ conversationId }),
+    }).catch(() => undefined);
   }, []);
 
   useEffect(() => {
+    setThreadSearch("");
     if (activeId) void loadMessages(activeId);
     else setMessages([]);
+  }, [activeId, loadMessages]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    const interval = setInterval(() => {
+      void loadMessages(activeId);
+    }, 30_000);
+    return () => clearInterval(interval);
   }, [activeId, loadMessages]);
 
   useEffect(() => {
@@ -215,7 +238,13 @@ export function MessagesWorkspace({
     const payload =
       createMode === "direct"
         ? { type: "direct", applicationId: formData.get("applicationId") }
-        : { type: "announcement", title: formData.get("title") };
+        : createMode === "group"
+          ? {
+              type: "group",
+              title: formData.get("title"),
+              applicationIds: formData.getAll("applicationIds[]"),
+            }
+          : { type: "announcement", title: formData.get("title") };
 
     const response = await fetch("/api/messages/conversations", {
       method: "POST",
@@ -338,6 +367,15 @@ export function MessagesWorkspace({
             <Bell size={15} /> New announcement channel
           </button>
         ) : null}
+        {mode === "mentor" ? (
+          <button
+            className={styles.announcementButton}
+            onClick={() => setCreateMode("group")}
+            type="button"
+          >
+            <UsersRound size={15} /> New group conversation
+          </button>
+        ) : null}
         {mode === "student" && studentApplicationId && !conversationRows.some((c) => c.type === "direct") ? (
           <button
             className={styles.announcementButton}
@@ -409,13 +447,23 @@ export function MessagesWorkspace({
                   : "Private academy conversation"}
               </small>
             </header>
+            <div className={styles.threadSearch}>
+              <Search size={14} />
+              <input
+                aria-label="Search messages"
+                onChange={(event) => setThreadSearch(event.target.value)}
+                placeholder="Search messages…"
+                type="search"
+                value={threadSearch}
+              />
+            </div>
             <div className={styles.messageList}>
               {loading ? (
                 <div className={styles.loading}>
                   <Loader2 className={styles.spin} size={24} />
                 </div>
-              ) : messages.length ? (
-                messages.map((message) => {
+              ) : visibleMessages.length ? (
+                visibleMessages.map((message) => {
                   const own = message.senderUserId === userId;
                   return (
                     <article
@@ -510,7 +558,9 @@ export function MessagesWorkspace({
                 <h2>
                   {createMode === "direct"
                     ? "Message a student"
-                    : "Create announcement channel"}
+                    : createMode === "group"
+                      ? "Create group conversation"
+                      : "Create announcement channel"}
                 </h2>
               </div>
               <button
@@ -537,6 +587,38 @@ export function MessagesWorkspace({
                   ))}
                 </select>
               </label>
+            ) : createMode === "group" ? (
+              <>
+                <label>
+                  Group name
+                  <input
+                    maxLength={160}
+                    name="title"
+                    placeholder="Study Group A"
+                    required
+                  />
+                </label>
+                <label>
+                  Add students
+                  <select
+                    multiple
+                    name="applicationIds[]"
+                    required
+                    size={Math.min(students.length || 4, 6)}
+                  >
+                    {students.map((student) => (
+                      <option
+                        key={student.applicationId}
+                        value={student.applicationId}
+                      >
+                        {student.fullName}
+                        {student.email ? ` — ${student.email}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <small>Hold Ctrl / Cmd to select multiple</small>
+                </label>
+              </>
             ) : (
               <label>
                 Channel name

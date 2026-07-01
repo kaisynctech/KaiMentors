@@ -26,6 +26,7 @@ export default async function MentorMessagesPage({
       description="Direct, group, and announcement communication for your academy."
       title="Messages"
       userLabel={displayName}
+      traderId={traderId}
     >
       <MessagesWorkspace
         conversations={conversations}

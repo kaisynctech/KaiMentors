@@ -12,6 +12,11 @@ const conversationSchema = z.discriminatedUnion("type", [
     applicationId: z.string().uuid(),
   }),
   z.object({
+    type: z.literal("group"),
+    title: z.string().trim().min(2).max(160),
+    applicationIds: z.array(z.string().uuid()).min(1),
+  }),
+  z.object({
     type: z.literal("announcement"),
     title: z.string().trim().min(2).max(160),
   }),
@@ -51,9 +56,14 @@ export async function POST(request: Request) {
         ? await supabase.rpc("create_student_conversation", {
             target_application_id: parsed.data.applicationId,
           })
-        : await supabase.rpc("create_announcement_conversation", {
-            target_title: parsed.data.title,
-          });
+        : parsed.data.type === "group"
+          ? await supabase.rpc("create_group_conversation", {
+              target_title: parsed.data.title,
+              target_application_ids: parsed.data.applicationIds,
+            })
+          : await supabase.rpc("create_announcement_conversation", {
+              target_title: parsed.data.title,
+            });
 
   if (result.error) {
     return NextResponse.json(

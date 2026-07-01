@@ -34,6 +34,7 @@ export default async function BrokerAccountsPage() {
       description="Connect multiple partner accounts and choose how students are verified."
       title="Broker accounts"
       userLabel={displayName}
+      traderId={traderId}
     >
       <BrokerAccountsManager accounts={accounts} />
     </DashboardShell>

@@ -249,6 +249,7 @@ export default async function StudentsPage({
       description="Review broker evidence and control access to your private academy."
       title="Students"
       userLabel={displayName}
+      traderId={traderId}
     >
       <section className={styles.metrics}>
         <MetricCard

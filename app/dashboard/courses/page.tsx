@@ -74,6 +74,7 @@ export default async function CoursesPage() {
       description="Create, publish, and organize video learning experiences."
       title="Courses"
       userLabel={displayName}
+      traderId={traderId}
     >
       <CourseManager courses={courses} stats={stats} />
     </DashboardShell>

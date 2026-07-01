@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
+import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import styles from "./dashboard-shell.module.css";
@@ -33,6 +34,7 @@ interface DashboardShellProps {
   mode?: "trader" | "admin";
   userLabel?: string;
   activePath?: string;
+  traderId?: string;
 }
 
 const traderNavigation = [
@@ -70,6 +72,7 @@ export function DashboardShell({
   mode = "trader",
   userLabel = "Account",
   activePath,
+  traderId,
 }: DashboardShellProps) {
   const navigation = mode === "admin" ? adminNavigation : traderNavigation;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -105,6 +108,9 @@ export function DashboardShell({
       >
         <Icon size={18} />
         {label}
+        {href === "/dashboard/messages" ? (
+          <MessagesUnreadDot traderId={traderId} />
+        ) : null}
       </Link>
     ));
   }

@@ -22,6 +22,7 @@ export default async function LiveClassesPage() {
       description="Schedule and manage live sessions for your students."
       title="Live Classes"
       userLabel={displayName}
+      traderId={traderId}
     >
       <LiveClassManager classes={classes ?? []} />
     </DashboardShell>

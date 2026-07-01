@@ -164,6 +164,7 @@ export default async function CourseDetailPage({
       description="Manage structured curriculum, protected media, access, and learner progress."
       title={course.title}
       userLabel={displayName}
+      traderId={tid}
     >
       <CourseDetailManager
         course={{ ...course, thumbnailUrl }}

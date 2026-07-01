@@ -60,6 +60,7 @@ export default async function StudentGroupsPage() {
       description="Organize cohorts, service levels, and private learning audiences."
       title="Student Groups"
       userLabel={displayName}
+      traderId={traderId}
     >
       <StudentGroupManager groups={groups} students={students} />
     </DashboardShell>
