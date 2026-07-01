@@ -1,4 +1,5 @@
 import "server-only";
+import { getMentorWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
 
 export async function requireCourseUser() {
@@ -10,17 +11,9 @@ export async function requireCourseUser() {
 }
 
 export async function requireMentorCourseContext() {
-  const auth = await requireCourseUser();
-  if (!auth.ok) return auth;
-  const { data: membership } = await auth.supabase
-    .from("trader_members")
-    .select("trader_id,role")
-    .eq("user_id", auth.user.id)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  if (!membership) return { ok: false, error: "Mentor workspace not found.", status: 403 } as const;
-  return { ok: true, supabase: auth.supabase, user: auth.user, traderId: membership.trader_id, memberRole: membership.role } as const;
+  const workspace = await getMentorWorkspace();
+  if (!workspace) return { ok: false, error: "Mentor workspace not found.", status: 403 } as const;
+  return { ok: true, supabase: workspace.supabase, user: workspace.user, traderId: workspace.traderId, memberRole: workspace.role } as const;
 }
 
 export const COURSE_MEDIA_RULES = {

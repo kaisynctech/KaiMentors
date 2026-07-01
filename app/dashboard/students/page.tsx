@@ -12,7 +12,7 @@ import {
   type StudentApplicationRow,
   type StudentTab,
 } from "@/lib/students";
-import { createClient } from "@/lib/supabase/server";
+import { getMentorWorkspace } from "@/lib/workspace";
 import styles from "./students.module.css";
 
 const validTabs = new Set<StudentTab>([
@@ -80,24 +80,9 @@ export default async function StudentsPage({
     ? requestedPageSize
     : 25;
 
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: membership } = await supabase
-    .from("trader_members")
-    .select("trader_id,trader:traders(display_name)")
-    .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  if (!membership) redirect("/dashboard");
-
-  const traderId = membership.trader_id;
+  const workspace = await getMentorWorkspace();
+  if (!workspace) redirect("/login");
+  const { supabase, traderId, displayName } = workspace;
   const statuses =
     tab === "all" ? null : studentTabStatuses[tab as Exclude<StudentTab, "all">];
 
@@ -250,9 +235,6 @@ export default async function StudentsPage({
     new Map(brokers.map((broker) => [broker.id, broker])).values(),
   );
 
-  const trader = Array.isArray(membership.trader)
-    ? membership.trader[0]
-    : membership.trader;
   const counts = {
     total: total.count ?? 0,
     verified: verified.count ?? 0,
@@ -266,7 +248,7 @@ export default async function StudentsPage({
       activePath="/dashboard/students"
       description="Review broker evidence and control access to your private academy."
       title="Students"
-      userLabel={trader?.display_name ?? "Mentor workspace"}
+      userLabel={displayName}
     >
       <section className={styles.metrics}>
         <MetricCard

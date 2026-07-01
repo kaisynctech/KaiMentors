@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,5 +25,7 @@ export async function GET() {
       : ((m.trader as { display_name: string } | null)?.display_name ?? "Workspace"),
   }));
 
-  return NextResponse.json({ workspaces });
+  const cookieStore = await cookies();
+  const activeId = cookieStore.get("km_workspace")?.value ?? null;
+  return NextResponse.json({ workspaces, activeId });
 }

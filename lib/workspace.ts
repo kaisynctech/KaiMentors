@@ -14,7 +14,7 @@ export async function getMentorWorkspace() {
 
   const { data: memberships } = await supabase
     .from("trader_members")
-    .select("trader_id, role, trader:traders(display_name)")
+    .select("trader_id, role, trader:traders(display_name, timezone)")
     .eq("user_id", user.id)
     .order("created_at");
 
@@ -34,11 +34,18 @@ export async function getMentorWorkspace() {
     .maybeSingle();
   if (!portal) return null;
 
+  const trader = Array.isArray(membership.trader)
+    ? membership.trader[0]
+    : (membership.trader as { display_name: string; timezone?: string } | null);
+
   return {
     supabase,
     user: user as User,
     membership,
     portal,
     traderId: membership.trader_id,
+    role: membership.role as "owner" | "mentor",
+    displayName: trader?.display_name ?? "Mentor workspace",
+    timezone: trader?.timezone ?? "UTC",
   };
 }

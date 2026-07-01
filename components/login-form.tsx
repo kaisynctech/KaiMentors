@@ -58,8 +58,11 @@ export function LoginForm({
           .eq("trader_id", academyContext.traderId)
           .maybeSingle();
         if (membership) {
-          const secure = window.location.protocol === "https:" ? "; Secure" : "";
-          document.cookie = `km_workspace=${academyContext.traderId}; path=/; max-age=2592000; SameSite=Lax${secure}`;
+          await fetch("/api/workspace/activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ traderId: academyContext.traderId }),
+          });
           window.location.href = academyContext.mentorDestination;
           return;
         }

@@ -5,24 +5,12 @@ import type {
   CommunityStudent,
   StudentGroupSummary,
 } from "@/lib/community";
-import { createClient } from "@/lib/supabase/server";
+import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function StudentGroupsPage() {
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: membership } = await supabase
-    .from("trader_members")
-    .select("trader_id,trader:traders(display_name)")
-    .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  if (!membership) redirect("/dashboard");
+  const workspace = await getMentorWorkspace();
+  if (!workspace) redirect("/login");
+  const { supabase, traderId, displayName } = workspace;
 
   const [{ data: groupRows }, { data: applicationRows }] = await Promise.all([
     supabase
@@ -30,7 +18,7 @@ export default async function StudentGroupsPage() {
       .select(
         "id,name,description,color,is_active,system_key,members:student_group_members(application_id),conversations(id)",
       )
-      .eq("trader_id", membership.trader_id)
+      .eq("trader_id", traderId)
       .order("system_key", { ascending: false })
       .order("created_at"),
     supabase
@@ -38,7 +26,7 @@ export default async function StudentGroupsPage() {
       .select(
         "id,student_user_id,profile:profiles!student_user_id(full_name,email)",
       )
-      .eq("trader_id", membership.trader_id)
+      .eq("trader_id", traderId)
       .eq("status", "verified")
       .order("submitted_at", { ascending: false }),
   ]);
@@ -66,16 +54,12 @@ export default async function StudentGroupsPage() {
       };
     },
   );
-  const trader = Array.isArray(membership.trader)
-    ? membership.trader[0]
-    : membership.trader;
-
   return (
     <DashboardShell
       activePath="/dashboard/groups"
       description="Organize cohorts, service levels, and private learning audiences."
       title="Student Groups"
-      userLabel={trader?.display_name ?? "Mentor workspace"}
+      userLabel={displayName}
     >
       <StudentGroupManager groups={groups} students={students} />
     </DashboardShell>

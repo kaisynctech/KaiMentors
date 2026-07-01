@@ -2,15 +2,16 @@ import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock3, Users } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MetricCard } from "@/components/metric-card";
-import { createClient } from "@/lib/supabase/server";
+import { getMentorWorkspace } from "@/lib/workspace";
 import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function TraderDashboard() {
-  const supabase = await createClient();
-  let traderId: string | null = null;
-  let traderName = "Mentor workspace";
+  const workspace = await getMentorWorkspace();
+  const supabase = workspace?.supabase ?? null;
+  const traderId: string | null = workspace?.traderId ?? null;
+  const displayName = workspace?.displayName ?? "Mentor workspace";
   let stats = { students: 0, verified: 0, pending: 0, courses: 0 };
   let recent: Array<{
     id: string;
@@ -18,22 +19,6 @@ export default async function TraderDashboard() {
     submitted_at: string;
     profile: { full_name: string; email: string | null } | null;
   }> = [];
-
-  if (supabase) {
-    const { data: userData } = await supabase.auth.getUser();
-    if (userData.user) {
-      const { data: membership } = await supabase
-        .from("trader_members")
-        .select("trader_id,trader:traders(display_name)")
-        .eq("user_id", userData.user.id)
-        .maybeSingle();
-      traderId = membership?.trader_id ?? null;
-      const trader = Array.isArray(membership?.trader)
-        ? membership.trader[0]
-        : membership?.trader;
-      traderName = trader?.display_name ?? traderName;
-    }
-  }
 
   if (supabase && traderId) {
     const [students, verified, pending, courses, applications] = await Promise.all([
@@ -62,7 +47,7 @@ export default async function TraderDashboard() {
     <DashboardShell
       description="Monitor student access and keep your academy moving."
       title="Overview"
-      userLabel={traderName}
+      userLabel={displayName}
     >
       <section className={styles.metrics}>
         <MetricCard icon={Users} label="Total students" note="All applications" value={stats.students} />

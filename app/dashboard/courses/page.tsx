@@ -1,37 +1,24 @@
 import { redirect } from "next/navigation";
 import { CourseManager } from "@/components/course-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { createClient } from "@/lib/supabase/server";
+import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function CoursesPage() {
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: membership } = await supabase
-    .from("trader_members")
-    .select("trader_id,trader:traders(display_name)")
-    .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  if (!membership) redirect("/dashboard");
+  const workspace = await getMentorWorkspace();
+  if (!workspace) redirect("/login");
+  const { supabase, traderId, displayName } = workspace;
 
   const [{ data: courseData }, { data: progressData }] = await Promise.all([
     supabase
       .from("courses")
       .select("id,title,description,status,sort_order,cover_path,course_modules(count),lessons(id,status)")
-      .eq("trader_id", membership.trader_id)
+      .eq("trader_id", traderId)
       .order("sort_order")
       .order("created_at", { ascending: false }),
     supabase
       .from("lesson_progress")
       .select("course_id,student_user_id")
-      .eq("trader_id", membership.trader_id),
+      .eq("trader_id", traderId),
   ]);
 
   const allProgress = progressData ?? [];
@@ -81,16 +68,12 @@ export default async function CoursesPage() {
     activeLearners,
   };
 
-  const trader = Array.isArray(membership.trader)
-    ? membership.trader[0]
-    : membership.trader;
-
   return (
     <DashboardShell
       activePath="/dashboard/courses"
       description="Create, publish, and organize video learning experiences."
       title="Courses"
-      userLabel={trader?.display_name ?? "Mentor workspace"}
+      userLabel={displayName}
     >
       <CourseManager courses={courses} stats={stats} />
     </DashboardShell>

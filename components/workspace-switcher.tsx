@@ -10,36 +10,30 @@ interface Workspace {
   displayName: string;
 }
 
-function getActiveWorkspaceId(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)km_workspace=([^;]+)/);
-  return match ? match[1] : null;
-}
-
-function setActiveWorkspaceId(traderId: string) {
-  const secure =
-    typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `km_workspace=${traderId}; path=/; max-age=2592000; SameSite=Lax${secure}`;
-}
-
 export function WorkspaceSwitcher() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setActiveId(getActiveWorkspaceId());
     fetch("/api/workspace/list")
       .then((r) => r.json())
-      .then(({ workspaces: ws }: { workspaces: Workspace[] }) => setWorkspaces(ws ?? []));
+      .then(({ workspaces: ws, activeId: aid }: { workspaces: Workspace[]; activeId: string | null }) => {
+        setWorkspaces(ws ?? []);
+        setActiveId(aid ?? null);
+      });
   }, []);
 
   if (workspaces.length < 2) return null;
 
   const active = workspaces.find((w) => w.traderId === activeId) ?? workspaces[0];
 
-  function switchTo(ws: Workspace) {
-    setActiveWorkspaceId(ws.traderId);
+  async function switchTo(ws: Workspace) {
+    await fetch("/api/workspace/activate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ traderId: ws.traderId }),
+    });
     setOpen(false);
     window.location.href = "/dashboard";
   }

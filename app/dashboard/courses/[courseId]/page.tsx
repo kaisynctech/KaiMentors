@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { CourseDetailManager } from "@/components/course-detail-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function CourseDetailPage({
   params,
@@ -10,23 +10,10 @@ export default async function CourseDetailPage({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
-  const supabase = await createClient();
-  if (!supabase) redirect("/login");
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: membership } = await supabase
-    .from("trader_members")
-    .select("trader_id,trader:traders(display_name)")
-    .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  if (!membership) redirect("/dashboard");
-
-  const tid = membership.trader_id;
+  const workspace = await getMentorWorkspace();
+  if (!workspace) redirect("/login");
+  const { supabase, displayName } = workspace;
+  const tid = workspace.traderId;
 
   const [
     { data: course },
@@ -171,16 +158,12 @@ export default async function CourseDetailPage({
     .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
     .slice(0, 10);
 
-  const trader = Array.isArray(membership.trader)
-    ? membership.trader[0]
-    : membership.trader;
-
   return (
     <DashboardShell
       activePath="/dashboard/courses"
       description="Manage structured curriculum, protected media, access, and learner progress."
       title={course.title}
-      userLabel={trader?.display_name ?? "Mentor workspace"}
+      userLabel={displayName}
     >
       <CourseDetailManager
         course={{ ...course, thumbnailUrl }}
