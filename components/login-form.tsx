@@ -62,6 +62,10 @@ export function LoginForm({
           .eq("trader_id", academyContext.traderId)
           .maybeSingle();
         if (membership) {
+          // Stamp the portal's workspace as active before navigating
+          const secure =
+            window.location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `km_workspace=${academyContext.traderId}; path=/; max-age=2592000; SameSite=Lax${secure}`;
           window.location.href = academyContext.mentorDestination;
           return;
         }

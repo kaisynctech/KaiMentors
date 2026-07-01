@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { NotificationBell } from "@/components/notification-bell";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import styles from "./dashboard-shell.module.css";
 
 interface DashboardShellProps {
@@ -112,10 +113,14 @@ export function DashboardShell({
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <BrandMark href={mode === "admin" ? "/admin" : "/dashboard"} />
-        <div className={styles.workspace}>
-          <span>{mode === "admin" ? "Platform console" : "Mentor workspace"}</span>
-          <strong>{userLabel}</strong>
-        </div>
+        {mode === "admin" ? (
+          <div className={styles.workspace}>
+            <span>Platform console</span>
+            <strong>{userLabel}</strong>
+          </div>
+        ) : (
+          <WorkspaceSwitcher />
+        )}
         <nav>
           {navigationLinks()}
         </nav>
@@ -153,10 +158,14 @@ export function DashboardShell({
             <X size={20} />
           </button>
         </div>
-        <div className={styles.workspace}>
-          <span>{mode === "admin" ? "Platform console" : "Mentor workspace"}</span>
-          <strong>{userLabel}</strong>
-        </div>
+        {mode === "admin" ? (
+          <div className={styles.workspace}>
+            <span>Platform console</span>
+            <strong>{userLabel}</strong>
+          </div>
+        ) : (
+          <WorkspaceSwitcher />
+        )}
         <nav>{navigationLinks(true)}</nav>
         <div className={styles.secure}>
           <ShieldCheck size={18} />
