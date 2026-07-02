@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWorkspaceInvitation, sendWorkspaceAdded } from "@/lib/email";
 
 async function getOwnerContext(supabase: Awaited<ReturnType<typeof createClient>>) {
   if (!supabase) return null;
@@ -85,6 +86,23 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   if (!admin) return NextResponse.json({ error: "Not configured." }, { status: 503 });
 
+  // Fetch workspace name and inviter display name for emails
+  const [{ data: portalRow }, { data: inviterProfile }] = await Promise.all([
+    supabase!
+      .from("portals")
+      .select("portal_name")
+      .eq("trader_id", ctx.tid)
+      .maybeSingle(),
+    supabase!
+      .from("profiles")
+      .select("full_name")
+      .eq("id", ctx.user.id)
+      .maybeSingle(),
+  ]);
+  const workspaceName = portalRow?.portal_name ?? "the workspace";
+  const inviterName   = inviterProfile?.full_name ?? "Your colleague";
+  const siteUrl       = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
   // Look up existing user by email via SECURITY DEFINER function
   const { data: existingUserId } = await supabase!.rpc("get_user_id_by_email", {
     input_email: email,
@@ -105,6 +123,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not add mentor." }, { status: 500 });
     }
 
+    sendWorkspaceAdded({
+      to: email,
+      workspaceName,
+      inviterName,
+      dashboardUrl: `${siteUrl}/dashboard`,
+    }).catch(() => {});
     return NextResponse.json({ added: true, invited: false });
   }
 
@@ -134,14 +158,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Could not create invitation." }, { status: 500 });
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const redirectTo = `${siteUrl}/invite/accept?id=${invitation.id}`;
-
-  const { error: authErr } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo,
-  });
-
-  if (authErr) {
+  const joinUrl = `${siteUrl}/join/${invitation.id}`;
+  try {
+    await sendWorkspaceInvitation({ to: email, workspaceName, inviterName, joinUrl });
+  } catch {
     await admin.from("workspace_invitations").delete().eq("id", invitation.id);
     return NextResponse.json({ error: "Could not send invitation email." }, { status: 500 });
   }

@@ -123,3 +123,88 @@ export async function sendCancellationEmail(data: {
     `,
   });
 }
+
+export async function sendWorkspaceInvitation({
+  to,
+  workspaceName,
+  inviterName,
+  joinUrl,
+}: {
+  to: string;
+  workspaceName: string;
+  inviterName: string;
+  joinUrl: string;
+}) {
+  if (!resend) return;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `You've been invited to join ${workspaceName}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;background:#f3f4f6;margin:0;padding:40px 0;">
+  <div style="background:#fff;max-width:480px;margin:0 auto;border-radius:16px;padding:40px;border:1px solid #e5e7eb;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6b7280;margin:0 0 12px;">
+      Workspace invitation
+    </p>
+    <h1 style="font-size:22px;font-weight:800;color:#111314;margin:0 0 16px;letter-spacing:-0.03em;">
+      You've been invited to join ${workspaceName}
+    </h1>
+    <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 28px;">
+      ${inviterName} has invited you to join the <strong>${workspaceName}</strong> mentor workspace on KaiMentors.
+      Click below to set up your account.
+    </p>
+    <a href="${joinUrl}"
+       style="display:inline-block;background:#111314;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:700;">
+      Set up your account →
+    </a>
+    <p style="font-size:12px;color:#9ca3af;margin:28px 0 0;">
+      This invitation expires in 7 days. If you did not expect this email, you can ignore it safely.
+    </p>
+  </div>
+</body>
+</html>`,
+  });
+}
+
+export async function sendWorkspaceAdded({
+  to,
+  workspaceName,
+  inviterName,
+  dashboardUrl,
+}: {
+  to: string;
+  workspaceName: string;
+  inviterName: string;
+  dashboardUrl: string;
+}) {
+  if (!resend) return;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `You've been added to ${workspaceName}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;background:#f3f4f6;margin:0;padding:40px 0;">
+  <div style="background:#fff;max-width:480px;margin:0 auto;border-radius:16px;padding:40px;border:1px solid #e5e7eb;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6b7280;margin:0 0 12px;">
+      Workspace access
+    </p>
+    <h1 style="font-size:22px;font-weight:800;color:#111314;margin:0 0 16px;letter-spacing:-0.03em;">
+      You've been added to ${workspaceName}
+    </h1>
+    <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 28px;">
+      ${inviterName} has added you to the <strong>${workspaceName}</strong> mentor workspace.
+      Log in to access it.
+    </p>
+    <a href="${dashboardUrl}"
+       style="display:inline-block;background:#111314;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:700;">
+      Go to dashboard →
+    </a>
+  </div>
+</body>
+</html>`,
+  });
+}
