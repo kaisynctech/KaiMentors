@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 const FROM = process.env.RESEND_FROM_EMAIL ?? "noreply@kaimentors.com";
 
 export interface BookingEmailData {
@@ -27,7 +29,7 @@ function formatDateTime(iso: string, tz: string): string {
 }
 
 export async function sendBookingConfirmation(data: BookingEmailData) {
-  return resend.emails.send({
+  return resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Session confirmed: ${data.sessionTypeName} with ${data.mentorName}`,
@@ -50,7 +52,7 @@ export async function sendBookingReminder(
   hoursAhead: 24 | 1,
 ) {
   const label = hoursAhead === 24 ? "tomorrow" : "in 1 hour";
-  return resend.emails.send({
+  return resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Reminder: ${data.sessionTypeName} ${label}`,
@@ -80,7 +82,7 @@ export async function sendMentorBookingNotification(data: {
   const action = data.requiresApproval
     ? "A student has requested a session — please review it in your dashboard."
     : "A student has booked a session.";
-  return resend.emails.send({
+  return resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `New booking: ${data.sessionTypeName} with ${data.studentName}`,
@@ -108,7 +110,7 @@ export async function sendCancellationEmail(data: {
 }) {
   const cancellerLabel =
     data.cancelledBy === "mentor" ? "your mentor" : "the student";
-  return resend.emails.send({
+  return resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Session cancelled: ${data.sessionTypeName}`,
