@@ -28,6 +28,7 @@ export default async function MentorMessagesPage({
       userLabel={displayName}
       traderId={traderId}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <MessagesWorkspace
         conversations={conversations}

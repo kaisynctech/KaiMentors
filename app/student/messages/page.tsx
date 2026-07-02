@@ -65,6 +65,7 @@ export default async function StudentMessagesPage({
         displayName={displayName}
         isVerified={isVerified}
         logoPath={portal?.logo_path ?? null}
+        portalSlug={portal?.slug}
         querySuffix={suffix}
         traderId={application?.trader_id}
       >

@@ -35,6 +35,7 @@ export default async function WorkspaceSettingsPage({
         userLabel={displayName}
         traderId={traderId}
         portalName={portal.portal_name}
+        portalSlug={portal.slug}
       >
         <SettingsTabs activeTab="account" />
         <OwnerEmailChangeForm currentEmail={user.email ?? ""} />
@@ -78,6 +79,7 @@ export default async function WorkspaceSettingsPage({
         userLabel={displayName}
         traderId={traderId}
         portalName={portal.portal_name}
+        portalSlug={portal.slug}
       >
         <SettingsTabs activeTab="team" />
         <TeamManager
@@ -120,6 +122,7 @@ export default async function WorkspaceSettingsPage({
         userLabel={displayName}
         traderId={traderId}
         portalName={portal.portal_name}
+        portalSlug={portal.slug}
       >
         <SettingsTabs activeTab="brokers" />
         <BrokerAccountsManager accounts={accounts} />
@@ -148,6 +151,7 @@ export default async function WorkspaceSettingsPage({
         userLabel={displayName}
         traderId={traderId}
         portalName={portal.portal_name}
+        portalSlug={portal.slug}
       >
         <SettingsTabs activeTab="branding" />
         <PortalBrandingForm

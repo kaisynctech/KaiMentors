@@ -45,6 +45,7 @@ export default async function CoursesPage({
         userLabel={displayName}
         traderId={traderId}
         portalName={portal.portal_name}
+        portalSlug={portal.slug}
       >
         <CoursesTabs activeTab="media" />
         <CourseMediaLibrary media={media} />
@@ -119,6 +120,7 @@ export default async function CoursesPage({
       userLabel={displayName}
       traderId={traderId}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <CoursesTabs activeTab="courses" />
       <CourseManager courses={courses} stats={stats} />

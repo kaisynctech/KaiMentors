@@ -91,6 +91,7 @@ export default async function DashboardCommunityPage() {
       traderId={traderId}
       userLabel={displayName}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <MentorCommunity
         albums={albums}

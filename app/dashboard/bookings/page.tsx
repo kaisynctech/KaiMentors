@@ -74,6 +74,7 @@ export default async function BookingsPage() {
       userLabel={displayName}
       traderId={traderId}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <BookingSessionTypeManager
         bookings={bookings ?? []}

@@ -51,6 +51,7 @@ export default async function StudentBookingsPage({
         displayName={displayName}
         isVerified={isVerified}
         logoPath={portal?.logo_path ?? null}
+        portalSlug={portal?.slug}
         querySuffix={suffix}
         traderId={app?.trader_id}
       >

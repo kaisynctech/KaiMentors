@@ -36,6 +36,7 @@ interface DashboardShellProps {
   activePath?: string;
   traderId?: string;
   portalName?: string;
+  portalSlug?: string;
 }
 
 const traderNavigation = [
@@ -72,9 +73,16 @@ export function DashboardShell({
   activePath,
   traderId,
   portalName,
+  portalSlug,
 }: DashboardShellProps) {
   const navigation = mode === "admin" ? adminNavigation : traderNavigation;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const signOutReturnTo =
+    mode === "admin"
+      ? "/login"
+      : portalSlug
+        ? `/portal/${portalSlug}`
+        : "/login";
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -140,6 +148,7 @@ export function DashboardShell({
           </div>
         </div>
         <form action="/auth/signout" method="post">
+          <input type="hidden" name="returnTo" value={signOutReturnTo} />
           <button className={styles.signout} type="submit">
             <LogOut size={17} /> Sign out
           </button>
@@ -186,6 +195,7 @@ export function DashboardShell({
           </div>
         </div>
         <form action="/auth/signout" method="post">
+          <input type="hidden" name="returnTo" value={signOutReturnTo} />
           <button className={styles.signout} onClick={() => setMobileOpen(false)} type="submit">
             <LogOut size={17} /> Sign out
           </button>

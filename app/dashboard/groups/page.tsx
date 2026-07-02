@@ -62,6 +62,7 @@ export default async function StudentGroupsPage() {
       userLabel={displayName}
       traderId={traderId}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <StudentGroupManager groups={groups} students={students} />
     </DashboardShell>

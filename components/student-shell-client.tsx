@@ -30,6 +30,7 @@ interface StudentShellClientProps {
   querySuffix: string;
   displayName: string;
   traderId?: string;
+  portalSlug?: string;
   children: React.ReactNode;
 }
 
@@ -48,6 +49,7 @@ export function StudentShellClient({
   querySuffix,
   displayName,
   traderId,
+  portalSlug,
   children,
 }: StudentShellClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -120,6 +122,13 @@ export function StudentShellClient({
 
   const avatarLetter = displayName.trim().charAt(0).toUpperCase() || "S";
 
+  const signOutReturnTo =
+    basePath === "/academy"
+      ? "/login"
+      : portalSlug
+        ? `/portal/${portalSlug}`
+        : "/login";
+
   function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     return (
       <>
@@ -170,6 +179,7 @@ export function StudentShellClient({
             <NotificationBell />
           </div>
           <form action="/auth/signout" method="post">
+            <input type="hidden" name="returnTo" value={signOutReturnTo} />
             <button className={styles.signoutBtn} type="submit">
               <LogOut size={16} />
               Sign out

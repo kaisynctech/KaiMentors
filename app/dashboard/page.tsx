@@ -13,6 +13,7 @@ export default async function TraderDashboard() {
   const traderId: string | null = workspace?.traderId ?? null;
   const displayName = workspace?.displayName ?? "Mentor workspace";
   const portalName = workspace?.portal?.portal_name;
+  const portalSlug = workspace?.portal?.slug;
   let stats = { students: 0, verified: 0, pending: 0, courses: 0 };
   let recent: Array<{
     id: string;
@@ -51,6 +52,7 @@ export default async function TraderDashboard() {
       userLabel={displayName}
       traderId={traderId ?? undefined}
       portalName={portalName}
+      portalSlug={portalSlug}
     >
       <section className={styles.metrics}>
         <MetricCard icon={Users} label="Total students" note="All applications" value={stats.students} />

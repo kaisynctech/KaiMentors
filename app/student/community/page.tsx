@@ -152,6 +152,7 @@ export default async function StudentCommunityPage({
       displayName={displayName}
       isVerified={isVerified}
       logoPath={portal?.logo_path ?? null}
+      portalSlug={portal?.slug}
       querySuffix={querySuffix}
       traderId={traderId}
     >

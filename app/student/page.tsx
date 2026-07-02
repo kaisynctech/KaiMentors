@@ -250,6 +250,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       displayName={displayName}
       isVerified={isVerified}
       logoPath={portal?.logo_path ?? null}
+      portalSlug={portal?.slug}
       querySuffix={querySuffix}
       traderId={application.trader_id}
     >

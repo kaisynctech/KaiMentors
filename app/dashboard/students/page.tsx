@@ -251,6 +251,7 @@ export default async function StudentsPage({
       userLabel={displayName}
       traderId={traderId}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <section className={styles.metrics}>
         <MetricCard

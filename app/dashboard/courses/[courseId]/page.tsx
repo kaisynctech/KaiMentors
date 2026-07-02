@@ -166,6 +166,7 @@ export default async function CourseDetailPage({
       userLabel={displayName}
       traderId={tid}
       portalName={portal.portal_name}
+      portalSlug={portal.slug}
     >
       <CourseDetailManager
         course={{ ...course, thumbnailUrl }}
