@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWorkspaceInvitation } from "@/lib/email";
@@ -53,11 +53,14 @@ export async function POST(
   const siteUrl       = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const joinUrl       = `${siteUrl}/join/${invitation.id}`;
 
-  try {
-    await sendWorkspaceInvitation({ to: invitation.email, workspaceName, inviterName, joinUrl });
-  } catch {
-    return NextResponse.json({ error: "Could not send invitation email." }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true });
+  const resendResponse = NextResponse.json({ ok: true });
+  after(() =>
+    sendWorkspaceInvitation({
+      to: invitation.email,
+      workspaceName,
+      inviterName,
+      joinUrl,
+    }).catch(() => {}),
+  );
+  return resendResponse;
 }

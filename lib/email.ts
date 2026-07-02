@@ -5,6 +5,16 @@ const resend = process.env.RESEND_API_KEY
   : null;
 const FROM = process.env.RESEND_FROM_EMAIL ?? "noreply@kaimentors.com";
 
+/** Rejects after `ms` milliseconds so a hung Resend call never blocks forever. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Resend timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 export interface BookingEmailData {
   to: string;
   studentName: string;
@@ -29,7 +39,7 @@ function formatDateTime(iso: string, tz: string): string {
 }
 
 export async function sendBookingConfirmation(data: BookingEmailData) {
-  return resend!.emails.send({
+  return withTimeout(resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Session confirmed: ${data.sessionTypeName} with ${data.mentorName}`,
@@ -44,7 +54,7 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       </ul>
       <p>You can join from your academy portal when the session starts.</p>
     `,
-  });
+  }), 8000);
 }
 
 export async function sendBookingReminder(
@@ -52,7 +62,7 @@ export async function sendBookingReminder(
   hoursAhead: 24 | 1,
 ) {
   const label = hoursAhead === 24 ? "tomorrow" : "in 1 hour";
-  return resend!.emails.send({
+  return withTimeout(resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Reminder: ${data.sessionTypeName} ${label}`,
@@ -66,7 +76,7 @@ export async function sendBookingReminder(
       </ul>
       <p>Log into your academy to join the session when it starts.</p>
     `,
-  });
+  }), 8000);
 }
 
 export async function sendMentorBookingNotification(data: {
@@ -82,7 +92,7 @@ export async function sendMentorBookingNotification(data: {
   const action = data.requiresApproval
     ? "A student has requested a session — please review it in your dashboard."
     : "A student has booked a session.";
-  return resend!.emails.send({
+  return withTimeout(resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `New booking: ${data.sessionTypeName} with ${data.studentName}`,
@@ -96,7 +106,7 @@ export async function sendMentorBookingNotification(data: {
         <li><strong>Duration:</strong> ${data.durationMinutes} minutes</li>
       </ul>
     `,
-  });
+  }), 8000);
 }
 
 export async function sendCancellationEmail(data: {
@@ -110,7 +120,7 @@ export async function sendCancellationEmail(data: {
 }) {
   const cancellerLabel =
     data.cancelledBy === "mentor" ? "your mentor" : "the student";
-  return resend!.emails.send({
+  return withTimeout(resend!.emails.send({
     from: FROM,
     to: data.to,
     subject: `Session cancelled: ${data.sessionTypeName}`,
@@ -123,7 +133,7 @@ export async function sendCancellationEmail(data: {
         ${data.reason ? `<li><strong>Reason:</strong> ${data.reason}</li>` : ""}
       </ul>
     `,
-  });
+  }), 8000);
 }
 
 export async function sendWorkspaceInvitation({
@@ -138,11 +148,12 @@ export async function sendWorkspaceInvitation({
   joinUrl: string;
 }) {
   if (!resend) return;
-  await resend.emails.send({
-    from: FROM,
-    to,
-    subject: `You've been invited to join ${workspaceName}`,
-    html: `
+  await withTimeout(
+    resend.emails.send({
+      from: FROM,
+      to,
+      subject: `You've been invited to join ${workspaceName}`,
+      html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family:sans-serif;background:#f3f4f6;margin:0;padding:40px 0;">
@@ -167,7 +178,9 @@ export async function sendWorkspaceInvitation({
   </div>
 </body>
 </html>`,
-  });
+    }),
+    8000,
+  );
 }
 
 export async function sendWorkspaceAdded({
@@ -182,11 +195,12 @@ export async function sendWorkspaceAdded({
   dashboardUrl: string;
 }) {
   if (!resend) return;
-  await resend.emails.send({
-    from: FROM,
-    to,
-    subject: `You've been added to ${workspaceName}`,
-    html: `
+  await withTimeout(
+    resend.emails.send({
+      from: FROM,
+      to,
+      subject: `You've been added to ${workspaceName}`,
+      html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family:sans-serif;background:#f3f4f6;margin:0;padding:40px 0;">
@@ -208,5 +222,7 @@ export async function sendWorkspaceAdded({
   </div>
 </body>
 </html>`,
-  });
+    }),
+    8000,
+  );
 }

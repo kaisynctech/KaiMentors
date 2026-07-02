@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -134,13 +134,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not add mentor." }, { status: 500 });
     }
 
-    sendWorkspaceAdded({
-      to: email,
-      workspaceName,
-      inviterName,
-      dashboardUrl: `${siteUrl}/dashboard`,
-    }).catch(() => {});
-    return NextResponse.json({ added: true, invited: false });
+    const addedResponse = NextResponse.json({ added: true, invited: false });
+    after(() =>
+      sendWorkspaceAdded({
+        to: email,
+        workspaceName,
+        inviterName,
+        dashboardUrl: `${siteUrl}/dashboard`,
+      }).catch(() => {}),
+    );
+    return addedResponse;
   }
 
   // New user — check for existing pending invitation
@@ -170,12 +173,13 @@ export async function POST(request: Request) {
   }
 
   const joinUrl = `${siteUrl}/join/${invitation.id}`;
-  try {
-    await sendWorkspaceInvitation({ to: email, workspaceName, inviterName, joinUrl });
-  } catch {
-    await admin.from("workspace_invitations").delete().eq("id", invitation.id);
-    return NextResponse.json({ error: "Could not send invitation email." }, { status: 500 });
-  }
-
-  return NextResponse.json({ added: false, invited: true }, { status: 201 });
+  const invitedResponse = NextResponse.json({ added: false, invited: true }, { status: 201 });
+  after(async () => {
+    try {
+      await sendWorkspaceInvitation({ to: email, workspaceName, inviterName, joinUrl });
+    } catch {
+      await admin.from("workspace_invitations").delete().eq("id", invitation.id);
+    }
+  });
+  return invitedResponse;
 }
