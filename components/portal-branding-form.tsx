@@ -8,6 +8,7 @@ import { getPortalBrandingUrl } from "@/lib/storage";
 import styles from "./portal-branding-form.module.css";
 
 interface PortalBrandingFormProps {
+  websiteDeliveryMode: string;
   initialPortal: {
     portal_name: string;
     slug: string;
@@ -40,6 +41,7 @@ interface PortalBrandingFormProps {
 export function PortalBrandingForm({
   initialPortal,
   riskTemplates,
+  websiteDeliveryMode,
 }: PortalBrandingFormProps) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
@@ -481,46 +483,107 @@ export function PortalBrandingForm({
       <aside className={styles.previewColumn}>
         <div className={styles.previewLabel}>
           <span>Live preview</span>
-          <small>Desktop</small>
+          {websiteDeliveryMode === "custom_package" ? (
+            <a
+              href={`/portal/${values.slug || initialPortal.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.openSiteLink}
+            >
+              Open live site <ExternalLink size={13} />
+            </a>
+          ) : (
+            <small>Desktop</small>
+          )}
         </div>
-        <div className={styles.preview}>
-          <header>
-            <div>
-              <span style={{ background: values.primaryColor }}>
-                {logoPreview ? (
-                  <Image
-                    alt=""
-                    height={28}
-                    src={logoPreview}
-                    unoptimized
-                    width={28}
-                  />
-                ) : (
-                  values.portalName[0]
-                )}
-              </span>
-              <strong>{values.portalName || "Your portal"}</strong>
+        {websiteDeliveryMode === "custom_package" ? (
+          <>
+            <div className={styles.iframeWrapper}>
+              <iframe
+                className={styles.siteIframe}
+                src={`/portal/${values.slug || initialPortal.slug}`}
+                title="Live site preview"
+                sandbox="allow-scripts allow-same-origin"
+              />
             </div>
-          </header>
-          <div className={styles.previewHero}>
-            <small style={{ background: values.accentColor }}>
-              Verified student community
-            </small>
-            <h3>{values.heroTitle || "Your hero title"}</h3>
-            <p>{values.heroSubtitle || "Your hero subtitle will appear here."}</p>
-            <div>
-              <span style={{ background: values.primaryColor }}>
-                {values.ctaLabel || "Join academy"}
-              </span>
-              <span>{values.brokerCtaLabel || "Open broker account"}</span>
+            <div className={styles.socialPreviewLabel}>
+              <span>Footer preview</span>
+              <small>Updates as you type</small>
+            </div>
+            <SocialFooterPreview values={values} primaryColor={values.primaryColor} />
+          </>
+        ) : (
+          <div className={styles.preview}>
+            <header>
+              <div>
+                <span style={{ background: values.primaryColor }}>
+                  {logoPreview ? (
+                    <Image alt="" height={28} src={logoPreview} unoptimized width={28} />
+                  ) : (
+                    values.portalName[0]
+                  )}
+                </span>
+                <strong>{values.portalName || "Your portal"}</strong>
+              </div>
+            </header>
+            <div className={styles.previewHero}>
+              <small style={{ background: values.accentColor }}>Verified student community</small>
+              <h3>{values.heroTitle || "Your hero title"}</h3>
+              <p>{values.heroSubtitle || "Your hero subtitle will appear here."}</p>
+              <div>
+                <span style={{ background: values.primaryColor }}>{values.ctaLabel || "Join academy"}</span>
+                <span>{values.brokerCtaLabel || "Open broker account"}</span>
+              </div>
+            </div>
+            <div className={styles.previewWelcome}>
+              <span>Welcome</span>
+              <p>{values.welcomeMessage}</p>
             </div>
           </div>
-          <div className={styles.previewWelcome}>
-            <span>Welcome</span>
-            <p>{values.welcomeMessage}</p>
-          </div>
-        </div>
+        )}
       </aside>
+    </div>
+  );
+}
+
+function SocialFooterPreview({
+  values,
+  primaryColor,
+}: {
+  values: Record<string, unknown>;
+  primaryColor: string;
+}) {
+  function str(key: string): string { return typeof values[key] === "string" ? (values[key] as string) : ""; }
+  const links: { label: string }[] = [];
+  if (str("contactEmail"))   links.push({ label: "Email" });
+  if (str("contactPhone"))   links.push({ label: "Call" });
+  if (str("whatsappNumber").replace(/\D/g, "")) links.push({ label: "WhatsApp" });
+  if (str("telegramUrl"))    links.push({ label: "Telegram" });
+  if (str("instagramUrl"))   links.push({ label: "Instagram" });
+  if (str("facebookUrl"))    links.push({ label: "Facebook" });
+  if (str("youtubeUrl"))     links.push({ label: "YouTube" });
+  if (str("twitterUrl"))     links.push({ label: "X" });
+  if (str("tiktokUrl"))      links.push({ label: "TikTok" });
+  if (str("linkedinUrl"))    links.push({ label: "LinkedIn" });
+
+  return (
+    <div
+      className={styles.socialFooterPreview}
+      style={{ background: primaryColor || "#111314" }}
+    >
+      {links.length === 0 ? (
+        <p className={styles.socialFooterEmpty}>
+          Fill in contact &amp; social fields to preview your footer.
+        </p>
+      ) : (
+        <div className={styles.socialFooterLinks}>
+          {links.map((link) => (
+            <span key={link.label} className={styles.socialFooterLink}>
+              {link.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

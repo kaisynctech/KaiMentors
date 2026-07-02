@@ -149,6 +149,7 @@ export default async function WorkspaceSettingsPage({
         <PortalBrandingForm
           initialPortal={portalData}
           riskTemplates={riskTemplates ?? []}
+          websiteDeliveryMode={portalData.website_delivery_mode ?? "core_page"}
         />
       </DashboardShell>
     );
