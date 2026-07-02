@@ -47,9 +47,6 @@ const traderNavigation = [
   ["Resources", "/dashboard/resources", FileText],
   ["Live classes", "/dashboard/live-classes", CalendarDays],
   ["Bookings", "/dashboard/bookings", CalendarCheck],
-  ["Broker accounts", "/dashboard/brokers", Building2],
-  ["Academy Page", "/dashboard/branding", WandSparkles],
-  ["Audit logs", "/dashboard/audit-logs", ScrollText],
   ["Settings", "/dashboard/settings", Settings],
 ] as const;
 
