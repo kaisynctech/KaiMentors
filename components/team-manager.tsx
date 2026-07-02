@@ -63,6 +63,10 @@ export function TeamManager({
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<Record<string, string>>({});
 
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendSuccess, setResendSuccess] = useState<Record<string, boolean>>({});
+  const [resendError, setResendError] = useState<Record<string, string>>({});
+
   async function sendInvite() {
     if (!email.trim()) return;
     setInviting(true);
@@ -123,6 +127,24 @@ export function TeamManager({
     }
   }
 
+  async function resendInvitation(id: string) {
+    setResendingId(id);
+    setResendError((prev) => ({ ...prev, [id]: "" }));
+    setResendSuccess((prev) => ({ ...prev, [id]: false }));
+    try {
+      const res = await fetch(`/api/workspace/invitations/${id}/resend`, { method: "POST" });
+      const body = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setResendError((prev) => ({ ...prev, [id]: body.error ?? "Could not resend." }));
+        return;
+      }
+      setResendSuccess((prev) => ({ ...prev, [id]: true }));
+      setTimeout(() => setResendSuccess((prev) => ({ ...prev, [id]: false })), 3000);
+    } finally {
+      setResendingId(null);
+    }
+  }
+
   return (
     <div className={styles.container}>
       {/* Current team */}
@@ -173,13 +195,25 @@ export function TeamManager({
                   <span className={styles.pendingBadge}>Sent {formatDate(inv.created_at)}</span>
                 </div>
                 <div className={styles.memberActions}>
-                  {cancelError[inv.id] ? (
+                  {resendSuccess[inv.id] ? (
+                    <span className={styles.successMsg} style={{ margin: 0 }}>Sent!</span>
+                  ) : resendError[inv.id] ? (
+                    <span className={styles.inlineError}>{resendError[inv.id]}</span>
+                  ) : cancelError[inv.id] ? (
                     <span className={styles.inlineError}>{cancelError[inv.id]}</span>
                   ) : null}
                   <button
+                    className={styles.resendBtn}
+                    disabled={resendingId === inv.id || cancellingId === inv.id}
+                    onClick={() => void resendInvitation(inv.id)}
+                    type="button"
+                  >
+                    {resendingId === inv.id ? "Sending…" : "Resend"}
+                  </button>
+                  <button
                     className={styles.removeBtn}
-                    disabled={cancellingId === inv.id}
-                    onClick={() => cancelInvitation(inv.id)}
+                    disabled={cancellingId === inv.id || resendingId === inv.id}
+                    onClick={() => void cancelInvitation(inv.id)}
                     type="button"
                   >
                     {cancellingId === inv.id ? "Cancelling…" : "Cancel"}
