@@ -8,6 +8,7 @@ import {
   BookOpen,
   CalendarCheck,
   CalendarClock,
+  Landmark,
   LayoutDashboard,
   LogOut,
   LockKeyhole,
@@ -108,6 +109,12 @@ export function StudentShellClient({
       href: `${basePath}/resources${querySuffix}`,
       label: "Resources",
       icon: BookOpen,
+      locked: false,
+    },
+    {
+      href: `${basePath}/broker${querySuffix}`,
+      label: "Open Account",
+      icon: Landmark,
       locked: false,
     },
   ];

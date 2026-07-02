@@ -6,6 +6,7 @@ import {
   Camera,
   CheckCircle2,
   ExternalLink,
+  FileText,
   Loader2,
   Pencil,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { VerificationMethod } from "@/lib/database.types";
+import { BrokerInstructionsEditor } from "@/components/broker-instructions-editor";
 import styles from "./broker-accounts-manager.module.css";
 
 interface BrokerAccount {
@@ -23,6 +25,16 @@ interface BrokerAccount {
   verification_instructions: string | null;
   is_active: boolean;
   broker: { name: string } | null;
+  new_account_instructions: string | null;
+  new_account_image_path: string | null;
+  new_account_video_path: string | null;
+  new_account_image_url: string | null;
+  new_account_video_url: string | null;
+  existing_account_instructions: string | null;
+  existing_account_image_path: string | null;
+  existing_account_video_path: string | null;
+  existing_account_image_url: string | null;
+  existing_account_video_url: string | null;
 }
 
 interface BrokerAccountsManagerProps {
@@ -57,6 +69,7 @@ export function BrokerAccountsManager({
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [instructionsId, setInstructionsId] = useState<string | null>(null);
   const [editState, setEditState] = useState<EditState>({
     partnerCode: "",
     affiliateLink: "",
@@ -271,6 +284,32 @@ export function BrokerAccountsManager({
                     ) : null}
                   </div>
 
+                  {/* Instructions editor */}
+                  {instructionsId === account.id ? (
+                    <BrokerInstructionsEditor
+                      accountId={account.id}
+                      brokerName={account.broker?.name ?? "Broker"}
+                      initialNew={{
+                        instructions: account.new_account_instructions ?? "",
+                        imagePath: account.new_account_image_path,
+                        imagePreviewUrl: account.new_account_image_url,
+                        videoPath: account.new_account_video_path,
+                        videoPreviewUrl: account.new_account_video_url,
+                      }}
+                      initialExisting={{
+                        instructions: account.existing_account_instructions ?? "",
+                        imagePath: account.existing_account_image_path,
+                        imagePreviewUrl: account.existing_account_image_url,
+                        videoPath: account.existing_account_video_path,
+                        videoPreviewUrl: account.existing_account_video_url,
+                      }}
+                      onSaved={() => {
+                        setInstructionsId(null);
+                        router.refresh();
+                      }}
+                    />
+                  ) : null}
+
                   {/* Inline edit form */}
                   {isEditing ? (
                     <div className={styles.editForm}>
@@ -363,6 +402,16 @@ export function BrokerAccountsManager({
                     >
                       <Pencil size={14} />
                       {isEditing ? "Close" : "Edit"}
+                    </button>
+                    <button
+                      className={styles.editBtn}
+                      onClick={() =>
+                        setInstructionsId(instructionsId === account.id ? null : account.id)
+                      }
+                      type="button"
+                    >
+                      <FileText size={14} />
+                      {instructionsId === account.id ? "Close" : "Instructions"}
                     </button>
                   </div>
                 </article>

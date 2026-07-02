@@ -21,6 +21,12 @@ const updateSchema = z.object({
   verificationInstructions: z.string().max(2000).nullable().optional(),
   affiliateLink: z.string().url().max(1000).nullable().optional(),
   partnerCode: z.string().trim().min(1).max(160).optional(),
+  newAccountInstructions: z.string().max(5000).nullable().optional(),
+  newAccountImagePath: z.string().max(500).nullable().optional(),
+  newAccountVideoPath: z.string().max(500).nullable().optional(),
+  existingAccountInstructions: z.string().max(5000).nullable().optional(),
+  existingAccountImagePath: z.string().max(500).nullable().optional(),
+  existingAccountVideoPath: z.string().max(500).nullable().optional(),
 });
 
 function brokerSlug(name: string) {
@@ -165,6 +171,18 @@ export async function PATCH(request: Request) {
     updatePayload.verification_instructions = data.verificationInstructions;
   if (data.affiliateLink !== undefined) updatePayload.affiliate_link = data.affiliateLink;
   if (data.partnerCode !== undefined) updatePayload.partner_code = data.partnerCode;
+  if (data.newAccountInstructions !== undefined)
+    updatePayload.new_account_instructions = data.newAccountInstructions;
+  if (data.newAccountImagePath !== undefined)
+    updatePayload.new_account_image_path = data.newAccountImagePath;
+  if (data.newAccountVideoPath !== undefined)
+    updatePayload.new_account_video_path = data.newAccountVideoPath;
+  if (data.existingAccountInstructions !== undefined)
+    updatePayload.existing_account_instructions = data.existingAccountInstructions;
+  if (data.existingAccountImagePath !== undefined)
+    updatePayload.existing_account_image_path = data.existingAccountImagePath;
+  if (data.existingAccountVideoPath !== undefined)
+    updatePayload.existing_account_video_path = data.existingAccountVideoPath;
 
   if (Object.keys(updatePayload).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });

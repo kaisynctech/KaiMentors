@@ -7,6 +7,7 @@ import { BrokerAccountsManager }  from "@/components/broker-accounts-manager";
 import { PortalBrandingForm }     from "@/components/portal-branding-form";
 import type { VerificationMethod } from "@/lib/database.types";
 import { getMentorWorkspace }     from "@/lib/workspace";
+import { createAdminClient }      from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -98,21 +99,44 @@ export default async function WorkspaceSettingsPage({
     const { data } = await supabase
       .from("trader_broker_accounts")
       .select(
-        "id,partner_code,affiliate_link,verification_method,verification_instructions,is_active,broker:brokers(name)",
+        "id,partner_code,affiliate_link,verification_method,verification_instructions,is_active,new_account_instructions,new_account_image_path,new_account_video_path,existing_account_instructions,existing_account_image_path,existing_account_video_path,broker:brokers(name)",
       )
       .eq("trader_id", traderId)
       .order("created_at", { ascending: false });
 
-    const accounts = (data ?? []).map((account) => ({
-      ...account,
-      verification_method: account.verification_method as VerificationMethod,
-      verification_instructions:
-        (account as { verification_instructions?: string | null })
-          .verification_instructions ?? null,
-      broker: Array.isArray(account.broker)
-        ? account.broker[0] ?? null
-        : account.broker,
-    }));
+    const admin = createAdminClient();
+    async function signMedia(path: string | null): Promise<string | null> {
+      if (!path || !admin) return null;
+      const { data: signed } = await admin.storage
+        .from("academy-media")
+        .createSignedUrl(path, 3600);
+      return signed?.signedUrl ?? null;
+    }
+
+    const accounts = await Promise.all(
+      (data ?? []).map(async (account) => {
+        const raw = account as unknown as Record<string, unknown>;
+        return {
+          ...account,
+          verification_method: account.verification_method as VerificationMethod,
+          verification_instructions:
+            (raw.verification_instructions as string | null) ?? null,
+          broker: Array.isArray(account.broker)
+            ? account.broker[0] ?? null
+            : account.broker,
+          new_account_instructions: (raw.new_account_instructions as string | null) ?? null,
+          new_account_image_path: (raw.new_account_image_path as string | null) ?? null,
+          new_account_video_path: (raw.new_account_video_path as string | null) ?? null,
+          existing_account_instructions: (raw.existing_account_instructions as string | null) ?? null,
+          existing_account_image_path: (raw.existing_account_image_path as string | null) ?? null,
+          existing_account_video_path: (raw.existing_account_video_path as string | null) ?? null,
+          new_account_image_url: await signMedia((raw.new_account_image_path as string | null) ?? null),
+          new_account_video_url: await signMedia((raw.new_account_video_path as string | null) ?? null),
+          existing_account_image_url: await signMedia((raw.existing_account_image_path as string | null) ?? null),
+          existing_account_video_url: await signMedia((raw.existing_account_video_path as string | null) ?? null),
+        };
+      }),
+    );
 
     return (
       <DashboardShell
