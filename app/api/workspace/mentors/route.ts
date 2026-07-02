@@ -1,8 +1,7 @@
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendWorkspaceInvitation, sendWorkspaceAdded } from "@/lib/email";
 
 async function getOwnerContext(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -97,24 +96,9 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   if (!admin) return NextResponse.json({ error: "Not configured." }, { status: 503 });
 
-  // Fetch workspace name and inviter display name for emails
-  const [{ data: portalRow }, { data: inviterProfile }] = await Promise.all([
-    supabase!
-      .from("portals")
-      .select("portal_name")
-      .eq("trader_id", ctx.tid)
-      .maybeSingle(),
-    supabase!
-      .from("profiles")
-      .select("full_name")
-      .eq("id", ctx.user.id)
-      .maybeSingle(),
-  ]);
-  const workspaceName = portalRow?.portal_name ?? "the workspace";
-  const inviterName   = inviterProfile?.full_name ?? "Your colleague";
-  const siteUrl       = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const sig = AbortSignal.timeout(8000);
 
-  // Look up existing user by email via SECURITY DEFINER function
+  // Check if the email belongs to an existing user
   const { data: existingUserId } = await supabase!.rpc("get_user_id_by_email", {
     input_email: email,
   });
@@ -122,7 +106,8 @@ export async function POST(request: Request) {
   if (existingUserId) {
     const { error: memberError } = await admin
       .from("trader_members")
-      .insert({ trader_id: ctx.tid, user_id: existingUserId, role: "mentor" });
+      .insert({ trader_id: ctx.tid, user_id: existingUserId, role: "mentor" })
+      .abortSignal(sig);
 
     if (memberError) {
       if (memberError.code === "23505") {
@@ -134,25 +119,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not add mentor." }, { status: 500 });
     }
 
-    const addedResponse = NextResponse.json({ added: true, invited: false });
-    after(() =>
-      sendWorkspaceAdded({
-        to: email,
-        workspaceName,
-        inviterName,
-        dashboardUrl: `${siteUrl}/dashboard`,
-      }).catch(() => {}),
-    );
-    return addedResponse;
+    return NextResponse.json({ added: true, invited: false });
   }
 
-  // New user — check for existing pending invitation
+  // New user — check for an existing pending invitation
   const { data: existing } = await supabase!
     .from("workspace_invitations")
     .select("id")
     .eq("trader_id", ctx.tid)
     .eq("email", email)
     .is("accepted_at", null)
+    .abortSignal(sig)
     .maybeSingle();
 
   if (existing) {
@@ -166,20 +143,12 @@ export async function POST(request: Request) {
     .from("workspace_invitations")
     .insert({ trader_id: ctx.tid, email, invited_by: ctx.user.id })
     .select("id")
+    .abortSignal(sig)
     .single();
 
   if (invErr || !invitation) {
     return NextResponse.json({ error: "Could not create invitation." }, { status: 500 });
   }
 
-  const joinUrl = `${siteUrl}/join/${invitation.id}`;
-  const invitedResponse = NextResponse.json({ added: false, invited: true }, { status: 201 });
-  after(async () => {
-    try {
-      await sendWorkspaceInvitation({ to: email, workspaceName, inviterName, joinUrl });
-    } catch {
-      await admin.from("workspace_invitations").delete().eq("id", invitation.id);
-    }
-  });
-  return invitedResponse;
+  return NextResponse.json({ added: false, invited: true }, { status: 201 });
 }

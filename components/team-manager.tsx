@@ -86,7 +86,7 @@ export function TeamManager({
         return;
       }
       const msg = body.invited
-        ? `Invitation sent to ${email.trim()}.`
+        ? `Invitation created for ${email.trim()}. Use "Resend" to email them the link.`
         : `${email.trim()} has been added to your workspace.`;
       setInviteSuccess(msg);
       setEmail("");
