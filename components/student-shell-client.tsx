@@ -102,6 +102,12 @@ export function StudentShellClient({
       icon: Sparkles,
       locked: false,
     },
+    {
+      href: `${basePath}/resources${querySuffix}`,
+      label: "Resources",
+      icon: BookOpen,
+      locked: false,
+    },
   ];
 
   function isActive(href: string) {
