@@ -25,6 +25,12 @@ interface PortalBrandingFormProps {
     is_published: boolean;
     academy_description: string | null;
     contact_email: string | null;
+    contact_phone: string | null;
+    facebook_url:  string | null;
+    youtube_url:   string | null;
+    twitter_url:   string | null;
+    tiktok_url:    string | null;
+    linkedin_url:  string | null;
     risk_disclosure_template_id: string;
     risk_disclosure_enabled: boolean;
   };
@@ -55,6 +61,12 @@ export function PortalBrandingForm({
     whatsappNumber: initialPortal.whatsapp_number ?? "",
     telegramUrl: initialPortal.telegram_url ?? "",
     instagramUrl: initialPortal.instagram_url ?? "",
+    contactPhone: initialPortal.contact_phone ?? "",
+    facebookUrl:  initialPortal.facebook_url ?? "",
+    youtubeUrl:   initialPortal.youtube_url ?? "",
+    twitterUrl:   initialPortal.twitter_url ?? "",
+    tiktokUrl:    initialPortal.tiktok_url ?? "",
+    linkedinUrl:  initialPortal.linkedin_url ?? "",
     ctaLabel: initialPortal.cta_label,
     brokerCtaLabel: initialPortal.broker_cta_label,
     isPublished: initialPortal.is_published,
@@ -355,6 +367,76 @@ export function PortalBrandingForm({
               />
             </label>
           </div>
+          <label>
+            Phone number
+            <input
+              maxLength={32}
+              name="contactPhone"
+              onChange={updateValue}
+              placeholder="+44 7911 123456"
+              type="tel"
+              value={values.contactPhone}
+            />
+          </label>
+          <div className={styles.twoColumns}>
+            <label>
+              Facebook URL
+              <input
+                maxLength={500}
+                name="facebookUrl"
+                onChange={updateValue}
+                placeholder="https://facebook.com/youracademy"
+                type="url"
+                value={values.facebookUrl}
+              />
+            </label>
+            <label>
+              YouTube URL
+              <input
+                maxLength={500}
+                name="youtubeUrl"
+                onChange={updateValue}
+                placeholder="https://youtube.com/@youracademy"
+                type="url"
+                value={values.youtubeUrl}
+              />
+            </label>
+          </div>
+          <div className={styles.twoColumns}>
+            <label>
+              X / Twitter URL
+              <input
+                maxLength={500}
+                name="twitterUrl"
+                onChange={updateValue}
+                placeholder="https://x.com/youracademy"
+                type="url"
+                value={values.twitterUrl}
+              />
+            </label>
+            <label>
+              TikTok URL
+              <input
+                maxLength={500}
+                name="tiktokUrl"
+                onChange={updateValue}
+                placeholder="https://tiktok.com/@youracademy"
+                type="url"
+                value={values.tiktokUrl}
+              />
+            </label>
+          </div>
+          <label>
+            LinkedIn URL
+            <input
+              maxLength={500}
+              name="linkedinUrl"
+              onChange={updateValue}
+              placeholder="https://linkedin.com/company/youracademy"
+              type="url"
+              value={values.linkedinUrl}
+            />
+          </label>
         </section>
 
         <section className={styles.section}>

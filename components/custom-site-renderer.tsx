@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import type { LoadedCustomSite } from "@/lib/custom-sites";
+import { SiteContactFooter } from "@/components/site-contact-footer";
 
 interface CustomSiteRendererProps {
   customDomain?: boolean;
@@ -38,6 +39,11 @@ export function CustomSiteRenderer({ site }: CustomSiteRendererProps) {
         }
       `}</style>
       <div dangerouslySetInnerHTML={{ __html: site.bodyHtml }} />
+      <SiteContactFooter
+        contactInfo={site.contactInfo}
+        primaryColor={site.portal.primary_color}
+        accentColor={site.portal.accent_color}
+      />
       {poweredBy ? (
         <Link className="kaimentors-powered-by" href="/">
           {poweredBy}

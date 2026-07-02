@@ -22,6 +22,12 @@ export interface AcademyEntryPortal {
   whatsapp_number?: string | null;
   telegram_url?: string | null;
   instagram_url?: string | null;
+  contact_phone?: string | null;
+  facebook_url?:  string | null;
+  youtube_url?:   string | null;
+  twitter_url?:   string | null;
+  tiktok_url?:    string | null;
+  linkedin_url?:  string | null;
   risk_disclosure_enabled?: boolean;
   risk_disclosure?: { title: string; message: string } | null;
 }
@@ -44,7 +50,7 @@ export interface AcademyEntryContext {
 }
 
 const portalSelect =
-  "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,cta_label,broker_cta_label,is_published,website_delivery_mode,academy_description,contact_email,whatsapp_number,telegram_url,instagram_url,risk_disclosure_enabled,risk_disclosure:risk_disclosure_templates(title,message)";
+  "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,cta_label,broker_cta_label,is_published,website_delivery_mode,academy_description,contact_email,whatsapp_number,telegram_url,instagram_url,contact_phone,facebook_url,youtube_url,twitter_url,tiktok_url,linkedin_url,risk_disclosure_enabled,risk_disclosure:risk_disclosure_templates(title,message)";
 
 function mapBrokerOptions(options: PublicBrokerOption[]): AcademyEntryBroker[] {
   return options.map((option) => ({

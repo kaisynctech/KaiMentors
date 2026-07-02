@@ -1,10 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Instagram, Mail, MessageCircle, Send, ShieldCheck } from "lucide-react";
+import { ArrowRight, Facebook, Instagram, Linkedin, Mail, MessageCircle, Phone, Send, ShieldCheck, Twitter, Youtube } from "lucide-react";
 import type { AcademyEntryPortal } from "@/lib/academy-entry";
 import { getAcademyEntryHref } from "@/lib/academy-routes";
 import { getPortalBrandingUrl } from "@/lib/storage";
 import styles from "@/app/portal/[slug]/portal.module.css";
+
+function TikTokIcon({ size = 17 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+    </svg>
+  );
+}
 
 export function CoreAcademyPage({
   customDomain = false,
@@ -69,10 +77,16 @@ export function CoreAcademyPage({
           <div className={styles.welcomeCopy}>
             <p>{portal.welcome_message}</p>
             <div className={styles.socialLinks}>
-              {portal.contact_email ? <a href={`mailto:${portal.contact_email}`}><Mail size={17} /> Email</a> : null}
-              {whatsappUrl ? <a href={whatsappUrl} rel="noreferrer" target="_blank"><MessageCircle size={17} /> WhatsApp</a> : null}
-              {portal.telegram_url ? <a href={portal.telegram_url} rel="noreferrer" target="_blank"><Send size={17} /> Telegram</a> : null}
-              {portal.instagram_url ? <a href={portal.instagram_url} rel="noreferrer" target="_blank"><Instagram size={17} /> Instagram</a> : null}
+              {portal.contact_email   ? <a href={`mailto:${portal.contact_email}`}><Mail size={17} /> Email</a> : null}
+              {portal.contact_phone   ? <a href={`tel:${portal.contact_phone}`}><Phone size={17} /> Call</a> : null}
+              {whatsappUrl            ? <a href={whatsappUrl} rel="noreferrer" target="_blank"><MessageCircle size={17} /> WhatsApp</a> : null}
+              {portal.telegram_url    ? <a href={portal.telegram_url} rel="noreferrer" target="_blank"><Send size={17} /> Telegram</a> : null}
+              {portal.instagram_url   ? <a href={portal.instagram_url} rel="noreferrer" target="_blank"><Instagram size={17} /> Instagram</a> : null}
+              {portal.facebook_url    ? <a href={portal.facebook_url} rel="noreferrer" target="_blank"><Facebook size={17} /> Facebook</a> : null}
+              {portal.youtube_url     ? <a href={portal.youtube_url} rel="noreferrer" target="_blank"><Youtube size={17} /> YouTube</a> : null}
+              {portal.twitter_url     ? <a href={portal.twitter_url} rel="noreferrer" target="_blank"><Twitter size={17} /> X</a> : null}
+              {portal.tiktok_url      ? <a href={portal.tiktok_url} rel="noreferrer" target="_blank"><TikTokIcon /> TikTok</a> : null}
+              {portal.linkedin_url    ? <a href={portal.linkedin_url} rel="noreferrer" target="_blank"><Linkedin size={17} /> LinkedIn</a> : null}
             </div>
           </div>
         </div>
