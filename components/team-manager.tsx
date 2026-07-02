@@ -27,6 +27,7 @@ interface Props {
   invitations: PendingInvitation[];
   callerUserId: string;
   callerRole: "owner" | "mentor";
+  traderId: string;
 }
 
 function getDisplayName(member: Member, profiles: Profile[]): string {
@@ -48,6 +49,7 @@ export function TeamManager({
   invitations,
   callerUserId,
   callerRole,
+  traderId,
 }: Props) {
   const router = useRouter();
   const isOwner = callerRole === "owner";
@@ -76,7 +78,7 @@ export function TeamManager({
       const res = await fetch("/api/workspace/mentors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ traderId, email: email.trim() }),
       });
       const body = (await res.json()) as { error?: string; invited?: boolean; added?: boolean };
       if (!res.ok) {
@@ -99,7 +101,7 @@ export function TeamManager({
     setRemovingId(userId);
     setRemoveError((prev) => ({ ...prev, [userId]: "" }));
     try {
-      const res = await fetch(`/api/workspace/mentors/${userId}`, { method: "DELETE" });
+      const res = await fetch(`/api/workspace/mentors/${userId}?traderId=${traderId}`, { method: "DELETE" });
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         setRemoveError((prev) => ({ ...prev, [userId]: body.error ?? "Could not remove." }));

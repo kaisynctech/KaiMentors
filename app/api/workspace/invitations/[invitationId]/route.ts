@@ -18,12 +18,22 @@ export async function DELETE(
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
+  // Look up invitation first — its trader_id is the ground truth
+  const { data: invitation } = await supabase
+    .from("workspace_invitations")
+    .select("id, trader_id, accepted_at")
+    .eq("id", params.data.invitationId)
+    .is("accepted_at", null)
+    .maybeSingle();
+
+  if (!invitation) return NextResponse.json({ error: "Invitation not found." }, { status: 404 });
+
+  // Validate caller is owner of that invitation's workspace
   const { data: membership } = await supabase
     .from("trader_members")
-    .select("trader_id, role")
+    .select("role")
     .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
+    .eq("trader_id", invitation.trader_id)
     .maybeSingle();
 
   if (!membership || membership.role !== "owner") {
@@ -34,8 +44,7 @@ export async function DELETE(
     .from("workspace_invitations")
     .delete()
     .eq("id", params.data.invitationId)
-    .eq("trader_id", membership.trader_id)
-    .is("accepted_at", null);
+    .eq("trader_id", invitation.trader_id);
 
   if (error) return NextResponse.json({ error: "Could not cancel invitation." }, { status: 500 });
   return NextResponse.json({ cancelled: params.data.invitationId });

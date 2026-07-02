@@ -4,11 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ userId: string }> },
 ) {
   const params = z.object({ userId: z.string().uuid() }).safeParse(await context.params);
   if (!params.success) return NextResponse.json({ error: "Invalid ID." }, { status: 400 });
+
+  const { searchParams } = new URL(request.url);
+  const traderId = searchParams.get("traderId") ?? "";
+  if (!traderId) return NextResponse.json({ error: "traderId required." }, { status: 400 });
 
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ error: "Not configured." }, { status: 503 });
@@ -21,8 +25,7 @@ export async function DELETE(
     .from("trader_members")
     .select("trader_id, role")
     .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
+    .eq("trader_id", traderId)
     .maybeSingle();
 
   if (!callerMembership || callerMembership.role !== "owner") {

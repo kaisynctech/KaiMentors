@@ -89,6 +89,7 @@ export default async function WorkspaceSettingsPage({
           invitations={invitations ?? []}
           members={members ?? []}
           profiles={profiles ?? []}
+          traderId={traderId}
         />
       </DashboardShell>
     );

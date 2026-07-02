@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWorkspaceInvitation, sendWorkspaceAdded } from "@/lib/email";
 
-async function getOwnerContext(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function getOwnerContext(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  traderId: string,
+) {
   if (!supabase) return null;
   const {
     data: { user },
@@ -14,16 +17,19 @@ async function getOwnerContext(supabase: Awaited<ReturnType<typeof createClient>
     .from("trader_members")
     .select("trader_id, role")
     .eq("user_id", user.id)
-    .order("created_at")
-    .limit(1)
+    .eq("trader_id", traderId)
     .maybeSingle();
   if (!membership) return null;
   return { user, tid: membership.trader_id, role: membership.role as "owner" | "mentor" };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const traderId = searchParams.get("traderId") ?? "";
+  if (!traderId) return NextResponse.json({ error: "traderId required." }, { status: 400 });
+
   const supabase = await createClient();
-  const ctx = await getOwnerContext(supabase);
+  const ctx = await getOwnerContext(supabase, traderId);
   if (!ctx) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
   const [{ data: members }, { data: invitations }] = await Promise.all([
@@ -58,12 +64,24 @@ export async function GET() {
 }
 
 const inviteSchema = z.object({
+  traderId: z.string().uuid(),
   email: z.string().email().toLowerCase().trim(),
 });
 
 export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+  const parsed = inviteSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "A valid email address and traderId are required." },
+      { status: 400 },
+    );
+  }
+
+  const { traderId, email } = parsed.data;
+
   const supabase = await createClient();
-  const ctx = await getOwnerContext(supabase);
+  const ctx = await getOwnerContext(supabase, traderId);
   if (!ctx) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   if (ctx.role !== "owner") {
     return NextResponse.json(
@@ -71,13 +89,6 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
-
-  const parsed = inviteSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "A valid email address is required." }, { status: 400 });
-  }
-
-  const email = parsed.data.email;
 
   if (email === ctx.user.email?.toLowerCase()) {
     return NextResponse.json({ error: "You cannot invite yourself." }, { status: 400 });
