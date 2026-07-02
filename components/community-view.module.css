@@ -24,7 +24,7 @@
   transition: color 0.15s, border-color 0.15s;
 }
 .tab:hover { color: var(--text-primary); }
-.tabActive { color: var(--text-primary); border-bottom-color: var(--accent); }
+.tabActive { color: var(--text-primary); border-bottom-color: #111314; }
 
 /* Album grid */
 .albumGrid {
