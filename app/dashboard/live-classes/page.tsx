@@ -6,7 +6,7 @@ import { getMentorWorkspace } from "@/lib/workspace";
 export default async function LiveClassesPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
 
   const { data: classes } = await supabase
     .from("live_classes")
@@ -23,6 +23,7 @@ export default async function LiveClassesPage() {
       title="Live Classes"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <LiveClassManager classes={classes ?? []} />
     </DashboardShell>

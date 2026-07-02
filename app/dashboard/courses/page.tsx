@@ -14,7 +14,7 @@ export default async function CoursesPage({
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
 
   const tab = (await searchParams)?.tab === "media" ? "media" : "courses";
 
@@ -44,6 +44,7 @@ export default async function CoursesPage({
         title="Courses"
         userLabel={displayName}
         traderId={traderId}
+        portalName={portal.portal_name}
       >
         <CoursesTabs activeTab="media" />
         <CourseMediaLibrary media={media} />
@@ -117,6 +118,7 @@ export default async function CoursesPage({
       title="Courses"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <CoursesTabs activeTab="courses" />
       <CourseManager courses={courses} stats={stats} />

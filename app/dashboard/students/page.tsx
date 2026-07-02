@@ -82,7 +82,7 @@ export default async function StudentsPage({
 
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
   const statuses =
     tab === "all" ? null : studentTabStatuses[tab as Exclude<StudentTab, "all">];
 
@@ -250,6 +250,7 @@ export default async function StudentsPage({
       title="Students"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <section className={styles.metrics}>
         <MetricCard

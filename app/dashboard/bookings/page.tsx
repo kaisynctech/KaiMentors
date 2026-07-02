@@ -6,7 +6,7 @@ import { getMentorWorkspace } from "@/lib/workspace";
 export default async function BookingsPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName, role, timezone, user } = workspace;
+  const { supabase, traderId, displayName, role, timezone, user, portal } = workspace;
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -73,6 +73,7 @@ export default async function BookingsPage() {
       title="Bookings"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <BookingSessionTypeManager
         bookings={bookings ?? []}

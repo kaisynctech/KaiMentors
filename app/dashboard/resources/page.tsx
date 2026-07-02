@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function ResourcesPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
 
   const { data: rows } = await supabase
     .from("resource_items")
@@ -51,6 +51,7 @@ export default async function ResourcesPage() {
       title="Resources"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <MentorResources resources={resources} traderId={traderId} />
     </DashboardShell>

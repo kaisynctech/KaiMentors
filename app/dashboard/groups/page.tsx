@@ -10,7 +10,7 @@ import { getMentorWorkspace } from "@/lib/workspace";
 export default async function StudentGroupsPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
 
   const [{ data: groupRows }, { data: applicationRows }] = await Promise.all([
     supabase
@@ -61,6 +61,7 @@ export default async function StudentGroupsPage() {
       title="Student Groups"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <StudentGroupManager groups={groups} students={students} />
     </DashboardShell>

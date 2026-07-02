@@ -35,6 +35,7 @@ interface DashboardShellProps {
   userLabel?: string;
   activePath?: string;
   traderId?: string;
+  portalName?: string;
 }
 
 const traderNavigation = [
@@ -70,6 +71,7 @@ export function DashboardShell({
   userLabel = "Account",
   activePath,
   traderId,
+  portalName,
 }: DashboardShellProps) {
   const navigation = mode === "admin" ? adminNavigation : traderNavigation;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -115,7 +117,10 @@ export function DashboardShell({
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <BrandMark href={mode === "admin" ? "/admin" : "/dashboard"} />
+        <BrandMark
+          href={mode === "admin" ? "/admin" : "/dashboard"}
+          label={mode === "admin" ? "KaiMentors" : (portalName ?? "Academy")}
+        />
         {mode === "admin" ? (
           <div className={styles.workspace}>
             <span>Platform console</span>
@@ -152,7 +157,10 @@ export function DashboardShell({
         inert={!mobileOpen}
       >
         <div className={styles.mobileDrawerHeader}>
-          <BrandMark href={mode === "admin" ? "/admin" : "/dashboard"} />
+          <BrandMark
+          href={mode === "admin" ? "/admin" : "/dashboard"}
+          label={mode === "admin" ? "KaiMentors" : (portalName ?? "Academy")}
+        />
           <button
             aria-label="Close navigation menu"
             onClick={() => setMobileOpen(false)}
@@ -185,7 +193,10 @@ export function DashboardShell({
       </aside>
       <main className={styles.main}>
         <header className={styles.mobileHeader}>
-          <BrandMark href={mode === "admin" ? "/admin" : "/dashboard"} />
+          <BrandMark
+          href={mode === "admin" ? "/admin" : "/dashboard"}
+          label={mode === "admin" ? "KaiMentors" : (portalName ?? "Academy")}
+        />
           <div>
             <span>{mode === "admin" ? "Admin" : "Mentor"}</span>
             <button

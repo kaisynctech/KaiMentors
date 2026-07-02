@@ -11,7 +11,7 @@ export default async function MentorMessagesPage({
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName, user } = workspace;
+  const { supabase, traderId, displayName, user, portal } = workspace;
 
   const { conversations, students } = await loadConversationWorkspace(
     supabase,
@@ -27,6 +27,7 @@ export default async function MentorMessagesPage({
       title="Messages"
       userLabel={displayName}
       traderId={traderId}
+      portalName={portal.portal_name}
     >
       <MessagesWorkspace
         conversations={conversations}

@@ -12,7 +12,7 @@ type GalleryItem = ComponentProps<typeof MentorCommunity>["itemsByAlbum"][string
 export default async function DashboardCommunityPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName } = workspace;
+  const { supabase, traderId, displayName, portal } = workspace;
 
   const [albumsResult, itemsResult, postsResult] = await Promise.all([
     supabase
@@ -90,6 +90,7 @@ export default async function DashboardCommunityPage() {
       title="Community"
       traderId={traderId}
       userLabel={displayName}
+      portalName={portal.portal_name}
     >
       <MentorCommunity
         albums={albums}

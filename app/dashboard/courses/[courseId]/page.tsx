@@ -12,7 +12,7 @@ export default async function CourseDetailPage({
   const { courseId } = await params;
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, displayName } = workspace;
+  const { supabase, displayName, portal } = workspace;
   const tid = workspace.traderId;
 
   const [
@@ -165,6 +165,7 @@ export default async function CourseDetailPage({
       title={course.title}
       userLabel={displayName}
       traderId={tid}
+      portalName={portal.portal_name}
     >
       <CourseDetailManager
         course={{ ...course, thumbnailUrl }}
