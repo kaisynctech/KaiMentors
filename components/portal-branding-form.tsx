@@ -208,7 +208,7 @@ export function PortalBrandingForm({
 
           <div className={styles.twoColumns}>
             <label>
-              Primary color
+              {websiteDeliveryMode === "custom_package" ? "Footer colour" : "Primary color"}
               <span className={styles.colorField}>
                 <input
                   aria-label="Choose primary color"
@@ -231,98 +231,102 @@ export function PortalBrandingForm({
                 />
               </span>
             </label>
-            <label>
-              Accent color
-              <span className={styles.colorField}>
-                <input
-                  aria-label="Choose accent color"
-                  onChange={(event) =>
-                    setValues((current) => ({
-                      ...current,
-                      accentColor: event.target.value,
-                    }))
-                  }
-                  type="color"
-                  value={values.accentColor}
-                />
-                <input
-                  maxLength={7}
-                  name="accentColor"
-                  onChange={updateValue}
-                  pattern="#[0-9A-Fa-f]{6}"
-                  required
-                  value={values.accentColor}
-                />
-              </span>
-            </label>
+            {websiteDeliveryMode !== "custom_package" && (
+              <label>
+                Accent color
+                <span className={styles.colorField}>
+                  <input
+                    aria-label="Choose accent color"
+                    onChange={(event) =>
+                      setValues((current) => ({
+                        ...current,
+                        accentColor: event.target.value,
+                      }))
+                    }
+                    type="color"
+                    value={values.accentColor}
+                  />
+                  <input
+                    maxLength={7}
+                    name="accentColor"
+                    onChange={updateValue}
+                    pattern="#[0-9A-Fa-f]{6}"
+                    required
+                    value={values.accentColor}
+                  />
+                </span>
+              </label>
+            )}
           </div>
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <span>Content</span>
-              <h2>Hero and welcome message</h2>
+        {websiteDeliveryMode !== "custom_package" && (
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <span>Content</span>
+                <h2>Hero and welcome message</h2>
+              </div>
             </div>
-          </div>
-          <label>
-            Academy description
-            <textarea maxLength={800} name="academyDescription" onChange={updateValue} rows={4} value={values.academyDescription} />
-          </label>
-          <label>
-            Hero title
-            <input
-              maxLength={180}
-              name="heroTitle"
-              onChange={updateValue}
-              required
-              value={values.heroTitle}
-            />
-          </label>
-          <label>
-            Hero subtitle
-            <textarea
-              maxLength={320}
-              name="heroSubtitle"
-              onChange={updateValue}
-              rows={3}
-              value={values.heroSubtitle}
-            />
-          </label>
-          <label>
-            Welcome message
-            <textarea
-              maxLength={600}
-              name="welcomeMessage"
-              onChange={updateValue}
-              required
-              rows={5}
-              value={values.welcomeMessage}
-            />
-          </label>
-          <div className={styles.twoColumns}>
             <label>
-              CTA button text
+              Academy description
+              <textarea maxLength={800} name="academyDescription" onChange={updateValue} rows={4} value={values.academyDescription} />
+            </label>
+            <label>
+              Hero title
               <input
-                maxLength={80}
-                name="ctaLabel"
+                maxLength={180}
+                name="heroTitle"
                 onChange={updateValue}
                 required
-                value={values.ctaLabel}
+                value={values.heroTitle}
               />
             </label>
             <label>
-              Broker signup button text
-              <input
-                maxLength={80}
-                name="brokerCtaLabel"
+              Hero subtitle
+              <textarea
+                maxLength={320}
+                name="heroSubtitle"
                 onChange={updateValue}
-                required
-                value={values.brokerCtaLabel}
+                rows={3}
+                value={values.heroSubtitle}
               />
             </label>
-          </div>
-        </section>
+            <label>
+              Welcome message
+              <textarea
+                maxLength={600}
+                name="welcomeMessage"
+                onChange={updateValue}
+                required
+                rows={5}
+                value={values.welcomeMessage}
+              />
+            </label>
+            <div className={styles.twoColumns}>
+              <label>
+                CTA button text
+                <input
+                  maxLength={80}
+                  name="ctaLabel"
+                  onChange={updateValue}
+                  required
+                  value={values.ctaLabel}
+                />
+              </label>
+              <label>
+                Broker signup button text
+                <input
+                  maxLength={80}
+                  name="brokerCtaLabel"
+                  onChange={updateValue}
+                  required
+                  value={values.brokerCtaLabel}
+                />
+              </label>
+            </div>
+          </section>
+        )}
 
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
