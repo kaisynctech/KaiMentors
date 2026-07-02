@@ -143,7 +143,7 @@ export default async function StudentCoursePage({
       <nav className={styles.nav}>
         <BrandMark
           href={`${base}/courses${suffix}`}
-          label={base === "/academy" ? (portal?.portal_name ?? "Academy") : "KaiMentors"}
+          label={portal?.portal_name ?? "Academy"}
         />
         <div className={styles.navActions}>
           <Link href={`${base}/courses${suffix}`}>My learning</Link>

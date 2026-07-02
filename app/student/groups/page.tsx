@@ -40,8 +40,7 @@ export default async function StudentGroupsPage({
   if (!app) redirect(`${base}/join-academy${suffix}`);
 
   const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
-  const academyName =
-    base === "/academy" ? (portal?.portal_name ?? "Academy") : "KaiMentors";
+  const academyName = portal?.portal_name ?? "Academy";
   const displayName = user.email?.split("@")[0] ?? "Student";
   const isVerified = app.status === "verified";
 

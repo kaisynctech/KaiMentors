@@ -237,9 +237,7 @@ export default async function LessonPage({
         <BrandMark
           href={`${base}/courses/${courseId}${suffix}`}
           label={
-            base === "/academy"
-              ? (portal?.portal_name ?? "Academy")
-              : "KaiMentors"
+            portal?.portal_name ?? "Academy"
           }
         />
         <div className={styles.navActions}>

@@ -62,10 +62,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     ? application.portal[0]
     : application.portal;
 
-  const academyName =
-    basePath === "/academy"
-      ? (portal?.portal_name ?? "Academy")
-      : "KaiMentors";
+  const academyName = portal?.portal_name ?? "Academy";
 
   const displayName = user.email?.split("@")[0] ?? "Student";
   const status = application.status;

@@ -53,10 +53,7 @@ export default async function StudentMessagesPage({
   const portal = Array.isArray(application.portal)
     ? application.portal[0]
     : application.portal;
-  const academyName =
-    basePath === "/academy"
-      ? (portal?.portal_name ?? "Academy")
-      : "KaiMentors";
+  const academyName = portal?.portal_name ?? "Academy";
   const displayName = user.email?.split("@")[0] ?? "Student";
   const isVerified = application.status === "verified";
 
