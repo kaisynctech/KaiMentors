@@ -1,0 +1,23 @@
+.page {
+  padding: 36px 40px 60px;
+  max-width: 900px;
+}
+
+.header {
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  font-size: 30px;
+  letter-spacing: -0.04em;
+  margin: 4px 0 8px;
+}
+
+.header p {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .page { padding: 20px 18px 40px; }
+}

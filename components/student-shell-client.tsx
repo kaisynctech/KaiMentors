@@ -13,6 +13,7 @@ import {
   LockKeyhole,
   Menu,
   MessageSquare,
+  Sparkles,
   Users,
   Video,
   X,
@@ -94,6 +95,12 @@ export function StudentShellClient({
       label: "Messages",
       icon: MessageSquare,
       locked: !isVerified,
+    },
+    {
+      href: `${basePath}/community${querySuffix}`,
+      label: "Community",
+      icon: Sparkles,
+      locked: false,
     },
   ];
 
