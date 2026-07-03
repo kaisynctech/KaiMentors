@@ -1,3 +1,47 @@
+# EP-077 — Fix LoginForm Silent Submit on Academy Portal Pages
+
+## Root Cause
+
+`LoginForm` uses `<form action={asyncFn}>`, which is React 19's form action API.
+React 19 wraps every form action in `startTransition`. **State updates inside a
+transition are deferred — they do not flush until after the transition
+completes.** This has two consequences:
+
+1. `setLoading(true)` at the top of `signIn` never produces a visible spinner
+   during the operation. The button appears unresponsive (no feedback).
+2. `disabled={loading}` never activates during the action, so rapid multi-clicks
+   trigger multiple concurrent `signIn` calls.
+
+For a **successful** login the sequence is:
+- User clicks Sign In → no spinner → sign-in runs silently → redirect happens
+  after several seconds of silence → looks like "nothing happened."
+
+For a **failed** login:
+- `setError` is also deferred, so the error message may appear late or the form
+  reset (React 19 resets form fields after every action) clears the fields
+  before the user reads the error.
+
+**The fix is `useFormStatus`**, which is specifically designed to track a form
+action's pending state and updates the button UI immediately during the
+transition — no deferred flush required.
+
+---
+
+## Secondary issues fixed in the same pass
+
+- `fetch("/api/workspace/activate", ...)` response is not checked; a 401 or 403
+  from the server is silently ignored and the redirect still fires.
+- No `console.error` inside the catch block makes browser debugging impossible.
+
+---
+
+## File changes
+
+### `components/login-form.tsx`
+
+Full replacement:
+
+```typescript
 "use client";
 
 import { useState } from "react";
@@ -172,3 +216,55 @@ export function LoginForm({
     </form>
   );
 }
+```
+
+**Changes summary:**
+- Add `import { useFormStatus } from "react-dom"`
+- Remove `loading` state and `setLoading` entirely
+- Extract `SubmitButton` as a separate sub-component; it reads `pending` from
+  `useFormStatus()` — this updates immediately when the form action starts
+- Remove `const [loading, setLoading] = useState(false)` and all `setLoading`
+  calls
+- Add `activateRes.ok` check with `console.error` on failure
+- Add `console.error("[LoginForm] signIn error:", err)` in the catch block
+- Keep all auth logic unchanged
+
+---
+
+## What does NOT change
+
+- `components/academy-login-page.tsx` — no changes.
+- `app/portal/[slug]/login/page.tsx` — no changes.
+- `app/domain-sites/[hostname]/login/page.tsx` — no changes.
+- `app/api/workspace/activate/route.ts` — no changes.
+- All other files — unchanged.
+
+---
+
+## Why `useFormStatus` and not `onSubmit`
+
+`useFormStatus` is the React 19 / react-dom canonical solution for tracking
+form action state. Switching to `onSubmit` would bypass React's progressive
+enhancement model and require manually constructing `FormData`. `useFormStatus`
+is the correct, minimal-change fix.
+
+The sub-component requirement (`useFormStatus` must be inside the form, not at
+the same level as the `<form>` element) is why `SubmitButton` is extracted.
+
+---
+
+## Verification after deploy
+
+1. Navigate to `/portal/traders-confidence/login`.
+2. Enter `kaisynctech@gmail.com` and the correct password. Click **Sign In**.
+   - **Expected**: button shows spinner immediately (within one frame of the
+     click). After 2–4 s, redirect to `/dashboard`.
+3. Navigate back to `/portal/traders-confidence/login`. Enter an incorrect
+   password. Click **Sign In**.
+   - **Expected**: button shows spinner → error "Incorrect email address or
+     password." appears → form fields are preserved (React 19 resets them, but
+     the error remains).
+4. Open browser DevTools → Console. Confirm no `[LoginForm]` errors appear for
+   a successful login.
+5. Check Network tab during sign-in: confirm `POST /api/workspace/activate`
+   returns 200 OK.
