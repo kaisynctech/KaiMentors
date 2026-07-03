@@ -34,6 +34,7 @@ interface Props {
   callerUserId: string;
   callerRole: "owner" | "mentor";
   traderId: string;
+  inviteToken?: string | null;
 }
 
 function getDisplayName(member: Member, profiles: Profile[]): string {
@@ -56,6 +57,7 @@ export function TeamManager({
   callerUserId,
   callerRole,
   traderId,
+  inviteToken,
 }: Props) {
   const router = useRouter();
   const isOwner = callerRole === "owner";
@@ -78,6 +80,15 @@ export function TeamManager({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [newInviteLink, setNewInviteLink] = useState<string | null>(null);
   const [newInviteCopied, setNewInviteCopied] = useState(false);
+
+  const [currentInviteToken, setCurrentInviteToken] = useState(inviteToken ?? null);
+  const [workspaceLinkCopied, setWorkspaceLinkCopied] = useState(false);
+  const [resettingToken, setResettingToken]           = useState(false);
+  const [resetTokenError, setResetTokenError]         = useState<string | null>(null);
+
+  const workspaceJoinLink = currentInviteToken
+    ? `${SITE_URL}/join/workspace/${currentInviteToken}`
+    : null;
 
   async function copyJoinLink(invitationId: string) {
     const link = `${SITE_URL}/join/${invitationId}`;
@@ -307,6 +318,78 @@ export function TeamManager({
               </button>
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {/* Workspace invite link (owner only) */}
+      {isOwner && workspaceJoinLink ? (
+        <section className={styles.section}>
+          <p className={styles.sectionTitle}>Workspace invite link</p>
+          <div style={{ padding: "14px 20px 16px" }}>
+            <p style={{
+              fontSize: "0.82rem",
+              color: "#6b7280",
+              margin: "0 0 10px",
+              lineHeight: "1.5",
+            }}>
+              Share this link with anyone you want to add as a mentor. They set up
+              their own account — no email invitation needed.
+            </p>
+            <div className={styles.linkBox} style={{ margin: "0 0 10px" }}>
+              <span className={styles.linkText}>{workspaceJoinLink}</span>
+              <button
+                className={styles.copyBtn}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(workspaceJoinLink);
+                  setWorkspaceLinkCopied(true);
+                  setTimeout(() => setWorkspaceLinkCopied(false), 2000);
+                }}
+                type="button"
+              >
+                {workspaceLinkCopied ? "Copied!" : "Copy link"}
+              </button>
+            </div>
+            {resetTokenError ? (
+              <p className={styles.errorMsg} style={{ margin: "0 0 6px" }}>
+                {resetTokenError}
+              </p>
+            ) : null}
+            <button
+              className={styles.resendBtn}
+              disabled={resettingToken}
+              onClick={async () => {
+                setResettingToken(true);
+                setResetTokenError(null);
+                try {
+                  const res = await fetch("/api/workspace/invite-token", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ traderId }),
+                    signal: AbortSignal.timeout(12000),
+                  });
+                  const body = (await res.json()) as {
+                    inviteToken?: string;
+                    error?: string;
+                  };
+                  if (!res.ok) {
+                    setResetTokenError(body.error ?? "Could not reset link.");
+                    return;
+                  }
+                  if (body.inviteToken) {
+                    setCurrentInviteToken(body.inviteToken);
+                  }
+                } catch {
+                  setResetTokenError("Request timed out. Please try again.");
+                } finally {
+                  setResettingToken(false);
+                }
+              }}
+              style={{ fontSize: "0.75rem" }}
+              type="button"
+            >
+              {resettingToken ? "Resetting…" : "Reset link"}
+            </button>
+          </div>
         </section>
       ) : null}
     </div>

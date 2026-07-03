@@ -53,19 +53,25 @@ export default async function WorkspaceSettingsPage({
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const [{ data: members }, { data: invitations }] = await Promise.all([
-      supabase
-        .from("trader_members")
-        .select("user_id, role, created_at")
-        .eq("trader_id", traderId)
-        .order("created_at"),
-      supabase
-        .from("workspace_invitations")
-        .select("id, email, created_at")
-        .eq("trader_id", traderId)
-        .is("accepted_at", null)
-        .order("created_at"),
-    ]);
+    const admin = createAdminClient();
+
+    const [{ data: members }, { data: invitations }, { data: traderRow }] =
+      await Promise.all([
+        supabase
+          .from("trader_members")
+          .select("user_id, role, created_at")
+          .eq("trader_id", traderId)
+          .order("created_at"),
+        supabase
+          .from("workspace_invitations")
+          .select("id, email, created_at")
+          .eq("trader_id", traderId)
+          .is("accepted_at", null)
+          .order("created_at"),
+        admin
+          ? admin.from("traders").select("invite_token").eq("id", traderId).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
     const memberUserIds = (members ?? []).map((m) => m.user_id);
     const { data: profiles } = memberUserIds.length
@@ -87,6 +93,7 @@ export default async function WorkspaceSettingsPage({
           callerRole={membership?.role ?? "mentor"}
           callerUserId={user.id}
           invitations={invitations ?? []}
+          inviteToken={(traderRow as { invite_token?: string | null } | null)?.invite_token ?? null}
           members={members ?? []}
           profiles={profiles ?? []}
           traderId={traderId}
