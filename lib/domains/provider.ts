@@ -69,7 +69,7 @@ class VercelDomainProvider implements DomainProvider {
   private readonly teamId: string | null;
 
   constructor() {
-    this.token = process.env.VERCEL_TOKEN ?? "";
+    this.token = process.env.VERCEL_DOMAIN_TOKEN ?? "";
     this.projectId =
       process.env.VERCEL_PROJECT_ID ?? process.env.VERCEL_PROJECT_NAME ?? "";
     this.teamId = process.env.VERCEL_TEAM_ID ?? null;
