@@ -87,9 +87,7 @@ export function TeamManager({
         setInviteError(body.error ?? "Could not send invitation.");
         return;
       }
-      const msg = body.invited
-        ? `Invitation created for ${email.trim()}. Use "Resend" to email them the link.`
-        : `${email.trim()} has been added to your workspace.`;
+      const msg = `Invitation sent to ${email.trim()}.`;
       setInviteSuccess(msg);
       setEmail("");
       router.refresh();

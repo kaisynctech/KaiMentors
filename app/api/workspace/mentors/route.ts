@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWorkspaceInvitation } from "@/lib/email";
 
 async function getOwnerContext(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -99,31 +100,27 @@ export async function POST(request: Request) {
 
   const sig = AbortSignal.timeout(8000);
 
-  // Check if the email belongs to an existing user
+  // Block if already a member of this workspace
   const { data: existingUserId } = await supabase!
     .rpc("get_user_id_by_email", { input_email: email })
     .abortSignal(sig);
-
   if (existingUserId) {
-    const { error: memberError } = await admin
+    const { data: existingMember } = await admin
       .from("trader_members")
-      .insert({ trader_id: ctx.tid, user_id: existingUserId, role: "mentor" })
-      .abortSignal(sig);
-
-    if (memberError) {
-      if (memberError.code === "23505") {
-        return NextResponse.json(
-          { error: "This person is already in your workspace." },
-          { status: 409 },
-        );
-      }
-      return NextResponse.json({ error: "Could not add mentor." }, { status: 500 });
+      .select("id")
+      .eq("trader_id", ctx.tid)
+      .eq("user_id", existingUserId)
+      .abortSignal(sig)
+      .maybeSingle();
+    if (existingMember) {
+      return NextResponse.json(
+        { error: "This person is already in your workspace." },
+        { status: 409 },
+      );
     }
-
-    return NextResponse.json({ added: true, invited: false });
   }
 
-  // New user — check for an existing pending invitation
+  // Block if a pending invitation already exists
   const { data: existing } = await supabase!
     .from("workspace_invitations")
     .select("id")
@@ -132,7 +129,6 @@ export async function POST(request: Request) {
     .is("accepted_at", null)
     .abortSignal(sig)
     .maybeSingle();
-
   if (existing) {
     return NextResponse.json(
       { error: "An invitation has already been sent to this email." },
@@ -140,6 +136,8 @@ export async function POST(request: Request) {
     );
   }
 
+  // Always create an invitation — new and existing Supabase users both go
+  // through the join flow (OTP verification → profile → workspace membership).
   const { data: invitation, error: invErr } = await admin
     .from("workspace_invitations")
     .insert({ trader_id: ctx.tid, email, invited_by: ctx.user.id })
@@ -151,5 +149,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Could not create invitation." }, { status: 500 });
   }
 
-  return NextResponse.json({ added: false, invited: true }, { status: 201 });
+  // Send invite email immediately — non-blocking
+  after(async () => {
+    try {
+      const [{ data: portalRow }, { data: inviterProfile }] = await Promise.all([
+        admin.from("portals").select("portal_name").eq("trader_id", ctx.tid).maybeSingle(),
+        admin.from("profiles").select("full_name").eq("id", ctx.user.id).maybeSingle(),
+      ]);
+      const workspaceName = portalRow?.portal_name ?? "the workspace";
+      const inviterName   = inviterProfile?.full_name ?? "Your colleague";
+      const siteUrl       = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kaimentors.vercel.app";
+      const joinUrl       = `${siteUrl}/join/${invitation.id}`;
+      await sendWorkspaceInvitation({ to: email, workspaceName, inviterName, joinUrl });
+    } catch {
+      // Email failure must never affect the HTTP response
+    }
+  });
+
+  return NextResponse.json({ invited: true }, { status: 201 });
 }
