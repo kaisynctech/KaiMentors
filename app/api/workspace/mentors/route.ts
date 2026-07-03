@@ -155,5 +155,5 @@ export async function POST(request: Request) {
     }
   });
 
-  return NextResponse.json({ invited: true }, { status: 201 });
+  return NextResponse.json({ invited: true, invitationId }, { status: 201 });
 }

@@ -4,6 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./team-manager.module.css";
 
+const SITE_URL =
+  typeof window !== "undefined"
+    ? window.location.origin
+    : "https://kaimentors.vercel.app";
+
 interface Member {
   user_id: string;
   role: "owner" | "mentor";
@@ -70,6 +75,17 @@ export function TeamManager({
   const [resendSuccess, setResendSuccess] = useState<Record<string, boolean>>({});
   const [resendError, setResendError] = useState<Record<string, string>>({});
 
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [newInviteLink, setNewInviteLink] = useState<string | null>(null);
+  const [newInviteCopied, setNewInviteCopied] = useState(false);
+
+  async function copyJoinLink(invitationId: string) {
+    const link = `${SITE_URL}/join/${invitationId}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedId(invitationId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   async function sendInvite() {
     if (!email.trim()) return;
     setInviting(true);
@@ -82,16 +98,21 @@ export function TeamManager({
         body: JSON.stringify({ traderId, email: email.trim() }),
         signal: AbortSignal.timeout(12000),
       });
-      const body = (await res.json()) as { error?: string; invited?: boolean; added?: boolean };
+      const body = (await res.json()) as { error?: string; invited?: boolean; invitationId?: string };
       if (!res.ok) {
         setInviteError(body.error ?? "Could not send invitation.");
         return;
       }
-      const msg = `Invitation sent to ${email.trim()}.`;
-      setInviteSuccess(msg);
+      setInviteSuccess(`Invitation created for ${email.trim()}.`);
+      if (body.invitationId) {
+        setNewInviteLink(`${SITE_URL}/join/${body.invitationId}`);
+      }
       setEmail("");
       router.refresh();
-      setTimeout(() => setInviteSuccess(null), 4000);
+      setTimeout(() => {
+        setInviteSuccess(null);
+        setNewInviteLink(null);
+      }, 10000);
     } catch {
       setInviteError("Request timed out. Please try again.");
     } finally {
@@ -213,6 +234,13 @@ export function TeamManager({
                     <span className={styles.inlineError}>{cancelError[inv.id]}</span>
                   ) : null}
                   <button
+                    className={styles.copyBtn}
+                    onClick={() => void copyJoinLink(inv.id)}
+                    type="button"
+                  >
+                    {copiedId === inv.id ? "Copied!" : "Copy link"}
+                  </button>
+                  <button
                     className={styles.resendBtn}
                     disabled={resendingId === inv.id || cancellingId === inv.id}
                     onClick={() => void resendInvitation(inv.id)}
@@ -263,6 +291,22 @@ export function TeamManager({
           </div>
           {inviteError ? <p className={styles.errorMsg}>{inviteError}</p> : null}
           {inviteSuccess ? <p className={styles.successMsg}>{inviteSuccess}</p> : null}
+          {newInviteLink ? (
+            <div className={styles.linkBox}>
+              <span className={styles.linkText}>{newInviteLink}</span>
+              <button
+                className={styles.copyBtn}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(newInviteLink);
+                  setNewInviteCopied(true);
+                  setTimeout(() => setNewInviteCopied(false), 2000);
+                }}
+                type="button"
+              >
+                {newInviteCopied ? "Copied!" : "Copy link"}
+              </button>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>
