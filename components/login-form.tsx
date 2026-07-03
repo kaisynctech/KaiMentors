@@ -60,6 +60,7 @@ export function LoginForm({
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
+        .abortSignal(AbortSignal.timeout(8000))
         .single();
 
       if (academyContext) {
@@ -70,6 +71,7 @@ export function LoginForm({
           .select("id")
           .eq("user_id", data.user.id)
           .eq("trader_id", academyContext.traderId)
+          .abortSignal(AbortSignal.timeout(8000))
           .maybeSingle();
 
         if (membership) {
@@ -142,12 +144,18 @@ export function LoginForm({
       window.location.href = destination;
     } catch (err) {
       console.error("[LoginForm] signIn error:", err);
+      const isTimeout =
+        (err instanceof DOMException && err.name === "AbortError") ||
+        (err instanceof Error &&
+          err.message.toLowerCase().includes("signal timed out"));
       const message =
         err instanceof Error ? err.message : "Sign in failed.";
       setError(
-        message.toLowerCase().includes("invalid login credentials")
-          ? "Incorrect email address or password."
-          : message,
+        isTimeout
+          ? "Connection timed out. Please try again."
+          : message.toLowerCase().includes("invalid login credentials")
+            ? "Incorrect email address or password."
+            : message,
       );
     }
   }
