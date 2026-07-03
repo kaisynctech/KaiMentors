@@ -73,24 +73,18 @@ export function LoginForm({
           .maybeSingle();
 
         if (membership) {
-          // Best-effort: set the km_workspace cookie so the dashboard opens the
-          // right workspace. If the call times out or fails, the dashboard falls
-          // back to the user's first membership — do not block the redirect.
-          try {
-            const activateRes = await fetch("/api/workspace/activate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ traderId: academyContext.traderId }),
-              signal: AbortSignal.timeout(5000),
-            });
-            if (!activateRes.ok) {
-              console.error(
-                "[LoginForm] /api/workspace/activate returned",
-                activateRes.status,
-              );
-            }
-          } catch (err) {
-            console.error("[LoginForm] /api/workspace/activate failed:", err);
+          // Workspace activate is blocking — if it fails the user must not
+          // proceed to the dashboard carrying a stale workspace cookie.
+          const activateRes = await fetch("/api/workspace/activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ traderId: academyContext.traderId }),
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!activateRes.ok) {
+            throw new Error(
+              "Could not open this workspace. Please try again.",
+            );
           }
           window.location.href = academyContext.mentorDestination;
           return;

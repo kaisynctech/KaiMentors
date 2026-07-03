@@ -7,10 +7,12 @@ export async function getMentorWorkspace() {
   const supabase = await createClient();
   if (!supabase) return null;
 
+  // getSession() decodes the JWT from cookies locally — no network call.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+  const user = session.user as User;
 
   const { data: memberships } = await supabase
     .from("trader_members")
@@ -40,7 +42,7 @@ export async function getMentorWorkspace() {
 
   return {
     supabase,
-    user: user as User,
+    user,
     membership,
     portal,
     traderId: membership.trader_id,

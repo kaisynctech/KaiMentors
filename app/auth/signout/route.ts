@@ -7,7 +7,14 @@ function isSafeRelativeUrl(value: string): boolean {
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  if (supabase) await supabase.auth.signOut();
+  // Time-box signOut to 4 s. Under Supabase infrastructure load the call can
+  // hang indefinitely — the redirect must happen regardless.
+  if (supabase) {
+    await Promise.race([
+      supabase.auth.signOut(),
+      new Promise<void>((resolve) => setTimeout(resolve, 4000)),
+    ]);
+  }
 
   let returnTo = "/login";
   try {

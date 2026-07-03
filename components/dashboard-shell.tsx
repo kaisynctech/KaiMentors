@@ -80,7 +80,7 @@ export function DashboardShell({
     mode === "admin"
       ? "/login"
       : portalSlug
-        ? `/portal/${portalSlug}`
+        ? `/portal/${portalSlug}/login`
         : "/login";
 
   useEffect(() => {
