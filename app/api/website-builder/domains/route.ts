@@ -128,7 +128,8 @@ async function persistProviderState(
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const { data: { session } } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+  const user = session?.user ?? null;
   const { data: profile } = user && supabase ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
   if (!supabase || !user || profile?.role !== "super_admin") {
     return NextResponse.json(
