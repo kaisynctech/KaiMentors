@@ -127,6 +127,7 @@ async function persistProviderState(
 }
 
 export async function POST(request: Request) {
+  try {
   const supabase = await createClient();
   const { data: { session } } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
   const user = session?.user ?? null;
@@ -425,4 +426,14 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ status: "removed" });
+  } catch (diagnostic) {
+    return NextResponse.json(
+      {
+        error: diagnostic instanceof Error
+          ? `[diagnostic] ${diagnostic.name}: ${diagnostic.message}`
+          : "[diagnostic] Unknown error",
+      },
+      { status: 500 },
+    );
+  }
 }
