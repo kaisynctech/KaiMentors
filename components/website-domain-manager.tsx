@@ -190,12 +190,14 @@ export function WebsiteDomainManager({
               </div>
             </div>
             <form
-              action={(formData) =>
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
                 domainAction(
                   { action: "add", hostname: String(formData.get("hostname")) },
                   "add",
-                )
-              }
+                );
+              }}
               className={styles.addForm}
             >
               <label>
