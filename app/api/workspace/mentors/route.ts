@@ -82,7 +82,15 @@ export async function POST(request: Request) {
   const { traderId, email } = parsed.data;
 
   const supabase = await createClient();
-  const ctx = await getOwnerContext(supabase, traderId);
+  const admin = createAdminClient();
+  if (!admin) return NextResponse.json({ error: "Not configured." }, { status: 503 });
+  const sig = AbortSignal.timeout(10000);
+
+  // Phase 1 — parallel: ownership check + email lookup
+  const [ctx, { data: existingUserId }] = await Promise.all([
+    getOwnerContext(supabase, traderId),
+    supabase!.rpc("get_user_id_by_email", { input_email: email }).abortSignal(sig),
+  ]);
   if (!ctx) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   if (ctx.role !== "owner") {
     return NextResponse.json(
@@ -90,54 +98,44 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   }
-
   if (email === ctx.user.email?.toLowerCase()) {
     return NextResponse.json({ error: "You cannot invite yourself." }, { status: 400 });
   }
 
-  const admin = createAdminClient();
-  if (!admin) return NextResponse.json({ error: "Not configured." }, { status: 503 });
-
-  const sig = AbortSignal.timeout(8000);
-
-  // Block if already a member of this workspace
-  const { data: existingUserId } = await supabase!
-    .rpc("get_user_id_by_email", { input_email: email })
-    .abortSignal(sig);
-  if (existingUserId) {
-    const { data: existingMember } = await admin
-      .from("trader_members")
+  // Phase 2 — parallel: existing membership check + pending invitation check
+  const [existingMemberResult, existingInvitationResult] = await Promise.all([
+    existingUserId
+      ? admin
+          .from("trader_members")
+          .select("id")
+          .eq("trader_id", ctx.tid)
+          .eq("user_id", existingUserId)
+          .abortSignal(sig)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase!
+      .from("workspace_invitations")
       .select("id")
       .eq("trader_id", ctx.tid)
-      .eq("user_id", existingUserId)
+      .eq("email", email)
+      .is("accepted_at", null)
       .abortSignal(sig)
-      .maybeSingle();
-    if (existingMember) {
-      return NextResponse.json(
-        { error: "This person is already in your workspace." },
-        { status: 409 },
-      );
-    }
+      .maybeSingle(),
+  ]);
+  if (existingMemberResult.data) {
+    return NextResponse.json(
+      { error: "This person is already in your workspace." },
+      { status: 409 },
+    );
   }
-
-  // Block if a pending invitation already exists
-  const { data: existing } = await supabase!
-    .from("workspace_invitations")
-    .select("id")
-    .eq("trader_id", ctx.tid)
-    .eq("email", email)
-    .is("accepted_at", null)
-    .abortSignal(sig)
-    .maybeSingle();
-  if (existing) {
+  if (existingInvitationResult.data) {
     return NextResponse.json(
       { error: "An invitation has already been sent to this email." },
       { status: 409 },
     );
   }
 
-  // Always create an invitation — new and existing Supabase users both go
-  // through the join flow (OTP verification → profile → workspace membership).
+  // Phase 3 — insert invitation
   const { data: invitation, error: invErr } = await admin
     .from("workspace_invitations")
     .insert({ trader_id: ctx.tid, email, invited_by: ctx.user.id })

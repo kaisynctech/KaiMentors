@@ -22,12 +22,33 @@ export async function DELETE(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   const user = session.user;
 
-  const { data: callerMembership } = await supabase
-    .from("trader_members")
-    .select("trader_id, role")
-    .eq("user_id", user.id)
-    .eq("trader_id", traderId)
-    .maybeSingle();
+  const targetUserId = params.data.userId;
+
+  if (targetUserId === user.id) {
+    return NextResponse.json({ error: "You cannot remove yourself." }, { status: 400 });
+  }
+
+  const sig = AbortSignal.timeout(10000);
+
+  // Run ownership check and bookings check in parallel
+  const [{ data: callerMembership }, { data: upcoming }] = await Promise.all([
+    supabase
+      .from("trader_members")
+      .select("trader_id, role")
+      .eq("user_id", user.id)
+      .eq("trader_id", traderId)
+      .abortSignal(sig)
+      .maybeSingle(),
+    supabase
+      .from("bookings")
+      .select("id")
+      .eq("trader_id", traderId)
+      .eq("mentor_user_id", targetUserId)
+      .eq("status", "confirmed")
+      .gt("starts_at", new Date().toISOString())
+      .abortSignal(sig)
+      .limit(1),
+  ]);
 
   if (!callerMembership || callerMembership.role !== "owner") {
     return NextResponse.json(
@@ -35,22 +56,6 @@ export async function DELETE(
       { status: 403 },
     );
   }
-
-  const targetUserId = params.data.userId;
-
-  if (targetUserId === user.id) {
-    return NextResponse.json({ error: "You cannot remove yourself." }, { status: 400 });
-  }
-
-  // Block removal if mentor has upcoming confirmed bookings
-  const { data: upcoming } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("trader_id", callerMembership.trader_id)
-    .eq("mentor_user_id", targetUserId)
-    .eq("status", "confirmed")
-    .gt("starts_at", new Date().toISOString())
-    .limit(1);
 
   if (upcoming && upcoming.length > 0) {
     return NextResponse.json(
@@ -68,7 +73,7 @@ export async function DELETE(
   const { error } = await admin
     .from("trader_members")
     .delete()
-    .eq("trader_id", callerMembership.trader_id)
+    .eq("trader_id", traderId)
     .eq("user_id", targetUserId);
 
   if (error) return NextResponse.json({ error: "Could not remove mentor." }, { status: 500 });
