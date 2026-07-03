@@ -17,9 +17,10 @@ export async function DELETE(
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ error: "Not configured." }, { status: 503 });
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  const user = session.user;
 
   const { data: callerMembership } = await supabase
     .from("trader_members")
