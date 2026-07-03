@@ -20,12 +20,14 @@ export function JoinForm({
   workspaceName,
   inviterName,
 }: JoinFormProps) {
-  const [step, setStep] = useState<Step>("profile");
+  const [step, setStep]           = useState<Step>("profile");
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [otp, setOtp] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [lastName, setLastName]   = useState("");
+  const [password, setPassword]   = useState("");
+  const [confirm, setConfirm]     = useState("");
+  const [otp, setOtp]             = useState("");
+  const [busy, setBusy]           = useState(false);
+  const [error, setError]         = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +39,14 @@ export function JoinForm({
     setError(null);
     if (!firstName.trim() || !lastName.trim()) {
       setError("Please enter your first and last name.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
       return;
     }
     setBusy(true);
@@ -60,6 +70,8 @@ export function JoinForm({
       return;
     }
     setBusy(true);
+
+    // Verify OTP
     const { error: verifyError } = await supabase.auth.verifyOtp({
       email,
       token: otp.trim(),
@@ -70,16 +82,35 @@ export function JoinForm({
       setError("Incorrect or expired code. Please check your email and try again.");
       return;
     }
+
+    // Set password now that user is authenticated
+    const { error: pwError } = await supabase.auth.updateUser({ password });
+    if (pwError) {
+      // Don't block join — password can be set from Account Settings
+      console.warn("Could not set password:", pwError.message);
+    }
+
     setStep("completing");
-    const res = await fetch("/api/join/complete", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        invitationId,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-      }),
-    });
+
+    let res: Response;
+    try {
+      res = await fetch("/api/join/complete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          invitationId,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+    } catch {
+      setBusy(false);
+      setStep("otp");
+      setError("Connection timed out. Please try again.");
+      return;
+    }
+
     if (!res.ok) {
       const json = await res.json().catch(() => ({})) as { error?: string };
       setBusy(false);
@@ -87,6 +118,7 @@ export function JoinForm({
       setError(json.error ?? "Something went wrong. Please try again.");
       return;
     }
+
     setStep("done");
     setTimeout(() => {
       window.location.href = "/dashboard";
@@ -141,6 +173,29 @@ export function JoinForm({
               readOnly
               type="email"
               value={email}
+            />
+          </label>
+          <label className={styles.label}>
+            Password
+            <input
+              className={styles.input}
+              minLength={8}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              required
+              type="password"
+              value={password}
+            />
+          </label>
+          <label className={styles.label}>
+            Confirm password
+            <input
+              className={styles.input}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Repeat password"
+              required
+              type="password"
+              value={confirm}
             />
           </label>
           {error ? <p className={styles.error}>{error}</p> : null}

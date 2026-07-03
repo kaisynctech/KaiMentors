@@ -15,12 +15,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
+  // getSession() decodes the JWT from cookies locally — no network call.
+  // The user just completed verifyOtp on the client, so their session cookie
+  // is fresh and valid.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
+  const user = session.user;
 
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
@@ -35,10 +39,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server error." }, { status: 503 });
   }
 
+  const sig = AbortSignal.timeout(10000);
+
   const { data: invitation } = await admin
     .from("workspace_invitations")
     .select("id, trader_id, email, accepted_at")
     .eq("id", invitationId)
+    .abortSignal(sig)
     .maybeSingle();
 
   if (!invitation) {
@@ -55,15 +62,16 @@ export async function POST(request: Request) {
     admin.from("profiles").upsert(
       { id: user.id, full_name: fullName },
       { onConflict: "id" },
-    ),
+    ).abortSignal(sig),
     admin.from("trader_members").upsert(
       { trader_id: invitation.trader_id, user_id: user.id, role: "mentor" },
       { onConflict: "trader_id,user_id", ignoreDuplicates: true },
-    ),
+    ).abortSignal(sig),
     admin
       .from("workspace_invitations")
       .update({ accepted_at: new Date().toISOString() })
-      .eq("id", invitationId),
+      .eq("id", invitationId)
+      .abortSignal(sig),
   ]);
 
   return NextResponse.json({ ok: true });
