@@ -69,7 +69,7 @@ export default async function WorkspaceSettingsPage({
 
     const memberUserIds = (members ?? []).map((m) => m.user_id);
     const { data: profiles } = memberUserIds.length
-      ? await supabase.from("profiles").select("id, full_name").in("id", memberUserIds)
+      ? await supabase.from("profiles").select("id, full_name, email").in("id", memberUserIds)
       : { data: [] };
 
     return (

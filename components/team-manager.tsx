@@ -13,6 +13,7 @@ interface Member {
 interface Profile {
   id: string;
   full_name: string | null;
+  email?: string | null;
 }
 
 interface PendingInvitation {
@@ -32,7 +33,7 @@ interface Props {
 
 function getDisplayName(member: Member, profiles: Profile[]): string {
   const profile = profiles.find((p) => p.id === member.user_id);
-  return profile?.full_name || member.user_id.slice(0, 8) + "…";
+  return profile?.full_name || profile?.email || member.user_id.slice(0, 8) + "…";
 }
 
 function formatDate(iso: string): string {
