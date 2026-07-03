@@ -24,7 +24,6 @@ import {
 import { BrandMark } from "@/components/brand-mark";
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
-import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import styles from "./dashboard-shell.module.css";
 
 interface DashboardShellProps {
@@ -135,7 +134,10 @@ export function DashboardShell({
             <strong>{userLabel}</strong>
           </div>
         ) : (
-          <WorkspaceSwitcher />
+          <div className={styles.workspace}>
+            <span>Workspace</span>
+            <strong>{portalName ?? userLabel ?? "Academy"}</strong>
+          </div>
         )}
         <nav>
           {navigationLinks()}
@@ -184,7 +186,10 @@ export function DashboardShell({
             <strong>{userLabel}</strong>
           </div>
         ) : (
-          <WorkspaceSwitcher />
+          <div className={styles.workspace}>
+            <span>Workspace</span>
+            <strong>{portalName ?? userLabel ?? "Academy"}</strong>
+          </div>
         )}
         <nav>{navigationLinks(true)}</nav>
         <div className={styles.secure}>
