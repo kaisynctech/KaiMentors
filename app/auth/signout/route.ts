@@ -20,5 +20,13 @@ export async function POST(request: Request) {
     // formData() throws if body is not form-encoded — fall through to default
   }
 
-  return NextResponse.redirect(new URL(returnTo, request.url));
+  const response = NextResponse.redirect(new URL(returnTo, request.url));
+
+  // Clear the workspace cookie so the next login always resolves the workspace
+  // fresh from the database (memberships[0] by created_at).
+  // Without this, a 30-day stale cookie persists across sign-outs and causes
+  // the user to land on the wrong workspace after re-login.
+  response.cookies.delete("km_workspace");
+
+  return response;
 }
