@@ -79,6 +79,7 @@ export function TeamManager({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ traderId, email: email.trim() }),
+        signal: AbortSignal.timeout(12000),
       });
       const body = (await res.json()) as { error?: string; invited?: boolean; added?: boolean };
       if (!res.ok) {
@@ -92,6 +93,8 @@ export function TeamManager({
       setEmail("");
       router.refresh();
       setTimeout(() => setInviteSuccess(null), 4000);
+    } catch {
+      setInviteError("Request timed out. Please try again.");
     } finally {
       setInviting(false);
     }
@@ -101,13 +104,15 @@ export function TeamManager({
     setRemovingId(userId);
     setRemoveError((prev) => ({ ...prev, [userId]: "" }));
     try {
-      const res = await fetch(`/api/workspace/mentors/${userId}?traderId=${traderId}`, { method: "DELETE" });
+      const res = await fetch(`/api/workspace/mentors/${userId}?traderId=${traderId}`, { method: "DELETE", signal: AbortSignal.timeout(12000) });
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         setRemoveError((prev) => ({ ...prev, [userId]: body.error ?? "Could not remove." }));
         return;
       }
       router.refresh();
+    } catch {
+      setRemoveError((prev) => ({ ...prev, [userId]: "Request timed out. Please try again." }));
     } finally {
       setRemovingId(null);
     }
@@ -117,13 +122,15 @@ export function TeamManager({
     setCancellingId(id);
     setCancelError((prev) => ({ ...prev, [id]: "" }));
     try {
-      const res = await fetch(`/api/workspace/invitations/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/workspace/invitations/${id}`, { method: "DELETE", signal: AbortSignal.timeout(12000) });
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         setCancelError((prev) => ({ ...prev, [id]: body.error ?? "Could not cancel." }));
         return;
       }
       router.refresh();
+    } catch {
+      setCancelError((prev) => ({ ...prev, [id]: "Request timed out. Please try again." }));
     } finally {
       setCancellingId(null);
     }
@@ -134,7 +141,7 @@ export function TeamManager({
     setResendError((prev) => ({ ...prev, [id]: "" }));
     setResendSuccess((prev) => ({ ...prev, [id]: false }));
     try {
-      const res = await fetch(`/api/workspace/invitations/${id}/resend`, { method: "POST" });
+      const res = await fetch(`/api/workspace/invitations/${id}/resend`, { method: "POST", signal: AbortSignal.timeout(12000) });
       const body = (await res.json()) as { error?: string };
       if (!res.ok) {
         setResendError((prev) => ({ ...prev, [id]: body.error ?? "Could not resend." }));
@@ -142,6 +149,8 @@ export function TeamManager({
       }
       setResendSuccess((prev) => ({ ...prev, [id]: true }));
       setTimeout(() => setResendSuccess((prev) => ({ ...prev, [id]: false })), 3000);
+    } catch {
+      setResendError((prev) => ({ ...prev, [id]: "Request timed out. Please try again." }));
     } finally {
       setResendingId(null);
     }

@@ -100,9 +100,9 @@ export async function POST(request: Request) {
   const sig = AbortSignal.timeout(8000);
 
   // Check if the email belongs to an existing user
-  const { data: existingUserId } = await supabase!.rpc("get_user_id_by_email", {
-    input_email: email,
-  });
+  const { data: existingUserId } = await supabase!
+    .rpc("get_user_id_by_email", { input_email: email })
+    .abortSignal(sig);
 
   if (existingUserId) {
     const { error: memberError } = await admin
