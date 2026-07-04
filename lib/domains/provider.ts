@@ -101,6 +101,7 @@ class VercelDomainProvider implements DomainProvider {
         ...init.headers,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(15000),
     });
     const payload = (await response.json().catch(() => ({}))) as VercelDomainResponse;
 
@@ -157,6 +158,4 @@ class VercelDomainProvider implements DomainProvider {
   }
 }
 
-export function createDomainProvider(): DomainProvider {
-  return new VercelDomainProvider();
-}
+export function createDomainProvider(): DomainP

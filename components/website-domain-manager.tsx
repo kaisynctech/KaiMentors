@@ -77,9 +77,16 @@ export function WebsiteDomainManager({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body.action === "add" ? { ...body, portalId } : body),
+        signal: AbortSignal.timeout(30000),
       });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "Domain action failed.");
+      const text = await response.text();
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        throw new Error(`Server error (${response.status}). Please try again or refresh the page.`);
+      }
+      if (!response.ok) throw new Error(String(payload.error ?? "Domain action failed."));
 
       if (payload.domain) {
         const domain = payload.domain as WebsiteDomain;

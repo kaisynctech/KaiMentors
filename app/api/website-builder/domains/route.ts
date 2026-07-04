@@ -129,9 +129,16 @@ async function persistProviderState(
 export async function POST(request: Request) {
   try {
   const supabase = await createClient();
-  const { data: { session } } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+  const { data: { session } } = supabase
+    ? await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<{ data: { session: null } }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 5000),
+        ),
+      ])
+    : { data: { session: null } };
   const user = session?.user ?? null;
-  const { data: profile } = user && supabase ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
+  const { data: profile } = user && supabase ? await supabase.from("profiles").select("role").eq("id", user.id).abortSignal(AbortSignal.timeout(8000)).maybeSingle() : { data: null };
   if (!supabase || !user || profile?.role !== "super_admin") {
     return NextResponse.json(
       { error: "Super admin access is required." },
@@ -414,26 +421,4 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
     if (replacement) {
-      await workspace.supabase.rpc("set_primary_website_domain", {
-        target_domain_id: replacement.id,
-      });
-    } else {
-      await admin
-        .from("portals")
-        .update({ custom_domain: null })
-        .eq("id", workspace.portal.id);
-    }
-  }
-
-  return NextResponse.json({ status: "removed" });
-  } catch (diagnostic) {
-    return NextResponse.json(
-      {
-        error: diagnostic instanceof Error
-          ? `[diagnostic] ${diagnostic.name}: ${diagnostic.message}`
-          : "[diagnostic] Unknown error",
-      },
-      { status: 500 },
-    );
-  }
-}
+      await workspace.supabase.rpc("set_
