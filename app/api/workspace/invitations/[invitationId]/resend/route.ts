@@ -5,9 +5,9 @@ import { sendWorkspaceInvitation } from "@/lib/email";
 
 export async function POST(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ invitationId: string }> },
 ) {
-  const { id } = await params;
+  const { invitationId: id } = await params;
 
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ error: "Not configured." }, { status: 503 });
