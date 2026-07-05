@@ -127,6 +127,14 @@ async function persistProviderState(
 }
 
 export async function POST(request: Request) {
+  const admin = createAdminClient();
+  if (!admin) {
+    return NextResponse.json(
+      { error: "Server-side domain management is not configured." },
+      { status: 503 },
+    );
+  }
+
   const supabase = await createClient();
   const { data: { session } } = supabase
     ? await Promise.race([
@@ -137,8 +145,10 @@ export async function POST(request: Request) {
       ])
     : { data: { session: null } };
   const user = session?.user ?? null;
-  const { data: profile } = user && supabase ? await supabase.from("profiles").select("role").eq("id", user.id).abortSignal(AbortSignal.timeout(8000)).maybeSingle() : { data: null };
-  if (!supabase || !user || profile?.role !== "super_admin") {
+  const { data: profile } = user
+    ? await admin.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  if (!user || profile?.role !== "super_admin") {
     return NextResponse.json(
       { error: "Super admin access is required." },
       { status: 403 },
@@ -150,14 +160,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "The domain request is invalid." },
       { status: 400 },
-    );
-  }
-
-  const admin = createAdminClient();
-  if (!admin) {
-    return NextResponse.json(
-      { error: "Server-side domain management is not configured." },
-      { status: 503 },
     );
   }
 
@@ -185,7 +187,7 @@ export async function POST(request: Request) {
   const portalId = resolvedPortal?.id ?? existingDomain?.portal_id;
   const traderId = resolvedPortal?.trader_id ?? existingDomain?.trader_id;
   if (!portalId || !traderId) return NextResponse.json({ error: "Academy website not found." }, { status: 404 });
-  const workspace = { supabase, user, traderId, portal: { id: portalId } };
+  const workspace = { supabase: supabase!, user, traderId, portal: { id: portalId } };
 
   if (input.action === "add") {
     let hostname: string;
