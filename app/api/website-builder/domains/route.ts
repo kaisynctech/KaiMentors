@@ -127,14 +127,7 @@ async function persistProviderState(
 }
 
 export async function POST(request: Request) {
-  const t0 = Date.now();
-  const log = (step: string, data?: unknown) =>
-    console.log(`[domains] ${step} +${Date.now() - t0}ms`, data ?? "");
-
-  log("start");
-
   const admin = createAdminClient();
-  log("admin-client", { present: !!admin });
   if (!admin) {
     return NextResponse.json(
       { error: "Server-side domain management is not configured." },
@@ -142,11 +135,7 @@ export async function POST(request: Request) {
     );
   }
 
-  log("before-create-client");
   const supabase = await createClient();
-  log("after-create-client", { present: !!supabase });
-
-  log("before-get-session");
   const { data: { session } } = supabase
     ? await Promise.race([
         supabase.auth.getSession(),
@@ -155,28 +144,19 @@ export async function POST(request: Request) {
         ),
       ])
     : { data: { session: null } };
-  log("after-get-session", { hasUser: !!session?.user });
 
   const user = session?.user ?? null;
-
-  log("before-profile");
   const { data: profile } = user
     ? await admin.from("profiles").select("role").eq("id", user.id).maybeSingle()
     : { data: null };
-  log("after-profile", { role: profile?.role });
-
   if (!user || profile?.role !== "super_admin") {
-    log("auth-rejected", { hasUser: !!user, role: profile?.role });
     return NextResponse.json(
       { error: "Super admin access is required." },
       { status: 403 },
     );
   }
-  log("auth-passed");
 
-  log("before-parse");
   const parsed = requestSchema.safeParse(await request.json());
-  log("after-parse", { ok: parsed.success });
   if (!parsed.success) {
     return NextResponse.json(
       { error: "The domain request is invalid." },
@@ -184,13 +164,10 @@ export async function POST(request: Request) {
     );
   }
 
-  log("before-provider");
   let provider;
   try {
     provider = createDomainProvider();
-    log("after-provider", { ok: true });
   } catch (error) {
-    log("provider-error", { message: error instanceof Error ? error.message : String(error) });
     const status = error instanceof DomainProviderError ? error.status : 503;
     return NextResponse.json(
       {
@@ -204,11 +181,9 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data;
-  log("before-portals", { action: input.action });
   const { data: resolvedPortal } = input.action === "add"
     ? await admin.from("portals").select("id,trader_id").eq("id", input.portalId).maybeSingle()
     : { data: null };
-  log("after-portals", { found: !!resolvedPortal });
   const existingDomain = input.action === "add" ? null : await loadOwnedDomain(admin, input.domainId);
   const portalId = resolvedPortal?.id ?? existingDomain?.portal_id;
   const traderId = resolvedPortal?.trader_id ?? existingDomain?.trader_id;
@@ -233,7 +208,6 @@ export async function POST(request: Request) {
       );
     }
 
-    log("before-insert");
     const { data: created, error: reserveError } = await admin
       .from("website_domains")
       .insert({
@@ -241,7 +215,7 @@ export async function POST(request: Request) {
         portal_id: workspace.portal.id,
         hostname,
         provider: "vercel",
-        status: "pending_vercel_setup",
+        status: "requested",
         ownership_status: "pending",
         dns_status: "pending",
         ssl_status: "pending",
@@ -249,7 +223,6 @@ export async function POST(request: Request) {
       })
       .select("*")
       .single();
-    log("after-insert", { ok: !reserveError, id: created?.id });
 
     if (reserveError || !created) {
       return NextResponse.json(
@@ -271,7 +244,7 @@ export async function POST(request: Request) {
       actorUserId: workspace.user.id,
       eventType: "domain_registered",
       hostname,
-      nextStatus: "pending_vercel_setup",
+      nextStatus: "requested",
     });
 
     return NextResponse.json(
