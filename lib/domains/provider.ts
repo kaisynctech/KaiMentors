@@ -158,4 +158,6 @@ class VercelDomainProvider implements DomainProvider {
   }
 }
 
-export function createDomainProvider(): DomainP
+export function createDomainProvider(): DomainProvider {
+  return new VercelDomainProvider();
+}

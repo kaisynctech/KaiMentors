@@ -421,4 +421,26 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
     if (replacement) {
-      await workspace.supabase.rpc("set_
+      await workspace.supabase.rpc("set_primary_website_domain", {
+        target_domain_id: replacement.id,
+      });
+    } else {
+      await admin
+        .from("portals")
+        .update({ custom_domain: null })
+        .eq("id", workspace.portal.id);
+    }
+  }
+
+  return NextResponse.json({ status: "removed" });
+  } catch (diagnostic) {
+    return NextResponse.json(
+      {
+        error: diagnostic instanceof Error
+          ? `[diagnostic] ${diagnostic.name}: ${diagnostic.message}`
+          : "[diagnostic] Unknown error",
+      },
+      { status: 500 },
+    );
+  }
+}
