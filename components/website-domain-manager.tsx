@@ -97,6 +97,11 @@ export function WebsiteDomainManager({
             : [domain, ...current];
         });
         setSelectedId(domain.id);
+        if (payload.next_step === "manual_vercel_setup") {
+          setError(
+            "Domain saved. You must now add this hostname to Vercel manually: open the Vercel dashboard → your project → Settings → Domains → Add, enter the hostname, then return here and click Refresh to sync the status.",
+          );
+        }
       }
       if (body.action === "remove") {
         setDomains((current) =>

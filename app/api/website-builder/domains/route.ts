@@ -127,7 +127,6 @@ async function persistProviderState(
 }
 
 export async function POST(request: Request) {
-  try {
   const supabase = await createClient();
   const { data: { session } } = supabase
     ? await Promise.race([
@@ -213,7 +212,11 @@ export async function POST(request: Request) {
         portal_id: workspace.portal.id,
         hostname,
         provider: "vercel",
-        status: "requested",
+        status: "pending_vercel_setup",
+        ownership_status: "pending",
+        dns_status: "pending",
+        ssl_status: "pending",
+        auth_status: "configured",
       })
       .select("*")
       .single();
@@ -236,78 +239,15 @@ export async function POST(request: Request) {
       traderId: workspace.traderId,
       portalId: workspace.portal.id,
       actorUserId: workspace.user.id,
-      eventType: "domain_reserved",
+      eventType: "domain_registered",
       hostname,
-      nextStatus: "requested",
+      nextStatus: "pending_vercel_setup",
     });
 
-    try {
-      const state = await provider.add(hostname);
-      const updated = await persistProviderState(admin, domain, state);
-      await writeEvent(admin, {
-        domainId: domain.id,
-        traderId: workspace.traderId,
-        portalId: workspace.portal.id,
-        actorUserId: workspace.user.id,
-        eventType: "provider_domain_added",
-        hostname,
-        previousStatus: domain.status,
-        nextStatus: updated.status,
-        details: state.metadata,
-      });
-
-      if (updated.status === "active") {
-        const { data: primary } = await workspace.supabase
-          .from("website_domains")
-          .select("id")
-          .eq("portal_id", workspace.portal.id)
-          .eq("is_primary", true)
-          .maybeSingle();
-        if (!primary) {
-          await workspace.supabase.rpc("set_primary_website_domain", {
-            target_domain_id: updated.id,
-          });
-        }
-      }
-
-      return NextResponse.json({ domain: updated }, { status: 201 });
-    } catch (error) {
-      const providerError =
-        error instanceof DomainProviderError
-          ? error
-          : new DomainProviderError(
-              "The deployment provider could not add this domain.",
-              "provider_request_failed",
-              502,
-            );
-      await admin
-        .from("website_domains")
-        .update({
-          status: "failed",
-          ownership_status: "failed",
-          dns_status: "failed",
-          ssl_status: "failed",
-          failure_code: providerError.code,
-          failure_message: providerError.message,
-          last_checked_at: new Date().toISOString(),
-        })
-        .eq("id", domain.id);
-      await writeEvent(admin, {
-        domainId: domain.id,
-        traderId: workspace.traderId,
-        portalId: workspace.portal.id,
-        actorUserId: workspace.user.id,
-        eventType: "provider_domain_failed",
-        hostname,
-        previousStatus: "requested",
-        nextStatus: "failed",
-        details: { code: providerError.code, message: providerError.message },
-      });
-      return NextResponse.json(
-        { error: providerError.message },
-        { status: providerError.status >= 500 ? 502 : providerError.status },
-      );
-    }
+    return NextResponse.json(
+      { domain, next_step: "manual_vercel_setup" },
+      { status: 201 },
+    );
   }
 
   const domain = existingDomain;
@@ -365,6 +305,15 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({ domain: updated });
     } catch (error) {
+      if (error instanceof DomainProviderError && error.status === 404) {
+        return NextResponse.json(
+          {
+            error:
+              "This domain has not been added to Vercel yet. Go to the Vercel dashboard → your project → Settings → Domains and add the hostname manually, then use Refresh to sync.",
+          },
+          { status: 422 },
+        );
+      }
       const message =
         error instanceof Error
           ? error.message
@@ -433,14 +382,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ status: "removed" });
-  } catch (diagnostic) {
-    return NextResponse.json(
-      {
-        error: diagnostic instanceof Error
-          ? `[diagnostic] ${diagnostic.name}: ${diagnostic.message}`
-          : "[diagnostic] Unknown error",
-      },
-      { status: 500 },
-    );
-  }
 }
