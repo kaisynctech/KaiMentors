@@ -179,7 +179,7 @@ export async function POST(request: Request) {
 
   const input = parsed.data;
   const { data: resolvedPortal } = input.action === "add"
-    ? await supabase.from("portals").select("id,trader_id").eq("id", input.portalId).maybeSingle()
+    ? await admin.from("portals").select("id,trader_id").eq("id", input.portalId).maybeSingle()
     : { data: null };
   const existingDomain = input.action === "add" ? null : await loadOwnedDomain(admin, input.domainId);
   const portalId = resolvedPortal?.id ?? existingDomain?.portal_id;
