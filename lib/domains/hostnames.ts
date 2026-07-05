@@ -18,9 +18,12 @@ export function normalizeHostname(input: string) {
 }
 
 function configuredPlatformHosts() {
+  // VERCEL_PROJECT_PRODUCTION_URL is deliberately excluded: Vercel auto-sets it to
+  // the primary project domain, which in a multi-tenant setup may be a tenant's
+  // custom domain rather than the platform URL. NEXT_PUBLIC_SITE_URL is the
+  // authoritative platform URL and is always explicitly set.
   return [
     process.env.NEXT_PUBLIC_SITE_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL,
     process.env.VERCEL_URL,
     ...(process.env.KAIMENTORS_PLATFORM_HOSTNAMES ?? "").split(","),
   ]
