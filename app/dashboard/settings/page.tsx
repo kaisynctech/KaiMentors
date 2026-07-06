@@ -1,4 +1,5 @@
 import { redirect }               from "next/navigation";
+import { headers }                from "next/headers";
 import { DashboardShell }         from "@/components/dashboard-shell";
 import { SettingsTabs }           from "@/components/settings-tabs";
 import { OwnerEmailChangeForm }   from "@/components/owner-email-change-form";
@@ -8,6 +9,10 @@ import { PortalBrandingForm }     from "@/components/portal-branding-form";
 import type { VerificationMethod } from "@/lib/database.types";
 import { getMentorWorkspace }     from "@/lib/workspace";
 import { createAdminClient }      from "@/lib/supabase/admin";
+import {
+  isPlatformHostname,
+  normalizeRequestHostname,
+} from "@/lib/domains/hostnames";
 
 export const dynamic = "force-dynamic";
 
@@ -156,14 +161,31 @@ export default async function WorkspaceSettingsPage({
 
   // ── Branding tab ──────────────────────────────────────────────────────────
   if (tab === "branding") {
-    const [{ data: portalData }, { data: riskTemplates }] = await Promise.all([
-      supabase.from("portals").select("*").eq("id", portal.id).single(),
-      supabase
-        .from("risk_disclosure_templates")
-        .select("id,title,message")
-        .eq("is_active", true)
-        .order("title"),
-    ]);
+    const headersList = await headers();
+    const currentHostname = normalizeRequestHostname(
+      headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "",
+    );
+    const currentRequestHostname =
+      currentHostname && !isPlatformHostname(currentHostname)
+        ? currentHostname
+        : null;
+
+    const [{ data: portalData }, { data: riskTemplates }, { data: primaryDomain }] =
+      await Promise.all([
+        supabase.from("portals").select("*").eq("id", portal.id).single(),
+        supabase
+          .from("risk_disclosure_templates")
+          .select("id,title,message")
+          .eq("is_active", true)
+          .order("title"),
+        supabase
+          .from("website_domains")
+          .select("hostname")
+          .eq("trader_id", traderId)
+          .eq("status", "active")
+          .eq("is_primary", true)
+          .maybeSingle(),
+      ]);
 
     if (!portalData) redirect("/dashboard/settings");
 
@@ -179,7 +201,10 @@ export default async function WorkspaceSettingsPage({
       >
         <SettingsTabs activeTab="branding" />
         <PortalBrandingForm
+          currentRequestHostname={currentRequestHostname}
           initialPortal={portalData}
+          isCustomDomainContext={workspace.customDomain === true}
+          primarySiteHostname={primaryDomain?.hostname ?? null}
           riskTemplates={riskTemplates ?? []}
           websiteDeliveryMode={portalData.website_delivery_mode ?? "core_page"}
         />

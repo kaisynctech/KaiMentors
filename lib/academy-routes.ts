@@ -34,3 +34,20 @@ export function getAcademyWebsitePageHref(
   if (context.customDomain) return normalizedPath || "/";
   return `${getAcademyEntryHref(context, "home")}${normalizedPath}`;
 }
+
+export function getCustomSitePreviewPath(
+  slug: string,
+  isCustomDomainContext: boolean,
+): string {
+  return isCustomDomainContext ? "/" : `/portal/${slug}`;
+}
+
+export function getPublicSiteEntryHref(
+  slug: string,
+  primarySiteHostname: string | null,
+  isCustomDomainContext: boolean,
+): string {
+  if (isCustomDomainContext) return "/";
+  if (primarySiteHostname) return `https://${primarySiteHostname}`;
+  return `/portal/${slug}`;
+}

@@ -5,10 +5,14 @@ import { CheckCircle2, ExternalLink, ImagePlus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getPortalBrandingUrl } from "@/lib/storage";
+import { getCustomSitePreviewPath, getPublicSiteEntryHref } from "@/lib/academy-routes";
 import styles from "./portal-branding-form.module.css";
 
 interface PortalBrandingFormProps {
   websiteDeliveryMode: string;
+  primarySiteHostname?: string | null;
+  isCustomDomainContext?: boolean;
+  currentRequestHostname?: string | null;
   initialPortal: {
     portal_name: string;
     slug: string;
@@ -42,6 +46,9 @@ export function PortalBrandingForm({
   initialPortal,
   riskTemplates,
   websiteDeliveryMode,
+  primarySiteHostname = null,
+  isCustomDomainContext = false,
+  currentRequestHostname = null,
 }: PortalBrandingFormProps) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
@@ -82,6 +89,33 @@ export function PortalBrandingForm({
     () => `/portal/${values.slug || initialPortal.slug}`,
     [initialPortal.slug, values.slug],
   );
+
+  const slug = values.slug || initialPortal.slug;
+  const isCustomPackage = websiteDeliveryMode === "custom_package";
+  const publicSiteHostname =
+    primarySiteHostname ?? currentRequestHostname ?? null;
+
+  const previewSrc = useMemo(
+    () => (isCustomPackage ? getCustomSitePreviewPath(slug, isCustomDomainContext) : portalUrl),
+    [isCustomPackage, slug, isCustomDomainContext, portalUrl],
+  );
+
+  const liveSiteHref = useMemo(
+    () =>
+      isCustomPackage
+        ? getPublicSiteEntryHref(slug, primarySiteHostname, isCustomDomainContext)
+        : portalUrl,
+    [isCustomPackage, slug, primarySiteHostname, isCustomDomainContext, portalUrl],
+  );
+
+  const platformPortalAddress = useMemo(() => {
+    const platformOrigin =
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://kaimentors.vercel.app";
+    const platformHost = platformOrigin.replace(/^https?:\/\//, "");
+    return `${platformHost}/portal/${slug}`;
+  }, [slug]);
+
+  const publicSiteHref = isCustomPackage ? liveSiteHref : portalUrl;
 
   function updateValue(
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -194,14 +228,26 @@ export function PortalBrandingForm({
               />
             </label>
             <label>
-              Academy address
+              {isCustomPackage && (publicSiteHostname || isCustomDomainContext)
+                ? "Public site address"
+                : "Academy address"}
               <span className={styles.slugField}>
-                <small>/portal/</small>
-                <input
-                  aria-readonly="true"
-                  readOnly
-                  value={values.slug}
-                />
+                {isCustomPackage && publicSiteHostname ? (
+                  <strong>{publicSiteHostname}</strong>
+                ) : isCustomPackage && isCustomDomainContext ? (
+                  <strong>{currentRequestHostname ?? "Your domain"}</strong>
+                ) : isCustomPackage ? (
+                  <strong>{platformPortalAddress}</strong>
+                ) : (
+                  <>
+                    <small>/portal/</small>
+                    <input
+                      aria-readonly="true"
+                      readOnly
+                      value={values.slug}
+                    />
+                  </>
+                )}
               </span>
             </label>
           </div>
@@ -475,7 +521,7 @@ export function PortalBrandingForm({
             Save branding
           </button>
           {values.isPublished ? (
-            <a href={portalUrl} rel="noreferrer" target="_blank">
+            <a href={publicSiteHref} rel="noreferrer" target="_blank">
               View public portal <ExternalLink size={16} />
             </a>
           ) : (
@@ -489,7 +535,7 @@ export function PortalBrandingForm({
           <span>Live preview</span>
           {websiteDeliveryMode === "custom_package" ? (
             <a
-              href={`/portal/${values.slug || initialPortal.slug}`}
+              href={liveSiteHref}
               target="_blank"
               rel="noreferrer"
               className={styles.openSiteLink}
@@ -505,7 +551,7 @@ export function PortalBrandingForm({
             <div className={styles.iframeWrapper}>
               <iframe
                 className={styles.siteIframe}
-                src={`/portal/${values.slug || initialPortal.slug}`}
+                src={previewSrc}
                 title="Live site preview"
                 sandbox="allow-scripts allow-same-origin"
               />
