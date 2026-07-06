@@ -6,7 +6,16 @@ import { LoginForm } from "@/components/login-form";
 import { createClient } from "@/lib/supabase/server";
 import styles from "../auth.module.css";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  // Only honour next if it is a safe relative path (prevents open-redirect).
+  const safeNext =
+    next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+
   const supabase = await createClient();
   if (supabase) {
     const { data } = await supabase.auth.getUser();
@@ -16,10 +25,13 @@ export default async function LoginPage() {
         .select("role")
         .eq("id", data.user.id)
         .maybeSingle();
+      // If a safe next param is present, always follow it (e.g. goto chain from
+      // custom domain login). Otherwise fall back to the role default.
       const dest =
-        profile?.role === "super_admin" ? "/admin" :
-        profile?.role === "trader" ? "/dashboard" :
-        profile?.role === "student" ? "/student" : null;
+        safeNext ??
+        (profile?.role === "super_admin" ? "/admin" :
+         profile?.role === "trader" ? "/dashboard" :
+         profile?.role === "student" ? "/student" : null);
       if (dest) redirect(dest);
     }
   }
@@ -52,7 +64,7 @@ export default async function LoginPage() {
           <p className="eyebrow">Account access</p>
           <h2>Sign in to KaiMentors</h2>
           <p>Use the email address and password for your KaiMentors account.</p>
-          <LoginForm />
+          <LoginForm next={safeNext ?? undefined} />
           <div className={styles.footer}><Link href="/recover">Forgot your password?</Link></div>
           <div className={styles.footer}><Link href="/account-setup">Resume account setup</Link></div>
           <div className={styles.footer}>

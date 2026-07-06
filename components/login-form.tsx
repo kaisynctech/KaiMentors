@@ -24,6 +24,7 @@ function SubmitButton({ label }: { label: string }) {
 export function LoginForm({
   studentDestination = "/student",
   mentorDestination = "/dashboard",
+  next,
   allowedRole,
   academyTraderId,
   academyContext,
@@ -31,6 +32,7 @@ export function LoginForm({
 }: {
   studentDestination?: string;
   mentorDestination?: string;
+  next?: string;
   allowedRole?: "student";
   academyTraderId?: string;
   academyContext?: {
@@ -141,12 +143,15 @@ export function LoginForm({
         }
       }
 
+      // If an explicit next was provided (e.g. from a goto chain), follow it.
+      // Otherwise fall back to role defaults.
       const destination =
-        profile?.role === "super_admin"
+        next ??
+        (profile?.role === "super_admin"
           ? "/admin"
           : profile?.role === "student"
             ? studentDestination
-            : mentorDestination;
+            : mentorDestination);
       window.location.href = destination;
     } catch (err) {
       console.error("[LoginForm] signIn error:", err);
