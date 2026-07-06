@@ -68,8 +68,11 @@ export async function middleware(request: NextRequest) {
   }
 
   const makeResponse = () => {
-    if (customDomain && path.startsWith("/dashboard")) {
-      // Dashboard is served natively on custom domains — no domain-sites rewrite.
+    if (
+      customDomain &&
+      (path.startsWith("/dashboard") || path.startsWith("/join/"))
+    ) {
+      // These paths are served natively on custom domains — no domain-sites rewrite.
       return NextResponse.next({ request });
     }
     return customDomain
