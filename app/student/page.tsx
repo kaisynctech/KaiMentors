@@ -28,7 +28,7 @@ interface StudentPageProps {
 export default async function StudentPage({ searchParams }: StudentPageProps) {
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
-  const { basePath, querySuffix } = academy;
+  const { basePath, querySuffix, joinAcademyPath } = academy;
 
   const supabase = await createClient();
   if (!supabase) redirect(`${basePath}/login${querySuffix}`);
@@ -56,7 +56,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     .limit(1)
     .maybeSingle();
 
-  if (!application) redirect(`${basePath}/join-academy${querySuffix}`);
+  if (!application) redirect(joinAcademyPath);
 
   const portal = Array.isArray(application.portal)
     ? application.portal[0]

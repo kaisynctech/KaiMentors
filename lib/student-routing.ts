@@ -7,6 +7,7 @@ import { resolveWebsiteDomain } from "@/lib/domains/resolution";
 
 export interface StudentAcademyContext {
   basePath: "/academy" | "/student";
+  joinAcademyPath: string;
   portalId: string | null;
   portalSlug: string | null;
   querySuffix: string;
@@ -25,6 +26,7 @@ export async function getStudentAcademyContext(
     const resolution = await resolveWebsiteDomain(hostname);
     return {
       basePath: "/academy",
+      joinAcademyPath: "/join-academy",
       portalId: resolution?.portal_id ?? null,
       portalSlug: resolution?.portal_slug ?? null,
       querySuffix: "",
@@ -34,6 +36,9 @@ export async function getStudentAcademyContext(
   const portalSlug = requestedPortalSlug?.trim() || null;
   return {
     basePath: "/student",
+    joinAcademyPath: portalSlug
+      ? `/portal/${encodeURIComponent(portalSlug)}/join-academy`
+      : "/login",
     portalId: null,
     portalSlug,
     querySuffix: portalSlug ? `?portal=${encodeURIComponent(portalSlug)}` : "",

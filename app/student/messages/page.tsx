@@ -18,7 +18,7 @@ export default async function StudentMessagesPage({
 }: StudentMessagesPageProps) {
   const query = await searchParams;
   const academyContext = await getStudentAcademyContext(query?.portal);
-  const { basePath, querySuffix: suffix } = academyContext;
+  const { basePath, querySuffix: suffix, joinAcademyPath } = academyContext;
 
   const supabase = await createClient();
   if (!supabase) redirect(`${basePath}/login${suffix}`);
@@ -48,7 +48,7 @@ export default async function StudentMessagesPage({
     .limit(1)
     .maybeSingle();
 
-  if (!application) redirect(`${basePath}/join-academy${suffix}`);
+  if (!application) redirect(joinAcademyPath);
 
   const portal = Array.isArray(application.portal)
     ? application.portal[0]
