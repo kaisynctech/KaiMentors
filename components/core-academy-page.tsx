@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Facebook, Instagram, Linkedin, Mail, MessageCircle, Phone, Send, ShieldCheck, Twitter, Youtube } from "lucide-react";
+import { ArrowRight, Facebook, Instagram, Linkedin, Mail, MessageCircle, Phone, Send, Twitter, Youtube } from "lucide-react";
 import type { AcademyEntryPortal } from "@/lib/academy-entry";
 import { getAcademyEntryHref } from "@/lib/academy-routes";
 import { getPortalBrandingUrl } from "@/lib/storage";
@@ -51,7 +51,7 @@ export function CoreAcademyPage({
 
       <section className={`container ${styles.hero}`}>
         <div className={styles.heroCopy}>
-          <div className={styles.verified}><ShieldCheck size={16} /> Academy access powered by KaiMentors</div>
+
           <h1>{portal.hero_title}</h1>
           <p>{portal.hero_subtitle ?? portal.academy_description ?? "Professional education, community, and private academy access."}</p>
           <div className={styles.heroActions}>

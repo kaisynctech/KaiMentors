@@ -450,7 +450,7 @@ export function WebsiteRenderer({
           <p>Professional trading education and verified community access.</p>
         </div>
         <SocialLinks data={data} />
-        <small>Powered by KaiMentors</small>
+
       </footer>
     </main>
   );

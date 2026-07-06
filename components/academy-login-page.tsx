@@ -82,9 +82,7 @@ export function AcademyLoginPage({
               submitLabel="Sign In"
             />
             <p className={styles.footerNote}><Link href={setupHref}>Resume account setup</Link> · <Link href={recoveryHref}>Forgot password</Link></p>
-            <p className={styles.footerNote}>
-              Secure academy access powered by KaiMentors.
-            </p>
+
             <div className={styles.partnerBadge}>
               <Image
                 alt="XM Global"

@@ -128,17 +128,17 @@ export function AccountSetupFlow() {
     return <div className={styles.form}><ShieldCheck size={34} /><h2>Your account is already set up</h2><p>Use your password to sign in, or request a recovery code if you have forgotten it.</p><Link href="/login">Sign in</Link><Link href="/recover">Forgot password</Link></div>;
   }
   if (step === "expired") {
-    return <div className={styles.form}><MailCheck size={34} /><h2>Your setup invitation needs renewal</h2><p>Your email is verified, but a KaiMentors platform administrator must renew the invitation before setup can finish. Your existing academy and website records are safe.</p><Link href="/login">Return to sign in</Link></div>;
+    return <div className={styles.form}><MailCheck size={34} /><h2>Your setup invitation needs renewal</h2><p>Your email is verified, but a platform administrator must renew the invitation before setup can finish. Your existing academy and website records are safe.</p><Link href="/login">Return to sign in</Link></div>;
   }
   if (step === "support") {
-    return <div className={styles.form}><ShieldCheck size={34} /><h2>Account review required</h2><p>We could not safely continue this account automatically. Contact KaiMentors support so the existing account can be reviewed without creating a duplicate.</p><Link href="/login">Return to sign in</Link></div>;
+    return <div className={styles.form}><ShieldCheck size={34} /><h2>Account review required</h2><p>We could not safely continue this account automatically. Contact platform support so the existing account can be reviewed without creating a duplicate.</p><Link href="/login">Return to sign in</Link></div>;
   }
 
   return (
     <form action={submit} className={styles.form}>
       {step === "email" ? <><h2>Resume account setup</h2><p>Enter the email used for your workspace or academy invitation.</p><label>Email address<input autoComplete="email" name="email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} /></label></> : null}
       {step === "code" ? <><div className={styles.codeIntro}><MailCheck size={22} /><div><strong>Check your email</strong><span>If this address matches an account that can be continued, we sent a six-digit code.</span></div></div><label>Verification code<input autoComplete="one-time-code" className={styles.codeInput} inputMode="numeric" maxLength={6} minLength={6} name="code" pattern="[0-9]{6}" placeholder="000000" required /></label></> : null}
-      {step === "password" ? <><h2>Create your password</h2><p>Your email is verified. Choose the password you will use when returning to KaiMentors.</p><label>New password<input autoComplete="new-password" minLength={10} name="password" required type="password" /></label><label>Confirm password<input autoComplete="new-password" minLength={10} name="passwordConfirmation" required type="password" /></label></> : null}
+      {step === "password" ? <><h2>Create your password</h2><p>Your email is verified. Choose the password you will use to sign in.</p><label>New password<input autoComplete="new-password" minLength={10} name="password" required type="password" /></label><label>Confirm password<input autoComplete="new-password" minLength={10} name="passwordConfirmation" required type="password" /></label></> : null}
       {message ? <p className={styles.error}>{message}</p> : null}
       <button disabled={loading} type="submit">{loading ? <Loader2 className={styles.spin} size={18} /> : null}{step === "email" ? "Continue account setup" : step === "code" ? "Verify code" : "Complete setup"}</button>
       {step === "code" ? <button className={styles.backButton} disabled={loading || cooldown.seconds > 0} onClick={resend} type="button"><RotateCcw size={15} /> {cooldown.seconds > 0 ? `Resend in ${cooldown.seconds}s` : "Resend code"}</button> : null}
