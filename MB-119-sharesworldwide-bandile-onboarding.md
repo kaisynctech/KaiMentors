@@ -3,6 +3,7 @@
 
 **Status:** Approved for Engineering  
 **Date:** 2026-07-06  
+**Updated:** 2026-07-06 — PO: interim PO access via kaisynctech; custom domain deferred  
 **Priority:** High — New production client mentor  
 **Prepared by:** Enterprise Architect  
 **Depends on:** Existing academy provisioning (`provision_invited_academy`, `scripts/provision-academy-invitation.mjs`)
@@ -32,7 +33,7 @@ Bandile receives a fully provisioned KaiMentors workspace — owner account, por
 | Portal slug | `bandi-shares` (already in `config/site.ts` — do not change) |
 | Package key | `bandi-shares` |
 | Site folder | `public/custom-sites/bandi-shares-main/` |
-| Intended custom domain | `www.sharesworldwide.trade` |
+| Intended custom domain | `www.sharesworldwide.trade` — **deferred** (PO will connect later) |
 | XM partner code | `BANDISHARES05` |
 | Site stack | **Next.js 16 App Router** (not static HTML) |
 
@@ -85,16 +86,40 @@ Until Phase B completes, portal may show core page fallback or 404 on public rou
 
 ---
 
+## Product Owner Decisions (2026-07-06)
+
+### Interim platform access — `kaisynctech@gmail.com`
+
+The PO will manage Sharesworldwide alongside Bandile **for now** using **`kaisynctech@gmail.com`**.
+
+**No extra provisioning step is required for this.** Every new workspace trigger `traders_auto_add_system_owner` already inserts `kaisynctech@gmail.com` (`44213ee5-da12-4d06-a7d9-1601d42e79c3`) into `trader_members` with role **`owner`** on `traders` INSERT. After Sharesworldwide is provisioned, the PO can switch to that workspace on the platform domain and access `/dashboard` immediately.
+
+**Important constraint:** `traders.owner_user_id` is **unique per profile** — one person can be the legal owner of only one workspace row. `kaisynctech@gmail.com` already owns another tenant (platform/acceptance). It **cannot** also be `traders.owner_user_id` for Sharesworldwide. Bandile must hold legal ownership via his own email; the PO accesses via auto-added membership.
+
+### Custom domain — deferred
+
+`www.sharesworldwide.trade` is confirmed as the intended domain but **not connected in this phase**. Public entry for now:
+
+- Platform: `https://kaimentors.vercel.app/portal/bandi-shares`
+- Join: `/portal/bandi-shares/join-academy`
+- Login: `/portal/bandi-shares/login`
+
+Custom domain connect follows MB-101 / existing domain workflow when PO is ready.
+
+---
+
 ## Information Required from Product Owner
 
 Before provisioning, confirm:
 
 | Field | Status |
 |---|---|
-| Bandile's email (owner login) | **Required — not yet provided** |
-| Legal entity name (for `traders.legal_name`) | Default: `Sharesworldwide` unless PO specifies |
+| **Bandile's email** (legal workspace owner — `traders.owner_user_id`) | **Required — not yet provided** |
+| Interim PO access | **`kaisynctech@gmail.com`** — automatic via trigger |
+| Legal entity name (for `traders.legal_name`) | Default: `Sharesworldwide` |
 | `show_powered_by` | **false** (mandatory) |
 | Environment | `production` |
+| Custom domain | **Deferred** |
 
 ---
 
@@ -111,9 +136,10 @@ Before provisioning, confirm:
 
 ### OUT of scope
 
-- Custom domain DNS/Vercel connect (`www.sharesworldwide.trade`) — separate owner action after site renders; follow MB-101 pattern.
+- **Custom domain** DNS/Vercel connect (`www.sharesworldwide.trade`) — PO will add later (MB-101 pattern).
 - Whop integration changes.
 - Course content seeding.
+- Ownership transfer to Bandile — separate step once his email is confirmed (use `trader_ownership_transfers` when ready).
 
 ---
 
@@ -193,9 +219,9 @@ on conflict (package_id, source_path) do update set
 
 ## Workspace Provisioning
 
-Use existing atomic RPC after migration is applied.
+Use existing atomic RPC. **Owner must be Bandile's email** (new auth user). PO access is automatic.
 
-### Option 1 — CLI script
+### Standard flow (once Bandile's email is known)
 
 ```bash
 node scripts/provision-academy-invitation.mjs \
@@ -209,21 +235,24 @@ node scripts/provision-academy-invitation.mjs \
   --environment "production"
 ```
 
-### Option 2 — Admin API
+Or `POST /api/admin/academy-invitations` with the same fields.
 
-`POST /api/admin/academy-invitations` with:
+**After provision — verify PO access:**
 
-```json
-{
-  "email": "<bandile-email>",
-  "fullName": "Bandile",
-  "legalName": "Sharesworldwide",
-  "displayName": "Sharesworldwide",
-  "portalSlug": "bandi-shares",
-  "packageId": "<uuid from custom_site_packages where package_key=bandi-shares>",
-  "environment": "production"
-}
+```sql
+select tm.role, p.email
+from trader_members tm
+join profiles p on p.id = tm.user_id
+join portals po on po.trader_id = tm.trader_id
+where po.slug = 'bandi-shares'
+order by tm.role;
 ```
+
+**Pass:** rows for Bandile (owner member) **and** `kaisynctech@gmail.com` (owner member via trigger).
+
+### Do not use kaisynctech as `owner_user_id`
+
+The standard invitation API returns **409** if the email already exists. Even bypassing that, `traders.owner_user_id` unique constraint blocks a second workspace owned by the same profile. Use Bandile's email for provision; PO uses auto-added membership.
 
 ### Post-provision SQL (mandatory white-label)
 
@@ -310,10 +339,15 @@ join portals p on p.id = csa.portal_id where p.slug = 'bandi-shares';
 1. Visit `kaimentors.vercel.app/portal/bandi-shares`.
 2. **Pass:** Sharesworldwide home page renders; Join Academy / Sign In links work.
 
-### Test 6 — Student entry (after domain connected)
+### Test 6 — PO interim access
 
-1. `www.sharesworldwide.trade/join-academy` → student registration with Sharesworldwide branding.
-2. **Pass:** No KaiMentors branding leak.
+1. Sign in as `kaisynctech@gmail.com` on platform domain.
+2. Switch workspace to Sharesworldwide (workspace selector / `km_workspace` cookie).
+3. **Pass:** Dashboard loads for `bandi-shares` tenant.
+
+### Test 7 — Student entry (deferred until custom domain)
+
+Skipped until domain connected. For now test `/portal/bandi-shares/join-academy` on platform URL.
 
 ---
 
