@@ -1,0 +1,54 @@
+---
+description: White-label browser tab titles — no KaiMentors on client-facing pages
+globs: app/**/*.tsx,lib/metadata.ts
+alwaysApply: false
+---
+
+# White-label page titles (browser tabs)
+
+Client portals must never show "KaiMentors" in the browser tab. Page body can be portal-branded while the tab still leaks if metadata is wrong.
+
+## Root cause pattern
+
+`app/layout.tsx` sets `title.template: "%s | KaiMentors"`. Any page that sets `title: "My Page"` as a plain string still becomes `"My Page | KaiMentors"`.
+
+## Required pattern
+
+Use `portalTitle()` from `@/lib/metadata` for every client-facing route:
+
+```typescript
+import { portalTitle } from "@/lib/metadata";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return portalTitle("Join PASII"); // → absolute title, no KaiMentors suffix
+}
+```
+
+Never use plain `title: "..."` on routes reachable by students or mentors on custom domains.
+
+## Routes that need explicit metadata
+
+These are served **outside** `domain-sites/layout.tsx` and `student/layout.tsx` — easy to miss:
+
+- `app/dashboard/**` — async `generateMetadata` in `dashboard/layout.tsx` via `getMentorWorkspace()`
+- `app/join/workspace/[token]/page.tsx` — resolve portal from `invite_token`
+- `app/domain-sites/[hostname]/login/page.tsx` — portal name from hostname
+
+Any **new** route served natively on custom domains (middleware pass-through) must get the same treatment.
+
+## Allowed KaiMentors branding
+
+- `app/layout.tsx` (platform root)
+- `app/admin/**`
+- `app/login/page.tsx` (platform mentor login)
+- `app/page.tsx` (platform marketing homepage)
+
+## Before marking a white-label mission complete
+
+Verify tab titles (not just page copy) on a custom domain:
+
+- `/join/workspace/{token}` → `Join {portal_name}`
+- `/dashboard` → `{portal_name}`
+- `/login` → `Sign In · {portal_name}` or `{portal_name}`
+
+**Fail if the tab contains "KaiMentors" on any client portal.**
