@@ -1,9 +1,9 @@
 # Mission Brief MB-119
 ## Onboard Bandile — Sharesworldwide Academy + Custom Site
 
-**Status:** Approved for Engineering  
+**Status:** Approved for Engineering — **workspace provision blocked on Bandile email**  
 **Date:** 2026-07-06  
-**Updated:** 2026-07-06 — PO: interim PO access via kaisynctech; custom domain deferred  
+**Updated:** 2026-07-06 — PO: no Bandile email yet; kaisynctech interim access; domain deferred  
 **Priority:** High — New production client mentor  
 **Prepared by:** Enterprise Architect  
 **Depends on:** Existing academy provisioning (`provision_invited_academy`, `scripts/provision-academy-invitation.mjs`)
@@ -106,6 +106,25 @@ The PO will manage Sharesworldwide alongside Bandile **for now** using **`kaisyn
 
 Custom domain connect follows MB-101 / existing domain workflow when PO is ready.
 
+### No Bandile email yet — what to do now vs later
+
+**Cannot do yet (requires Bandile's email):**
+
+- Create auth user / owner profile
+- Run `provision_invited_academy`
+- Sharesworldwide dashboard, students, messaging, or workspace invite link
+
+**Can do now (no email needed):**
+
+1. Apply package migration (`bandi-shares` in `custom_site_packages`).
+2. Commit `public/custom-sites/bandi-shares-main/` to repo.
+3. Static export to `public/custom-sites/bandi-shares/v1/` (Phase B).
+4. Add `/api/verify-xm` if missing.
+
+When PO receives Bandile's email, run provision (5-minute step). No rework of package or site files.
+
+**Do not** use a fake/placeholder email — OTP account setup requires a real inbox.
+
 ---
 
 ## Information Required from Product Owner
@@ -114,8 +133,8 @@ Before provisioning, confirm:
 
 | Field | Status |
 |---|---|
-| **Bandile's email** (legal workspace owner — `traders.owner_user_id`) | **Required — not yet provided** |
-| Interim PO access | **`kaisynctech@gmail.com`** — automatic via trigger |
+| **Bandile's email** (legal workspace owner — `traders.owner_user_id`) | **Not available yet — blocks workspace provision** |
+| Interim PO access | **`kaisynctech@gmail.com`** — automatic once workspace exists |
 | Legal entity name (for `traders.legal_name`) | Default: `Sharesworldwide` |
 | `show_powered_by` | **false** (mandatory) |
 | Environment | `production` |
