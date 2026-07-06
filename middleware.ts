@@ -44,8 +44,7 @@ export async function middleware(request: NextRequest) {
 
   if (
     customDomain &&
-    (path.startsWith("/dashboard") ||
-      path.startsWith("/admin") ||
+    (path.startsWith("/admin") ||
       path.startsWith("/onboarding") ||
       path.startsWith("/account-setup") ||
       path.startsWith("/recover"))
@@ -68,12 +67,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(destination);
   }
 
-  const makeResponse = () =>
-    customDomain
+  const makeResponse = () => {
+    if (customDomain && path.startsWith("/dashboard")) {
+      // Dashboard is served natively on custom domains — no domain-sites rewrite.
+      return NextResponse.next({ request });
+    }
+    return customDomain
       ? NextResponse.rewrite(customDomainDestination(request, hostname), {
           request,
         })
       : NextResponse.next({ request });
+  };
 
   let response = makeResponse();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

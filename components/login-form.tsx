@@ -39,6 +39,7 @@ export function LoginForm({
     traderId: string;
     studentDestination: string;
     mentorDestination: string;
+    customDomain?: boolean;
   };
   submitLabel?: string;
 } = {}) {
@@ -77,14 +78,14 @@ export function LoginForm({
           .maybeSingle();
 
         if (membership) {
-          // If mentorDestination is an absolute URL (cross-domain goto route), navigate
-          // directly — the goto route handles workspace cookie setting on the platform domain.
-          // For same-domain destinations, call activate first to set the cookie here.
-          if (academyContext.mentorDestination.startsWith("http")) {
+          if (academyContext.customDomain) {
+            // Custom domain login: workspace is resolved server-side from the hostname.
+            // The km_workspace cookie is not used on custom domains — no activate needed.
             window.location.href = academyContext.mentorDestination;
             return;
           }
-          // Same-domain (platform portal login): call activate to set km_workspace cookie.
+          // Platform portal login: call activate to set the km_workspace cookie on the
+          // platform domain, then navigate.
           const activateRes = await fetch("/api/workspace/activate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

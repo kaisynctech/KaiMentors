@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  isPlatformHostname,
+  normalizeRequestHostname,
+} from "@/lib/domains/hostnames";
 
 function isSafeRelativeUrl(value: string): boolean {
   return typeof value === "string" && value.startsWith("/") && !value.includes("://");
@@ -25,6 +29,20 @@ export async function POST(request: Request) {
     }
   } catch {
     // formData() throws if body is not form-encoded — fall through to default
+  }
+
+  // When signing out from a custom domain, /portal/[slug]/login does not exist on
+  // that domain. Override returnTo to /login, which middleware rewrites to the
+  // portal's own login page.
+  try {
+    const requestHostname = normalizeRequestHostname(
+      new URL(request.url).hostname,
+    );
+    if (!isPlatformHostname(requestHostname)) {
+      returnTo = "/login";
+    }
+  } catch {
+    // leave returnTo as-is
   }
 
   const response = NextResponse.redirect(new URL(returnTo, request.url));
