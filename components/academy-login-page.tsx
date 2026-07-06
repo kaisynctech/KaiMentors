@@ -22,7 +22,16 @@ export function AcademyLoginPage({
   const platformOrigin = process.env.NEXT_PUBLIC_SITE_URL;
   const setupHref = customDomain && platformOrigin ? new URL("/account-setup", platformOrigin).toString() : "/account-setup";
   const recoveryHref = customDomain && platformOrigin ? new URL("/recover", platformOrigin).toString() : "/recover";
-  const mentorDashboardHref = customDomain && platformOrigin ? new URL("/dashboard", platformOrigin).toString() : "/dashboard";
+  // For custom domain logins, route through /api/workspace/goto on the platform domain.
+  // This ensures km_workspace is set on kaimentors.vercel.app (where the dashboard runs),
+  // not on the custom domain where the Set-Cookie would be unreachable by the dashboard.
+  const mentorDashboardHref =
+    customDomain && platformOrigin
+      ? new URL(
+          `/api/workspace/goto?traderId=${data.portal.trader_id}&next=/dashboard`,
+          platformOrigin,
+        ).toString()
+      : "/dashboard";
   const theme = {
     "--academy-primary": data.portal.primary_color,
     "--academy-accent": data.portal.accent_color,
