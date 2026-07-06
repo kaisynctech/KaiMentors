@@ -21,16 +21,9 @@ interface Profile {
   email?: string | null;
 }
 
-interface PendingInvitation {
-  id: string;
-  email: string;
-  created_at: string;
-}
-
 interface Props {
   members: Member[];
   profiles: Profile[];
-  invitations: PendingInvitation[];
   callerUserId: string;
   callerRole: "owner" | "mentor";
   traderId: string;
@@ -42,18 +35,9 @@ function getDisplayName(member: Member, profiles: Profile[]): string {
   return profile?.full_name || profile?.email || member.user_id.slice(0, 8) + "…";
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function TeamManager({
   members,
   profiles,
-  invitations,
   callerUserId,
   callerRole,
   traderId,
@@ -62,24 +46,8 @@ export function TeamManager({
   const router = useRouter();
   const isOwner = callerRole === "owner";
 
-  const [email, setEmail] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
-
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<Record<string, string>>({});
-
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [cancelError, setCancelError] = useState<Record<string, string>>({});
-
-  const [resendingId, setResendingId] = useState<string | null>(null);
-  const [resendSuccess, setResendSuccess] = useState<Record<string, boolean>>({});
-  const [resendError, setResendError] = useState<Record<string, string>>({});
-
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [newInviteLink, setNewInviteLink] = useState<string | null>(null);
-  const [newInviteCopied, setNewInviteCopied] = useState(false);
 
   const [currentInviteToken, setCurrentInviteToken] = useState(inviteToken ?? null);
   const [workspaceLinkCopied, setWorkspaceLinkCopied] = useState(false);
@@ -89,47 +57,6 @@ export function TeamManager({
   const workspaceJoinLink = currentInviteToken
     ? `${SITE_URL}/join/workspace/${currentInviteToken}`
     : null;
-
-  async function copyJoinLink(invitationId: string) {
-    const link = `${SITE_URL}/join/${invitationId}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedId(invitationId);
-    setTimeout(() => setCopiedId(null), 2000);
-  }
-
-  async function sendInvite() {
-    if (!email.trim()) return;
-    setInviting(true);
-    setInviteError(null);
-    setInviteSuccess(null);
-    try {
-      const res = await fetch("/api/workspace/mentors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ traderId, email: email.trim() }),
-        signal: AbortSignal.timeout(12000),
-      });
-      const body = (await res.json()) as { error?: string; invited?: boolean; invitationId?: string };
-      if (!res.ok) {
-        setInviteError(body.error ?? "Could not send invitation.");
-        return;
-      }
-      setInviteSuccess(`Invitation created for ${email.trim()}.`);
-      if (body.invitationId) {
-        setNewInviteLink(`${SITE_URL}/join/${body.invitationId}`);
-      }
-      setEmail("");
-      router.refresh();
-      setTimeout(() => {
-        setInviteSuccess(null);
-        setNewInviteLink(null);
-      }, 10000);
-    } catch {
-      setInviteError("Request timed out. Please try again.");
-    } finally {
-      setInviting(false);
-    }
-  }
 
   async function removeMember(userId: string) {
     setRemovingId(userId);
@@ -146,44 +73,6 @@ export function TeamManager({
       setRemoveError((prev) => ({ ...prev, [userId]: "Request timed out. Please try again." }));
     } finally {
       setRemovingId(null);
-    }
-  }
-
-  async function cancelInvitation(id: string) {
-    setCancellingId(id);
-    setCancelError((prev) => ({ ...prev, [id]: "" }));
-    try {
-      const res = await fetch(`/api/workspace/invitations/${id}`, { method: "DELETE", signal: AbortSignal.timeout(12000) });
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        setCancelError((prev) => ({ ...prev, [id]: body.error ?? "Could not cancel." }));
-        return;
-      }
-      router.refresh();
-    } catch {
-      setCancelError((prev) => ({ ...prev, [id]: "Request timed out. Please try again." }));
-    } finally {
-      setCancellingId(null);
-    }
-  }
-
-  async function resendInvitation(id: string) {
-    setResendingId(id);
-    setResendError((prev) => ({ ...prev, [id]: "" }));
-    setResendSuccess((prev) => ({ ...prev, [id]: false }));
-    try {
-      const res = await fetch(`/api/workspace/invitations/${id}/resend`, { method: "POST", signal: AbortSignal.timeout(12000) });
-      const body = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setResendError((prev) => ({ ...prev, [id]: body.error ?? "Could not resend." }));
-        return;
-      }
-      setResendSuccess((prev) => ({ ...prev, [id]: true }));
-      setTimeout(() => setResendSuccess((prev) => ({ ...prev, [id]: false })), 3000);
-    } catch {
-      setResendError((prev) => ({ ...prev, [id]: "Request timed out. Please try again." }));
-    } finally {
-      setResendingId(null);
     }
   }
 
@@ -224,102 +113,6 @@ export function TeamManager({
           ))}
         </div>
       </section>
-
-      {/* Pending invitations (owner only) */}
-      {isOwner && invitations.length > 0 ? (
-        <section className={styles.section}>
-          <p className={styles.sectionTitle}>Pending invitations</p>
-          <div className={styles.memberList}>
-            {invitations.map((inv) => (
-              <div className={styles.memberRow} key={inv.id}>
-                <div className={styles.memberInfo}>
-                  <span className={styles.memberName}>{inv.email}</span>
-                  <span className={styles.pendingBadge}>Sent {formatDate(inv.created_at)}</span>
-                </div>
-                <div className={styles.memberActions}>
-                  {resendSuccess[inv.id] ? (
-                    <span className={styles.successMsg} style={{ margin: 0 }}>Sent!</span>
-                  ) : resendError[inv.id] ? (
-                    <span className={styles.inlineError}>{resendError[inv.id]}</span>
-                  ) : cancelError[inv.id] ? (
-                    <span className={styles.inlineError}>{cancelError[inv.id]}</span>
-                  ) : null}
-                  <button
-                    className={styles.copyBtn}
-                    onClick={() => void copyJoinLink(inv.id)}
-                    type="button"
-                  >
-                    {copiedId === inv.id ? "Copied!" : "Copy link"}
-                  </button>
-                  <button
-                    className={styles.resendBtn}
-                    disabled={resendingId === inv.id || cancellingId === inv.id}
-                    onClick={() => void resendInvitation(inv.id)}
-                    type="button"
-                  >
-                    {resendingId === inv.id ? "Sending…" : "Resend"}
-                  </button>
-                  <button
-                    className={styles.removeBtn}
-                    disabled={cancellingId === inv.id || resendingId === inv.id}
-                    onClick={() => void cancelInvitation(inv.id)}
-                    type="button"
-                  >
-                    {cancellingId === inv.id ? "Cancelling…" : "Cancel"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Invite a mentor (owner only) */}
-      {isOwner ? (
-        <section className={styles.section}>
-          <p className={styles.sectionTitle}>Invite a mentor</p>
-          <div className={styles.inviteForm}>
-            <input
-              className={styles.emailInput}
-              disabled={inviting}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setInviteError(null);
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") void sendInvite(); }}
-              placeholder="Email address"
-              type="email"
-              value={email}
-            />
-            <button
-              className={styles.inviteBtn}
-              disabled={inviting || !email.trim()}
-              onClick={() => void sendInvite()}
-              type="button"
-            >
-              {inviting ? "Sending…" : "Send invite"}
-            </button>
-          </div>
-          {inviteError ? <p className={styles.errorMsg}>{inviteError}</p> : null}
-          {inviteSuccess ? <p className={styles.successMsg}>{inviteSuccess}</p> : null}
-          {newInviteLink ? (
-            <div className={styles.linkBox}>
-              <span className={styles.linkText}>{newInviteLink}</span>
-              <button
-                className={styles.copyBtn}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(newInviteLink);
-                  setNewInviteCopied(true);
-                  setTimeout(() => setNewInviteCopied(false), 2000);
-                }}
-                type="button"
-              >
-                {newInviteCopied ? "Copied!" : "Copy link"}
-              </button>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
 
       {/* Workspace invite link (owner only) */}
       {isOwner && workspaceJoinLink ? (

@@ -62,7 +62,10 @@ export async function POST(request: Request) {
     await Promise.all([
       admin
         .from("profiles")
-        .upsert({ id: user.id, full_name: fullName }, { onConflict: "id" })
+        .upsert(
+          { id: user.id, full_name: fullName, role: "trader" },
+          { onConflict: "id" },
+        )
         .abortSignal(sig),
       admin
         .from("trader_members")
