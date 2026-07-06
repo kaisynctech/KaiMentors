@@ -1,8 +1,9 @@
 # Mission Brief MB-118
 ## Private Direct Messaging — Strictly Two Participants
 
-**Status:** Approved for Engineering  
+**Status:** Engineering complete — pending Product Owner browser verification  
 **Date:** 2026-07-06  
+**Shipped:** 2026-07-06 (`ba054e2`)  
 **Priority:** Critical — Privacy breach on production (Traders Confidence)  
 **Prepared by:** Enterprise Architect  
 **Product Owner decision:** Direct messages follow the WhatsApp model — **strictly only the two participants**. No owner override. No other mentors. Groups are opt-in by the creator.
@@ -406,26 +407,30 @@ Run verification query from Data Repair §H Step 4 after migration.
 
 ## Acceptance Criteria
 
-- [ ] Direct conversations have exactly **two** members (one mentor, one student)
-- [ ] Unique per mentor–student pair within a workspace
-- [ ] Workspace owner **cannot** read other mentors' direct threads
-- [ ] RLS denies non-participants on conversations, messages, attachments
-- [ ] New mentors are not auto-added to existing direct threads or private groups
-- [ ] Student can start DM with chosen mentor in multi-mentor workspace
-- [ ] All Students and announcement channels still work for all mentors
-- [ ] TC Tinashe thread repaired (2 members)
-- [ ] `npm run build` passes
+- [x] Direct conversations have exactly **two** members (one mentor, one student)
+- [x] Unique per mentor–student pair within a workspace
+- [ ] Workspace owner **cannot** read other mentors' direct threads *(PO browser test)*
+- [x] RLS denies non-participants on conversations, messages, attachments
+- [ ] New mentors are not auto-added to existing direct threads or private groups *(PO browser test)*
+- [ ] Student can start DM with chosen mentor in multi-mentor workspace *(PO browser test)*
+- [ ] All Students and announcement channels still work for all mentors *(PO browser test)*
+- [x] TC Tinashe thread repaired (2 members)
+- [x] `npm run build` passes
 - [ ] Product Owner confirms on Traders Confidence
 
 ---
 
 ## Definition of Done
 
-- Migration applied to production Supabase (`jsbpfhfmumjbrnymhtvq`)
-- Verification queries pass for TC direct thread
-- Tests 1–8 pass on KaiTrades or TC
-- Deployed to Vercel production
-- Product Owner confirms: Bongani cannot see owner's DM to Tinashe
+- [x] Migration applied to production Supabase (`jsbpfhfmumjbrnymhtvq`) — via `supabase db query --file` (see ops note below)
+- [x] Verification queries pass for TC direct thread (5 → 2 members)
+- [ ] Tests 1–8 pass on KaiTrades or TC *(PO after Vercel deploy)*
+- [ ] Deployed to Vercel production
+- [ ] Product Owner confirms: Bongani cannot see owner's DM to Tinashe
+
+### Ops note — migration history drift
+
+`supabase db push` failed due to remote/local migration history mismatch. Migration was applied directly to production SQL; file `202607061400_direct_message_privacy.sql` is in repo for documentation and fresh environments. Reconcile migration history separately if CLI push is needed again.
 
 ---
 
