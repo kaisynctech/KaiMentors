@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getMentorWorkspace } from "@/lib/workspace";
+import { portalTitle } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Dashboard",
-    template: "%s",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const workspace = await getMentorWorkspace();
+  const name = workspace?.portal?.portal_name ?? "Dashboard";
+  return portalTitle(name);
+}
 
 export default function DashboardLayout({
   children,

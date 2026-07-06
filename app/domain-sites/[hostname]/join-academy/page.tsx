@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AcademyJoinPage } from "@/components/academy-join-page";
 import { loadAcademyEntryByHostname } from "@/lib/academy-entry";
+import { portalTitle } from "@/lib/metadata";
 
 interface CustomDomainJoinPageProps {
   params: Promise<{ hostname: string }>;
@@ -13,7 +14,7 @@ export async function generateMetadata({
   const { hostname } = await params;
   const data = await loadAcademyEntryByHostname(hostname);
   return {
-    title: data ? `Join ${data.portal.portal_name}` : "Join Academy",
+    ...portalTitle(data ? `Join ${data.portal.portal_name}` : "Join Academy"),
     description: "Apply for private academy access.",
     alternates: data?.canonicalHostname
       ? { canonical: `https://${data.canonicalHostname}/join-academy` }

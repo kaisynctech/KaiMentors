@@ -11,6 +11,7 @@ import {
 import { resolveWebsiteDomain } from "@/lib/domains/resolution";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
 import { loadAcademyEntryByResolution } from "@/lib/academy-entry";
+import { portalTitle } from "@/lib/metadata";
 
 interface CustomDomainWebsitePageProps {
   params: Promise<{ hostname: string; path?: string[] }>;
@@ -52,10 +53,10 @@ export async function generateMetadata({
 }: CustomDomainWebsitePageProps): Promise<Metadata> {
   const { hostname, path } = await params;
   const result = await loadCustomDomainWebsite(hostname, path);
-  if (!result) return { title: "Academy website" };
+  if (!result) return portalTitle("Academy website");
   if ("joinData" in result && result.joinData) {
     return {
-      title: `Join ${result.joinData.portal.portal_name}`,
+      ...portalTitle(`Join ${result.joinData.portal.portal_name}`),
       description: "Apply for private academy access.",
       alternates: {
         canonical: `https://${result.resolution.canonical_hostname}/join-academy`,
@@ -64,7 +65,7 @@ export async function generateMetadata({
   }
   if ("customSite" in result && result.customSite) {
     return {
-      title: result.customSite.title,
+      ...portalTitle(result.customSite.title),
       description: result.customSite.description,
       alternates: {
         canonical: `https://${result.resolution.canonical_hostname}${
@@ -74,13 +75,16 @@ export async function generateMetadata({
     };
   }
   if ("corePage" in result && result.corePage) {
-    return { title: result.corePage.portal.portal_name, description: result.corePage.portal.academy_description ?? undefined };
+    return {
+      ...portalTitle(result.corePage.portal.portal_name),
+      description: result.corePage.portal.academy_description ?? undefined,
+    };
   }
   const page = result.pageSlug
     ? result.website.pages.find((entry) => entry.slug === result.pageSlug)
     : result.website.pages.find((entry) => entry.is_home);
   return {
-    title: page?.seo_title ?? `${page?.title} | ${result.website.portal.portal_name}`,
+    ...portalTitle(page?.seo_title ?? `${page?.title} | ${result.website.portal.portal_name}`),
     description:
       page?.seo_description ??
       page?.description ??

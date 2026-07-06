@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AcademyLoginPage } from "@/components/academy-login-page";
 import { loadAcademyEntryBySlug } from "@/lib/academy-entry";
+import { portalTitle } from "@/lib/metadata";
 
 interface PortalLoginPageProps {
   params: Promise<{ slug: string }>;
@@ -13,7 +14,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const data = await loadAcademyEntryBySlug(slug);
   return {
-    title: data ? `Sign In | ${data.portal.portal_name}` : "Academy Sign In",
+    ...portalTitle(data ? `Sign In · ${data.portal.portal_name}` : "Sign In"),
     description: "Sign in to your private academy.",
   };
 }

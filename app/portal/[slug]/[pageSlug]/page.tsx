@@ -8,6 +8,7 @@ import {
   loadCustomSiteJoinBySlug,
 } from "@/lib/custom-sites";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
+import { portalTitle } from "@/lib/metadata";
 
 interface WebsitePageProps {
   params: Promise<{ slug: string; pageSlug: string }>;
@@ -21,7 +22,7 @@ export async function generateMetadata({
     const joinData = await loadCustomSiteJoinBySlug(slug);
     if (joinData) {
       return {
-        title: `Join ${joinData.portal.portal_name}`,
+        ...portalTitle(`Join ${joinData.portal.portal_name}`),
         description: "Apply for private academy access.",
       };
     }
@@ -29,15 +30,15 @@ export async function generateMetadata({
   const customSite = await loadCustomSiteBySlug(slug, [pageSlug]);
   if (customSite) {
     return {
-      title: customSite.title,
+      ...portalTitle(customSite.title),
       description: customSite.description,
     };
   }
   const website = await loadWebsiteBySlug(slug, { pageSlug });
-  if (!website) return { title: "Academy website" };
+  if (!website) return portalTitle("Academy website");
   const page = website.pages.find((entry) => entry.slug === pageSlug);
   return {
-    title: page?.seo_title ?? `${page?.title} | ${website.portal.portal_name}`,
+    ...portalTitle(page?.seo_title ?? `${page?.title} | ${website.portal.portal_name}`),
     description: page?.seo_description ?? page?.description,
   };
 }
