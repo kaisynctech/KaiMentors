@@ -33,6 +33,8 @@ export interface CustomSiteManifest {
   pages: CustomSitePackagePage[];
   reservedLinks?: Record<string, string>;
   poweredByLabel?: string;
+  /** `static_export` serves pre-built Next.js HTML from asset_base_path via iframe. */
+  renderMode?: "html" | "static_export";
 }
 
 export interface CustomSitePackage {
@@ -110,6 +112,7 @@ export interface LoadedCustomSite {
   description: string | null;
   bodyHtml: string;
   assetBasePath: string;
+  staticExportUrl?: string;
   contactInfo: ContactInfo;
 }
 
@@ -147,6 +150,8 @@ function normalizeManifest(value: unknown): CustomSiteManifest {
       typeof manifest.poweredByLabel === "string"
         ? manifest.poweredByLabel
         : "Powered by KaiMentors",
+    renderMode:
+      manifest.renderMode === "static_export" ? "static_export" : "html",
   };
 }
 
@@ -376,6 +381,32 @@ async function loadCustomSite(
   const sitePackage = resolvedAssignment.package;
   const page = pageForPath(sitePackage, routePath ?? []);
   if (!page) return null;
+
+  if (sitePackage.manifest.renderMode === "static_export") {
+    return {
+      portal,
+      package: sitePackage,
+      assignment: resolvedAssignment.assignment,
+      page,
+      title: `${page.label} | ${portal.portal_name}`,
+      description: portal.hero_subtitle,
+      bodyHtml: "",
+      staticExportUrl: `${sitePackage.asset_base_path}/${page.file}`,
+      assetBasePath: sitePackage.asset_base_path,
+      contactInfo: {
+        phone: portal.contact_phone ?? null,
+        email: portal.contact_email ?? null,
+        whatsapp: portal.whatsapp_number ?? null,
+        telegram: portal.telegram_url ?? null,
+        instagram: portal.instagram_url ?? null,
+        facebook: portal.facebook_url ?? null,
+        youtube: portal.youtube_url ?? null,
+        twitter: portal.twitter_url ?? null,
+        tiktok: portal.tiktok_url ?? null,
+        linkedin: portal.linkedin_url ?? null,
+      },
+    };
+  }
 
   let html: string;
   try {

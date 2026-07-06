@@ -13,6 +13,25 @@ export function CustomSiteRenderer({ site }: CustomSiteRendererProps) {
     site.assignment.show_powered_by &&
     (site.package.manifest.poweredByLabel ?? "Powered by KaiMentors");
 
+  if (
+    site.package.manifest.renderMode === "static_export" &&
+    site.staticExportUrl
+  ) {
+    return (
+      <iframe
+        className="kaimentors-static-export-site"
+        src={site.staticExportUrl}
+        title={site.title}
+        style={{
+          border: 0,
+          display: "block",
+          width: "100%",
+          minHeight: "100dvh",
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <link href={`${site.assetBasePath}/styles.css`} rel="stylesheet" />
