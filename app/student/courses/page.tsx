@@ -18,7 +18,7 @@ export default async function StudentCoursesPage({
 }) {
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
-  const { basePath: base, querySuffix: suffix } = academy;
+  const { basePath: base, querySuffix: suffix, joinAcademyPath } = academy;
 
   const supabase = await createClient();
   if (!supabase) redirect(`${base}/login${suffix}`);
@@ -41,7 +41,7 @@ export default async function StudentCoursesPage({
     .limit(1)
     .maybeSingle();
 
-  if (!app) redirect(`${base}/join-academy${suffix}`);
+  if (!app) redirect(joinAcademyPath);
 
   const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
   const academyName = portal?.portal_name ?? "Academy";
