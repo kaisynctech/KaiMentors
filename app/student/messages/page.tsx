@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { MessagesWorkspace } from "@/components/messages-workspace";
 import { StudentShell } from "@/components/student-shell";
-import { loadConversationWorkspace } from "@/lib/community-server";
+import { loadConversationWorkspace, loadWorkspaceMentors } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./messages.module.css";
@@ -94,11 +94,10 @@ export default async function StudentMessagesPage({
   }
 
   // Verified — full messages
-  const { conversations } = await loadConversationWorkspace(
-    supabase,
-    user.id,
-    application.trader_id,
-  );
+  const [{ conversations }, workspaceMentors] = await Promise.all([
+    loadConversationWorkspace(supabase, user.id, application.trader_id),
+    loadWorkspaceMentors(supabase, application.trader_id),
+  ]);
 
   return (
     <Shell>
@@ -117,6 +116,7 @@ export default async function StudentMessagesPage({
           students={[]}
           traderId={application.trader_id}
           userId={user.id}
+          workspaceMentors={workspaceMentors}
         />
       </main>
     </Shell>

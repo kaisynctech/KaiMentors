@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   CommunityStudent,
   ConversationSummary,
+  WorkspaceMentor,
 } from "@/lib/community";
 
 export async function loadConversationWorkspace(
@@ -81,4 +82,29 @@ export async function loadConversationWorkspace(
   );
 
   return { conversations, students };
+}
+
+export async function loadWorkspaceMentors(
+  supabase: SupabaseClient,
+  traderId: string,
+): Promise<WorkspaceMentor[]> {
+  const { data: members } = await supabase
+    .from("trader_members")
+    .select("user_id, role")
+    .eq("trader_id", traderId)
+    .order("created_at");
+
+  const memberUserIds = (members ?? []).map((member) => member.user_id);
+  const { data: profiles } = memberUserIds.length
+    ? await supabase.from("profiles").select("id, full_name, email").in("id", memberUserIds)
+    : { data: [] };
+
+  return (members ?? []).map((member) => {
+    const profile = profiles?.find((row) => row.id === member.user_id);
+    return {
+      userId: member.user_id,
+      fullName: profile?.full_name ?? profile?.email ?? "Mentor",
+      role: member.role as "owner" | "mentor",
+    };
+  });
 }

@@ -10,6 +10,7 @@ const conversationSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("student_direct"),
     applicationId: z.string().uuid(),
+    mentorUserId: z.string().uuid().optional(),
   }),
   z.object({
     type: z.literal("group"),
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       : parsed.data.type === "student_direct"
         ? await supabase.rpc("create_student_conversation", {
             target_application_id: parsed.data.applicationId,
+            target_mentor_user_id: parsed.data.mentorUserId ?? null,
           })
         : parsed.data.type === "group"
           ? await supabase.rpc("create_group_conversation", {

@@ -19,6 +19,12 @@ export interface CommunityStudent {
   email: string | null;
 }
 
+export interface WorkspaceMentor {
+  userId: string;
+  fullName: string;
+  role: "owner" | "mentor";
+}
+
 export interface ConversationSummary {
   id: string;
   type: ConversationType;

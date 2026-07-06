@@ -24,6 +24,7 @@ import type {
   CommunityStudent,
   ConversationMessage,
   ConversationSummary,
+  WorkspaceMentor,
 } from "@/lib/community";
 import { createClient } from "@/lib/supabase/browser";
 import styles from "./messages-workspace.module.css";
@@ -36,6 +37,7 @@ export function MessagesWorkspace({
   mode,
   initialConversationId,
   studentApplicationId,
+  workspaceMentors = [],
 }: {
   conversations: ConversationSummary[];
   students: CommunityStudent[];
@@ -44,6 +46,7 @@ export function MessagesWorkspace({
   mode: "mentor" | "student";
   initialConversationId?: string;
   studentApplicationId?: string;
+  workspaceMentors?: WorkspaceMentor[];
 }) {
   const router = useRouter();
   const [conversationRows, setConversationRows] = useState(conversations);
@@ -59,6 +62,7 @@ export function MessagesWorkspace({
   const [createMode, setCreateMode] = useState<
     "direct" | "announcement" | "group" | null
   >(null);
+  const [mentorPickerOpen, setMentorPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [threadSearch, setThreadSearch] = useState("");
   const [error, setError] = useState("");
@@ -280,14 +284,37 @@ export function MessagesWorkspace({
     // No router.refresh() — local state is the source of truth until next page load.
   }
 
-  async function startMentorConversation() {
+  const canStartMentorConversation =
+    mode === "student" &&
+    studentApplicationId &&
+    (workspaceMentors.length > 1 ||
+      !conversationRows.some((conversation) => conversation.type === "direct"));
+
+  async function startMentorConversation(mentorUserId?: string) {
     if (!studentApplicationId) return;
+
+    if (workspaceMentors.length > 1 && !mentorUserId) {
+      setMentorPickerOpen(true);
+      return;
+    }
+
     setCreating(true);
     setError("");
+    setMentorPickerOpen(false);
+    const payload: {
+      type: "student_direct";
+      applicationId: string;
+      mentorUserId?: string;
+    } = {
+      type: "student_direct",
+      applicationId: studentApplicationId,
+    };
+    if (mentorUserId) payload.mentorUserId = mentorUserId;
+
     const response = await fetch("/api/messages/conversations", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "student_direct", applicationId: studentApplicationId }),
+      body: JSON.stringify(payload),
     });
     const result = await response.json();
     setCreating(false);
@@ -295,14 +322,16 @@ export function MessagesWorkspace({
       setError(result.error ?? "Could not start a conversation.");
       return;
     }
-    // If a conversation already existed the RPC returns its ID — add it if not present.
     setConversationRows((prev) => {
       if (prev.some((c) => c.id === result.conversationId)) return prev;
+      const mentorName =
+        workspaceMentors.find((mentor) => mentor.userId === mentorUserId)
+          ?.fullName ?? "Academy support";
       return [
         {
           id: result.conversationId,
           type: "direct" as const,
-          title: "Academy support",
+          title: workspaceMentors.length > 1 ? mentorName : "Academy support",
           lastMessageAt: null,
           lastMessage: null,
           unread: false,
@@ -376,15 +405,15 @@ export function MessagesWorkspace({
             <UsersRound size={15} /> New group conversation
           </button>
         ) : null}
-        {mode === "student" && studentApplicationId && !conversationRows.some((c) => c.type === "direct") ? (
+        {canStartMentorConversation ? (
           <button
             className={styles.announcementButton}
             disabled={creating}
-            onClick={startMentorConversation}
+            onClick={() => void startMentorConversation()}
             type="button"
           >
             {creating ? <Loader2 className={styles.spin} size={15} /> : <MessageCircle size={15} />}
-            Message your mentor
+            {workspaceMentors.length > 1 ? "Message a mentor" : "Message your mentor"}
           </button>
         ) : null}
         <div className={styles.conversations}>
@@ -548,6 +577,44 @@ export function MessagesWorkspace({
           </div>
         )}
       </section>
+
+      {mentorPickerOpen ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <header>
+              <div>
+                <span>New conversation</span>
+                <h2>Choose a mentor</h2>
+              </div>
+              <button
+                aria-label="Close"
+                onClick={() => setMentorPickerOpen(false)}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className={styles.conversations}>
+              {workspaceMentors.map((mentor) => (
+                <button
+                  key={mentor.userId}
+                  onClick={() => void startMentorConversation(mentor.userId)}
+                  type="button"
+                >
+                  <span className={styles.conversationIcon}>
+                    <MessageCircle size={17} />
+                  </span>
+                  <span>
+                    <strong>{mentor.fullName}</strong>
+                    <small>{mentor.role === "owner" ? "Owner" : "Mentor"}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+            {error ? <p className={styles.error}>{error}</p> : null}
+          </div>
+        </div>
+      ) : null}
 
       {createMode ? (
         <div className={styles.modalOverlay}>
