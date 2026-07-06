@@ -1,9 +1,9 @@
 # Mission Brief MB-119
 ## Onboard Bandile — Sharesworldwide Academy + Custom Site
 
-**Status:** Approved for Engineering — **workspace provision blocked on Bandile email**  
+**Status:** Workspace provisioned — interim owner `nyaradzondoro1@outlook.com`; site static export still pending  
 **Date:** 2026-07-06  
-**Updated:** 2026-07-06 — PO: no Bandile email yet; kaisynctech interim access; domain deferred  
+**Updated:** 2026-07-06 — provisioned with interim email; system-owner trigger fix applied  
 **Priority:** High — New production client mentor  
 **Prepared by:** Enterprise Architect  
 **Depends on:** Existing academy provisioning (`provision_invited_academy`, `scripts/provision-academy-invitation.mjs`)
@@ -106,24 +106,24 @@ The PO will manage Sharesworldwide alongside Bandile **for now** using **`kaisyn
 
 Custom domain connect follows MB-101 / existing domain workflow when PO is ready.
 
-### No Bandile email yet — what to do now vs later
+### Provision failure root cause (fixed 2026-07-06)
 
-**Cannot do yet (requires Bandile's email):**
+Workspace creation failed because trigger `traders_auto_add_system_owner` inserted `kaisynctech@gmail.com` with role **`owner`**, then `provision_invited_academy` tried to insert the invited user as **`owner`** — violating unique index `trader_members_one_owner_idx`.
 
-- Create auth user / owner profile
-- Run `provision_invited_academy`
-- Sharesworldwide dashboard, students, messaging, or workspace invite link
+**Fix:** migration `202607061610_fix_system_owner_member_role.sql` — system owner now gets role **`admin`**, not `owner`.
 
-**Can do now (no email needed):**
+### Provisioned (2026-07-06)
 
-1. Apply package migration (`bandi-shares` in `custom_site_packages`).
-2. Commit `public/custom-sites/bandi-shares-main/` to repo.
-3. Static export to `public/custom-sites/bandi-shares/v1/` (Phase B).
-4. Add `/api/verify-xm` if missing.
+| Field | Value |
+|---|---|
+| Portal slug | `bandi-shares` |
+| Portal name | Sharesworldwide |
+| Owner email | `nyaradzondoro1@outlook.com` |
+| Trader ID | `298a93d4-9ef0-420b-a666-f05d12d91194` |
+| Package | `bandi-shares` (active assignment, `show_powered_by = false`) |
+| OTP | Sent to interim owner email for account setup |
 
-When PO receives Bandile's email, run provision (5-minute step). No rework of package or site files.
-
-**Do not** use a fake/placeholder email — OTP account setup requires a real inbox.
+**Next for PO:** Check `nyaradzondoro1@outlook.com` inbox → complete account setup → switch workspace to Sharesworldwide on platform → `/dashboard`.
 
 ---
 
@@ -133,8 +133,9 @@ Before provisioning, confirm:
 
 | Field | Status |
 |---|---|
-| **Bandile's email** (legal workspace owner — `traders.owner_user_id`) | **Not available yet — blocks workspace provision** |
-| Interim PO access | **`kaisynctech@gmail.com`** — automatic once workspace exists |
+| **Interim owner email** | **`nyaradzondoro1@outlook.com`** (until Bandile's email is known) |
+| **Bandile's email** (final owner) | **TBD** — transfer ownership when available |
+| Interim PO access | **`kaisynctech@gmail.com`** — `admin` member (auto-added) |
 | Legal entity name (for `traders.legal_name`) | Default: `Sharesworldwide` |
 | `show_powered_by` | **false** (mandatory) |
 | Environment | `production` |
