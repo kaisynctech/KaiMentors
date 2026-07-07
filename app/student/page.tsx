@@ -12,6 +12,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PwaInstallCard } from "@/components/pwa-install-card";
+import { SignalAlertsPrompt } from "@/components/signal-alerts-prompt";
 import { BrokerGuideCard } from "@/components/broker-guide-card";
 import { StudentShell } from "@/components/student-shell";
 import { VerifyAccountForm } from "@/components/verify-account-form";
@@ -44,7 +46,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   let appQuery = supabase
     .from("student_applications")
     .select(
-      "id,trader_id,status,status_reason,portal_id,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path)",
+      "id,trader_id,status,status_reason,portal_id,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path,primary_color)",
     )
     .eq("student_user_id", user.id);
   if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
@@ -262,6 +264,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       isVerified={isVerified}
       logoPath={portal?.logo_path ?? null}
       portalSlug={portal?.slug}
+      primaryColor={portal?.primary_color ?? undefined}
       querySuffix={querySuffix}
       traderId={application.trader_id}
     >
@@ -285,6 +288,9 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
         {/* Verified dashboard sections */}
         {isVerified ? (
           <>
+            <PwaInstallCard academyName={academyName} />
+            <SignalAlertsPrompt traderId={application.trader_id} />
+
             {/* Stat cards */}
             <div className={styles.statsRow}>
               <div className={styles.statCard}>

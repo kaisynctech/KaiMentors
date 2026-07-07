@@ -10,6 +10,7 @@ interface StudentShellProps {
   displayName: string;
   traderId?: string;
   portalSlug?: string;
+  primaryColor?: string;
   children: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export async function StudentShell({
   displayName,
   traderId,
   portalSlug,
+  primaryColor,
   children,
 }: StudentShellProps) {
   let logoUrl: string | null = null;
@@ -43,6 +45,7 @@ export async function StudentShell({
       isVerified={isVerified}
       logoUrl={logoUrl}
       portalSlug={portalSlug}
+      primaryColor={primaryColor}
       querySuffix={querySuffix}
       traderId={traderId}
     >

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
+import { PwaRegistrar } from "@/components/pwa-registrar";
 import styles from "./student-shell.module.css";
 
 interface StudentShellClientProps {
@@ -32,6 +33,7 @@ interface StudentShellClientProps {
   displayName: string;
   traderId?: string;
   portalSlug?: string;
+  primaryColor?: string;
   children: React.ReactNode;
 }
 
@@ -51,6 +53,7 @@ export function StudentShellClient({
   displayName,
   traderId,
   portalSlug,
+  primaryColor,
   children,
 }: StudentShellClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -183,7 +186,10 @@ export function StudentShellClient({
           <div className={styles.userRow}>
             <span className={styles.userAvatar} aria-hidden="true">{avatarLetter}</span>
             <span className={styles.userName} aria-hidden="true">{displayName}</span>
-            <NotificationBell />
+            <NotificationBell
+              messagesBasePath={`${basePath}/messages`}
+              querySuffix={querySuffix}
+            />
           </div>
           <form action="/auth/signout" method="post">
             <input type="hidden" name="returnTo" value={signOutReturnTo} />
@@ -199,6 +205,11 @@ export function StudentShellClient({
 
   return (
     <div className={styles.shell}>
+      <PwaRegistrar
+        portalName={academyName}
+        portalSlug={portalSlug}
+        primaryColor={primaryColor}
+      />
       {/* Desktop sidebar */}
       <aside className={styles.sidebar}>
         <SidebarContent />

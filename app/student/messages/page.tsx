@@ -10,7 +10,7 @@ import styles from "./messages.module.css";
 export const dynamic = "force-dynamic";
 
 interface StudentMessagesPageProps {
-  searchParams?: Promise<{ portal?: string }>;
+  searchParams?: Promise<{ portal?: string; conversation?: string }>;
 }
 
 export default async function StudentMessagesPage({
@@ -115,6 +115,7 @@ export default async function StudentMessagesPage({
         <MessagesWorkspace
           allStudentsConversationId={allStudentsConversationId}
           conversations={conversations}
+          initialConversationId={query?.conversation}
           initialTodaySignal={todaySignal}
           mode="student"
           studentApplicationId={application.id}

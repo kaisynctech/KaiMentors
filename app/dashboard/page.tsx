@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock3, Users } from "lucide-react";
 import { DashboardAnnouncementsPanel } from "@/components/dashboard-announcements-panel";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { PwaInstallCard } from "@/components/pwa-install-card";
 import { MetricCard } from "@/components/metric-card";
 import { getMentorWorkspace } from "@/lib/workspace";
 import styles from "./dashboard.module.css";
@@ -77,6 +78,8 @@ export default async function TraderDashboard() {
         <MetricCard icon={Clock3} label="Needs attention" note="Pending or manual review" value={stats.pending} />
         <MetricCard icon={BookOpen} label="Courses" note="Draft and published" value={stats.courses} />
       </section>
+
+      {portalName ? <PwaInstallCard academyName={portalName} /> : null}
 
       <section className={styles.contentGrid}>
         <article className={`card ${styles.panel}`}>

@@ -24,6 +24,7 @@ import {
 import { BrandMark } from "@/components/brand-mark";
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
+import { PwaRegistrar } from "@/components/pwa-registrar";
 import styles from "./dashboard-shell.module.css";
 
 interface DashboardShellProps {
@@ -207,6 +208,10 @@ export function DashboardShell({
         </form>
       </aside>
       <main className={styles.main}>
+        <PwaRegistrar
+          portalName={portalName ?? "Academy"}
+          portalSlug={portalSlug}
+        />
         <header className={styles.mobileHeader}>
           <BrandMark
           href={mode === "admin" ? "/admin" : "/dashboard"}

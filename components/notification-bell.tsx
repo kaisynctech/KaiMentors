@@ -15,9 +15,18 @@ interface Notification {
   created_at: string;
   booking_id: string | null;
   conversation_id: string | null;
+  metadata: { path?: string; conversationId?: string } | null;
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  messagesBasePath?: string;
+  querySuffix?: string;
+}
+
+export function NotificationBell({
+  messagesBasePath = "/dashboard/messages",
+  querySuffix = "",
+}: NotificationBellProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -52,11 +61,25 @@ export function NotificationBell() {
   }
 
   function handleNotificationClick(n: Notification) {
-    if (n.type === "new_message" && n.conversation_id) {
+    if (
+      (n.type === "new_message" || n.type === "daily_signal") &&
+      (n.conversation_id || n.metadata?.conversationId)
+    ) {
       void markRead(n.id);
       setOpen(false);
-      router.push(`/dashboard/messages?conversation=${n.conversation_id}`);
-    } else if (!n.is_read) {
+      const conversationId = n.conversation_id ?? n.metadata?.conversationId;
+      if (n.metadata?.path) {
+        router.push(n.metadata.path);
+        return;
+      }
+      const separator = querySuffix ? "&" : "?";
+      router.push(
+        `${messagesBasePath}${querySuffix}${separator}conversation=${conversationId}`,
+      );
+      return;
+    }
+
+    if (!n.is_read) {
       void markRead(n.id);
     }
   }
