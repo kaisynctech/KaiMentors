@@ -1,4 +1,4 @@
-:HL["/custom-sites/bandi-shares/v1/_next/static/chunks/0gw-shkda7b_t.css","style"]
+:HL["/custom-sites/bandi-shares/v1/_next/static/chunks/0pppemm-got8a.css","style"]
 :HL["/custom-sites/bandi-shares/v1/_next/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/custom-sites/bandi-shares/v1/assets/logo.jpeg","image"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"services","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"M7IdjMec4jEDUXs8Ks9g4"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"services","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"5Fa4DnnJ7YPeUJKNonNkc"}

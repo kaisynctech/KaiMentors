@@ -276,4 +276,49 @@
   .theme-transition {
     transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
   }
+
+  /* Hero always sits on a photo — keep light copy regardless of site theme */
+  .hero-section .hero-headline {
+    color: hsl(210 40% 98%);
+  }
+
+  .hero-section .hero-subcopy {
+    color: hsl(215 16% 78%);
+  }
+
+  .hero-section .hero-glass {
+    background: hsla(0, 0%, 100%, 0.08);
+    border-color: hsla(0, 0%, 100%, 0.14);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-section .hero-stat-card {
+    background: hsla(0, 0%, 100%, 0.07);
+    border-color: hsla(0, 0%, 100%, 0.12);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-section .hero-stat-label {
+    color: hsl(215 14% 72%);
+  }
+
+  .hero-section .hero-ghost-btn {
+    background: hsla(0, 0%, 100%, 0.08);
+    border-color: hsla(0, 0%, 100%, 0.18);
+    color: hsl(210 40% 98%);
+  }
+
+  .hero-section .hero-ghost-btn:hover {
+    background: hsla(0, 0%, 100%, 0.14);
+  }
+
+  .tradingview-ticker-strip {
+    background: hsl(var(--background) / 0.92);
+    border-color: hsl(var(--border));
+    transition: background-color 300ms ease, border-color 300ms ease;
+  }
+
+  .tradingview-ticker-strip .tradingview-widget-container {
+    min-height: 46px;
+  }
 }

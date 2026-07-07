@@ -60,15 +60,15 @@ export default function HomePage() {
   return (
     <>
       {/* ─── Hero ──────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden">
+      <section className="hero-section relative flex min-h-[90vh] items-center justify-center overflow-hidden">
         {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
           style={{ backgroundImage: `url('${assetUrl('/assets/hero-bandi.jpeg')}')` }}
         />
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-[hsl(var(--midnight))]/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsla(155,70%,30%,0.08)] via-transparent to-[hsl(var(--midnight))]" />
+        {/* Overlays — fixed dark scrim so light site theme does not wash out copy */}
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/20 to-[hsl(var(--background))]" />
 
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           {/* Eyebrow pills */}
@@ -76,13 +76,13 @@ export default function HomePage() {
             initial={false}
             className="mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
           >
-            <div className="glass-card inline-flex items-center gap-2 px-4 py-2">
+            <div className="hero-glass inline-flex items-center gap-2 rounded-xl border px-4 py-2">
               <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              <span className="text-xs font-medium uppercase tracking-widest text-[hsl(215_16%_78%)]">
                 Live Markets • Macro Intelligence
               </span>
             </div>
-            <div className="glass-card inline-flex items-center gap-2.5 px-4 py-2">
+            <div className="hero-glass inline-flex items-center gap-2.5 rounded-xl border px-4 py-2">
               <Image
                 src={assetUrl('/assets/xm-logo.png')}
                 alt="XM"
@@ -90,8 +90,8 @@ export default function HomePage() {
                 height={24}
                 className="h-5 w-auto object-contain"
               />
-              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Official XM partner · <b className="font-mono text-foreground">{PARTNER_CODE}</b>
+              <span className="text-xs font-medium uppercase tracking-widest text-[hsl(215_16%_78%)]">
+                Official XM partner · <b className="font-mono text-white">{PARTNER_CODE}</b>
               </span>
             </div>
           </motion.div>
@@ -99,7 +99,7 @@ export default function HomePage() {
           {/* Headline */}
           <motion.h1
             initial={false}
-            className="mb-6 text-balance text-4xl font-bold leading-[1.1] text-foreground sm:text-5xl md:text-7xl"
+            className="hero-headline mb-6 text-balance text-4xl font-bold leading-[1.1] sm:text-5xl md:text-7xl"
           >
             Stop Guessing the Candle.{' '}
             <span className="gradient-text-emerald">Start Understanding the Flow.</span>
@@ -108,7 +108,7 @@ export default function HomePage() {
           {/* Sub */}
           <motion.p
             initial={false}
-            className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl"
+            className="hero-subcopy mx-auto mb-10 max-w-2xl text-lg leading-relaxed md:text-xl"
           >
             The Market has a Language. We Teach You to Speak It. Macroeconomic logic for
             the individual trader.
@@ -128,11 +128,14 @@ export default function HomePage() {
             <a
               href={EXTERNAL_LINKS.overallBusiness}
               target="_blank" rel="noopener noreferrer"
-              className="btn-ghost-glass text-sm uppercase tracking-wide"
+              className="hero-ghost-btn rounded-lg border px-6 py-3 text-sm uppercase tracking-wide transition-all duration-300"
             >
               Claim Your Edge
             </a>
-            <SiteLink href="/about" className="btn-ghost-glass text-sm">
+            <SiteLink
+              href="/about"
+              className="hero-ghost-btn rounded-lg border px-6 py-3 text-sm transition-all duration-300"
+            >
               See the Mechanics
             </SiteLink>
           </motion.div>
@@ -143,11 +146,11 @@ export default function HomePage() {
             className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-4 md:grid-cols-4"
           >
             {STATS.map((stat) => (
-              <div key={stat.label} className="glass-card p-4 text-center">
+              <div key={stat.label} className="hero-stat-card rounded-xl border p-4 text-center">
                 <div className="gradient-text-emerald text-2xl font-bold md:text-3xl">
                   {stat.value}
                 </div>
-                <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
+                <div className="hero-stat-label mt-1 text-xs uppercase tracking-wider">
                   {stat.label}
                 </div>
               </div>
@@ -161,13 +164,15 @@ export default function HomePage() {
           transition={{ repeat: Infinity, duration: 2 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
         >
-          <ChevronDown className="text-muted-foreground" size={24} />
+          <ChevronDown className="text-[hsl(215_16%_78%)]" size={24} />
         </motion.div>
       </section>
 
       {/* ─── Gallery ───────────────────────────────────────────── */}
-      <section className="section-padding">
-        <div className="mx-auto max-w-7xl">
+      <section className="section-padding pb-12 pt-20">
+        <TradingViewTicker inline />
+
+        <div className="mx-auto max-w-7xl pt-14">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -199,8 +204,8 @@ export default function HomePage() {
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--midnight))]/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <span className="absolute bottom-3 left-3 text-xs font-medium text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="absolute bottom-3 left-3 text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   {item.label}
                 </span>
               </motion.div>
@@ -208,9 +213,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Live markets ticker — home only */}
-      <TradingViewTicker inline />
 
       {/* ─── Why Bandi Shares ──────────────────────────────────── */}
       <section className="section-padding">
