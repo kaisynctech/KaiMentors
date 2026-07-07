@@ -313,12 +313,19 @@
   }
 
   .tradingview-ticker-strip {
-    background: hsl(var(--background) / 0.92);
-    border-color: hsl(var(--border));
-    transition: background-color 300ms ease, border-color 300ms ease;
+    width: 100%;
+    background: hsl(var(--midnight));
+    border-color: hsla(0, 0%, 100%, 0.08);
   }
 
-  .tradingview-ticker-strip .tradingview-widget-container {
+  .tradingview-ticker-strip .tradingview-widget-container,
+  .tradingview-ticker-strip .tradingview-widget-container__widget {
+    width: 100% !important;
     min-height: 46px;
+  }
+
+  .tradingview-ticker-strip iframe {
+    width: 100% !important;
+    max-width: none !important;
   }
 }

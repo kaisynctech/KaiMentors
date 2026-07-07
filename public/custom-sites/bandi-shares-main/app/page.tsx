@@ -66,9 +66,9 @@ export default function HomePage() {
           className="absolute inset-0 bg-cover bg-center bg-fixed"
           style={{ backgroundImage: `url('${assetUrl('/assets/hero-bandi.jpeg')}')` }}
         />
-        {/* Overlays — fixed dark scrim so light site theme does not wash out copy */}
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/20 to-[hsl(var(--background))]" />
+        {/* Overlays — dark scrim; bottom fades to midnight (not page bg) to avoid cloudy wash */}
+        <div className="absolute inset-0 bg-[hsl(var(--midnight))]/75" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[hsla(155,70%,30%,0.08)] via-transparent to-[hsl(var(--midnight))]" />
 
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           {/* Eyebrow pills */}
@@ -168,11 +168,12 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ─── Gallery ───────────────────────────────────────────── */}
-      <section className="section-padding pb-12 pt-20">
-        <TradingViewTicker inline />
+      {/* Live markets — full-width strip above community */}
+      <TradingViewTicker inline />
 
-        <div className="mx-auto max-w-7xl pt-14">
+      {/* ─── Gallery ───────────────────────────────────────────── */}
+      <section className="section-padding">
+        <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
