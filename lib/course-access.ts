@@ -1,4 +1,5 @@
 import "server-only";
+import { isAcademyActive, isSuperAdminUser } from "@/lib/entitlements";
 import { getMentorWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,9 +11,24 @@ export async function requireCourseUser() {
   return { ok: true, supabase, user } as const;
 }
 
-export async function requireMentorCourseContext() {
+export async function requireMentorCourseContext(options?: { allowInactive?: boolean }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) return { ok: false, error: "Mentor workspace not found.", status: 403 } as const;
+
+  if (!options?.allowInactive) {
+    const bypass = await isSuperAdminUser();
+    if (!bypass) {
+      const active = await isAcademyActive(workspace.traderId);
+      if (!active) {
+        return {
+          ok: false,
+          error: "Subscription inactive. Renew to continue.",
+          status: 402,
+        } as const;
+      }
+    }
+  }
+
   return { ok: true, supabase: workspace.supabase, user: workspace.user, traderId: workspace.traderId, memberRole: workspace.role } as const;
 }
 

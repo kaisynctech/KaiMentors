@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fanOutDailySignalNotifications } from "@/lib/signal-notifications";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getMentorWorkspace } from "@/lib/workspace";
 
 const schema = z.object({
   title: z.string().trim().min(1).max(120),
@@ -18,10 +18,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspace = await getMentorWorkspace();
-  if (!workspace) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const { data: signalId, error } = await workspace.supabase.rpc(
     "post_daily_signal",

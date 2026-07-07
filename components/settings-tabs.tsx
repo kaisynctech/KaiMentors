@@ -8,6 +8,7 @@ const TABS = [
   { value: "team",       label: "Team"            },
   { value: "brokers",    label: "Broker Accounts" },
   { value: "branding",   label: "Academy Page"    },
+  { value: "billing",    label: "Billing"         },
   { value: "audit-logs", label: "Audit Logs"      },
 ] as const;
 

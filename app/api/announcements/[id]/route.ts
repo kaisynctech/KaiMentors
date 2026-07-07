@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 
 const updateSchema = z.object({
   title: z.string().trim().min(2).max(160).optional(),
@@ -13,10 +13,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const { id } = await params;
   const parsed = updateSchema.safeParse(await request.json().catch(() => null));
@@ -59,10 +58,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const { id } = await params;
   const { error } = await workspace.supabase

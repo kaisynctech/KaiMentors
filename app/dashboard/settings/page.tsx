@@ -6,7 +6,9 @@ import { OwnerEmailChangeForm }   from "@/components/owner-email-change-form";
 import { TeamManager }            from "@/components/team-manager";
 import { BrokerAccountsManager }  from "@/components/broker-accounts-manager";
 import { PortalBrandingForm }     from "@/components/portal-branding-form";
+import { MentorBillingPanel }     from "@/components/mentor-billing-panel";
 import type { VerificationMethod } from "@/lib/database.types";
+import { getSubscriptionSummary } from "@/lib/entitlements";
 import { getMentorWorkspace }     from "@/lib/workspace";
 import { createAdminClient }      from "@/lib/supabase/admin";
 import {
@@ -16,8 +18,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SettingsTab = "account" | "team" | "brokers" | "branding" | "audit-logs";
-const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "audit-logs"]);
+type SettingsTab = "account" | "team" | "brokers" | "branding" | "billing" | "audit-logs";
+const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "billing", "audit-logs"]);
 
 export default async function WorkspaceSettingsPage({
   searchParams,
@@ -208,6 +210,31 @@ export default async function WorkspaceSettingsPage({
           riskTemplates={riskTemplates ?? []}
           websiteDeliveryMode={portalData.website_delivery_mode ?? "core_page"}
         />
+      </DashboardShell>
+    );
+  }
+
+  // ── Billing tab ───────────────────────────────────────────────────────────
+  if (tab === "billing") {
+    const summary = await getSubscriptionSummary(traderId);
+    const eftInstructions = process.env.KAIMENTORS_BILLING_EFT_INSTRUCTIONS?.trim() || null;
+
+    return (
+      <DashboardShell
+        activePath="/dashboard/settings"
+        description="Manage workspace security, identity, and team members."
+        title="Settings"
+        userLabel={displayName}
+        traderId={traderId}
+        portalName={portal.portal_name}
+        portalSlug={portal.slug}
+      >
+        <SettingsTabs activeTab="billing" />
+        {summary ? (
+          <MentorBillingPanel eftInstructions={eftInstructions} summary={summary} />
+        ) : (
+          <p style={{ color: "var(--text-muted)" }}>Subscription details are not available yet.</p>
+        )}
       </DashboardShell>
     );
   }

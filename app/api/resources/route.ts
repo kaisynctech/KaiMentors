@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 
 const createSchema = z.object({
   title:         z.string().trim().min(1).max(200),
@@ -19,8 +19,9 @@ const createSchema = z.object({
 );
 
 export async function POST(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) return NextResponse.json({ error: "Unauthorised." }, { status: 401 });
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const parsed = createSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid resource details." }, { status: 400 });

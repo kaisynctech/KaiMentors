@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { InvitationRenewalControl } from "@/components/invitation-renewal-control";
 import { OwnerEmailCorrectionControl } from "@/components/owner-email-correction-control";
@@ -91,6 +92,7 @@ export default async function AdminTradersPage() {
                 <th>Website mode</th>
                 <th>Custom package</th>
                 <th>Account setup</th>
+                <th>Billing</th>
               </tr>
             </thead>
             <tbody>
@@ -124,11 +126,14 @@ export default async function AdminTradersPage() {
                           ? `${assignment.package.name} v${assignment.package.version}`
                           : "No package assigned"}
                       </td>
+                      <td>
+                        <Link href={`/admin/traders/${trader.id}/billing`}>Billing & access</Link>
+                      </td>
                     </tr>
                   );
                 })
               ) : (
-                <tr><td className={styles.empty} colSpan={8}>No mentor tenants yet.</td></tr>
+                <tr><td className={styles.empty} colSpan={9}>No mentor tenants yet.</td></tr>
               )}
             </tbody>
           </table>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 
 const createSchema = z.discriminatedUnion("type", [
   z.object({
@@ -24,8 +24,9 @@ const createSchema = z.discriminatedUnion("type", [
 ]);
 
 export async function POST(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
   const { supabase, traderId, user } = workspace;
 
   const parsed = createSchema.safeParse(await request.json().catch(() => null));
@@ -47,8 +48,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
   const { supabase, traderId } = workspace;
 
   const { id } = await request.json().catch(() => ({})) as { id?: string };

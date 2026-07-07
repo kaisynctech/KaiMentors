@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 
 const schema = z.object({
   fileName:    z.string().min(1).max(200),
@@ -14,8 +14,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) return NextResponse.json({ error: "Unauthorised." }, { status: 401 });
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid upload request." }, { status: 400 });

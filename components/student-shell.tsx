@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { AcademyUnavailable } from "@/components/academy-unavailable";
+import { isAcademyActive } from "@/lib/entitlements";
 import { StudentShellClient } from "./student-shell-client";
 
 interface StudentShellProps {
@@ -37,6 +39,8 @@ export async function StudentShell({
     }
   }
 
+  const academyActive = traderId ? await isAcademyActive(traderId) : true;
+
   return (
     <StudentShellClient
       academyName={academyName}
@@ -49,7 +53,7 @@ export async function StudentShell({
       querySuffix={querySuffix}
       traderId={traderId}
     >
-      {children}
+      {academyActive ? children : <AcademyUnavailable academyName={academyName} />}
     </StudentShellClient>
   );
 }

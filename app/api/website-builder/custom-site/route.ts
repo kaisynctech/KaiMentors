@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getMentorWorkspace } from "@/lib/workspace";
+import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 
 const overridesSchema = z.object({
   action: z.literal("save_overrides"),
@@ -12,13 +12,9 @@ const overridesSchema = z.object({
 const requestSchema = overridesSchema;
 
 export async function POST(request: Request) {
-  const workspace = await getMentorWorkspace();
-  if (!workspace) {
-    return NextResponse.json(
-      { error: "Please sign in to your mentor workspace." },
-      { status: 401 },
-    );
-  }
+  const workspaceResult = await requireActiveMentorWorkspace();
+  if ("error" in workspaceResult) return workspaceResult.error;
+  const workspace = workspaceResult.workspace;
 
   const parsed = requestSchema.safeParse(await request.json());
   if (!parsed.success) {

@@ -1,12 +1,16 @@
+import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requirePlatformAdmin } from "@/lib/admin-access";
 import styles from "../platform-tables.module.css";
 
 interface SubscriptionRow {
   id: string;
-  plan: string;
+  plan_key: string;
   status: string;
-  current_period_end: string | null;
+  currency: string;
+  monthly_amount_cents: number;
+  trial_ends_at: string | null;
+  current_period_ends_at: string | null;
   trader:
     | { display_name: string; legal_name: string }
     | { display_name: string; legal_name: string }[]
@@ -17,7 +21,9 @@ export default async function AdminSubscriptionsPage() {
   const { supabase, userLabel } = await requirePlatformAdmin();
   const { data } = await supabase
     .from("subscriptions")
-    .select("id,plan,status,current_period_end,trader:traders(display_name,legal_name)")
+    .select(
+      "id,plan_key,status,currency,monthly_amount_cents,trial_ends_at,current_period_ends_at,trader:traders(id,display_name,legal_name)",
+    )
     .order("created_at", { ascending: false });
   const subscriptions = ((data ?? []) as SubscriptionRow[]).map((subscription) => ({
     ...subscription,
@@ -26,7 +32,7 @@ export default async function AdminSubscriptionsPage() {
       : subscription.trader,
   })) as Array<
     Omit<SubscriptionRow, "trader"> & {
-      trader: { display_name: string; legal_name: string } | null;
+      trader: { id: string; display_name: string; legal_name: string } | null;
     }
   >;
 
@@ -53,7 +59,10 @@ export default async function AdminSubscriptionsPage() {
                 <th>Tenant</th>
                 <th>Plan</th>
                 <th>Status</th>
+                <th>Price</th>
+                <th>Trial ends</th>
                 <th>Period end</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -63,12 +72,21 @@ export default async function AdminSubscriptionsPage() {
                     <strong>{subscription.trader?.display_name ?? "Unknown tenant"}</strong>
                     <span>{subscription.trader?.legal_name ?? ""}</span>
                   </td>
-                  <td>{subscription.plan}</td>
+                  <td>{subscription.plan_key}</td>
                   <td><span className={styles.badge}>{subscription.status}</span></td>
-                  <td>{subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : "Not set"}</td>
+                  <td>
+                    R{(subscription.monthly_amount_cents / 100).toFixed(0)}/{subscription.currency === "ZAR" ? "mo" : subscription.currency}
+                  </td>
+                  <td>{subscription.trial_ends_at ? new Date(subscription.trial_ends_at).toLocaleDateString() : "Not set"}</td>
+                  <td>{subscription.current_period_ends_at ? new Date(subscription.current_period_ends_at).toLocaleDateString() : "Not set"}</td>
+                  <td>
+                    {subscription.trader?.id ? (
+                      <Link href={`/admin/traders/${subscription.trader.id}/billing`}>Manage</Link>
+                    ) : null}
+                  </td>
                 </tr>
               )) : (
-                <tr><td className={styles.empty} colSpan={4}>No subscriptions yet.</td></tr>
+                <tr><td className={styles.empty} colSpan={7}>No subscriptions yet.</td></tr>
               )}
             </tbody>
           </table>
