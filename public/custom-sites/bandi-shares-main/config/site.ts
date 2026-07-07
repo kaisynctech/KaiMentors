@@ -40,3 +40,16 @@ export const XM_LINKS = {
   app: 'https://www.xm.com/app',
   register: 'https://www.xm.com',
 } as const
+
+/**
+ * Member discount on Whop programs for verified XM accounts under PARTNER_CODE.
+ * Set when Bandile confirms the percentage (e.g. "15" → "15% off").
+ */
+export const XM_MEMBER_DISCOUNT_PERCENT: string | null = null
+
+export function xmMemberDiscountLabel() {
+  if (XM_MEMBER_DISCOUNT_PERCENT) {
+    return `${XM_MEMBER_DISCOUNT_PERCENT}% member discount on all programs`
+  }
+  return 'Member discount on all programs for verified XM accounts'
+}

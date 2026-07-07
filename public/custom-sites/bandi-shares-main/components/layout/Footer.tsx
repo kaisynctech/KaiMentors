@@ -1,14 +1,13 @@
 import { FooterPortalLinks } from '@/components/layout/FooterPortalLinks'
+import XmPartnerFooter from '@/components/layout/XmPartnerFooter'
 import { SiteLink } from '@/components/site-link'
 import { assetUrl } from '@/lib/site-url'
 
 const NAV_ITEMS = [
-  { label: 'Home',      href: '/'        },
-  { label: 'About',     href: '/about'   },
-  { label: 'Services',  href: '/services' },
-  { label: 'Pricing',   href: '/pricing' },
-  { label: 'Open XM',   href: '/xm'      },
-  { label: 'Verify XM', href: '/verify'  },
+  { label: 'Home',     href: '/'        },
+  { label: 'About',    href: '/about'   },
+  { label: 'Programs', href: '/services' },
+  { label: 'XM',       href: '/xm'      },
 ]
 
 const LEGAL_ITEMS = [
@@ -20,6 +19,8 @@ export default function Footer() {
   return (
     <footer className="mt-auto border-t border-[hsla(0,0%,100%,0.08)]">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-12">
+        <XmPartnerFooter />
+
         <div className="mb-12 flex flex-col items-center">
           <img
             src={assetUrl('/assets/logo.jpeg')}

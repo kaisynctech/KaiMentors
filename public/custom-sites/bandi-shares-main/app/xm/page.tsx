@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Open XM Account',
+  title: 'XM — Open Account & Verify',
   description:
-    'Open a real XM Global trading account with Bandi Shares. Partner code BANDISHARES05, 100% deposit bonus, guided setup and verification.',
+    'Open a real XM Global account with Bandi Shares, partner code BANDISHARES05, and verify your XM ID for member program pricing.',
 }
 
 export { default } from './XmPageClient'

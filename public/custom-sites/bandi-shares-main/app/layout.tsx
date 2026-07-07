@@ -4,7 +4,6 @@ import './globals.css'
 import { Providers } from '@/components/Providers'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import TradingViewTicker from '@/components/layout/TradingViewTicker'
 import CustomCursor from '@/components/CustomCursor'
 
 // next/font handles Inter — no external @import needed in globals.css for this.
@@ -95,11 +94,8 @@ export default function RootLayout({
         <Providers>
           {/* Custom GSAP cursor — hidden automatically on touch devices */}
           <CustomCursor />
-          {/* Fixed ticker tape sits above the navbar */}
-          <TradingViewTicker />
-          {/* Fixed navbar: z-50, height 64px. Ticker adds ~34px → pt-[110px] on main */}
           <Navbar />
-          <main className="flex min-h-screen flex-col pt-[110px] mesh-background">
+          <main className="flex min-h-screen flex-col pt-16 mesh-background">
             {children}
           </main>
           <Footer />

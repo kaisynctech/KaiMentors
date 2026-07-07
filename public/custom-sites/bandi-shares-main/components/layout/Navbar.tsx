@@ -11,12 +11,10 @@ import { SiteLink } from '@/components/site-link'
 import { assetUrl } from '@/lib/site-url'
 
 const NAV_LINKS = [
-  { label: 'Home',      href: '/'        },
-  { label: 'About',     href: '/about'   },
-  { label: 'Services',  href: '/services' },
-  { label: 'Pricing',   href: '/pricing' },
-  { label: 'Open XM',   href: '/xm'      },
-  { label: 'Verify XM', href: '/verify'  },
+  { label: 'Home',     href: '/'        },
+  { label: 'About',    href: '/about'   },
+  { label: 'Programs', href: '/services' },
+  { label: 'XM',       href: '/xm'      },
 ]
 
 export default function Navbar() {

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -13,6 +14,8 @@ import { PARTNER_CODE, XM_LINKS } from '@/config/site'
 import { PortalAuthLink } from '@/components/portal-auth-link'
 import { SiteLink } from '@/components/site-link'
 import { assetUrl } from '@/lib/site-url'
+import XmVerifyForm from '@/components/xm/XmVerifyForm'
+import { xmMemberDiscountLabel } from '@/config/site'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -69,12 +72,21 @@ const STEPS = [
     desc: 'Upload your ID and proof of address so XM can approve and activate your account.',
   },
   {
-    title: 'Fund & submit your XM ID',
-    desc: 'Once funded, verify your account on our Verify XM page so we can confirm your partnership.',
+    title: 'Fund & verify your XM ID',
+    desc: 'Once funded, submit your XM Account ID in the verification form below so we can confirm your partnership and member pricing.',
   },
 ]
 
 export default function XmPageClient() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = (window.top ?? window).location.hash
+    if (hash === '#verify') {
+      requestAnimationFrame(() => {
+        document.getElementById('verify')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }, [])
   return (
     <>
       {/* Hero */}
@@ -137,7 +149,7 @@ export default function XmPageClient() {
                 <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                   Sign Up
                 </PortalAuthLink>
-                <SiteLink href="/verify" className="btn-ghost-glass text-center text-sm">
+                <SiteLink href="/xm#verify" className="btn-ghost-glass text-center text-sm">
                   Verify your XM ID
                 </SiteLink>
                 <a
@@ -325,7 +337,7 @@ export default function XmPageClient() {
               <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                 Sign Up
               </PortalAuthLink>
-              <SiteLink href="/verify" className="btn-ghost-glass text-center text-sm">
+              <SiteLink href="/xm#verify" className="btn-ghost-glass text-center text-sm">
                 Verify your XM ID
               </SiteLink>
             </div>
@@ -416,13 +428,13 @@ export default function XmPageClient() {
                 ))}
               </ul>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <SiteLink href="/verify" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
+                <a href="#verify" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
                   Verify your XM ID
-                </SiteLink>
+                </a>
                 <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                   Sign Up
                 </PortalAuthLink>
-                <SiteLink href="/pricing" className="btn-ghost-glass text-center text-sm">
+                <SiteLink href="/services" className="btn-ghost-glass text-center text-sm">
                   View programs
                 </SiteLink>
               </div>
@@ -437,6 +449,17 @@ export default function XmPageClient() {
               />
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Verify XM — same page */}
+      <section id="verify" className="section-padding scroll-mt-24 border-t border-[hsla(0,0%,100%,0.06)]">
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-8 text-center text-sm text-muted-foreground">
+            {xmMemberDiscountLabel()} — verify below to confirm your account is linked under{' '}
+            <b className="font-mono text-foreground">{PARTNER_CODE}</b>.
+          </p>
+          <XmVerifyForm />
         </div>
       </section>
     </>

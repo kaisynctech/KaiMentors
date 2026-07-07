@@ -3,10 +3,17 @@ import { PORTAL_SLUG } from '@/config/site'
 /** Static export root on KaiMentors (matches next.config.js basePath). */
 export const SITE_BASE = '/custom-sites/bandi-shares/v1'
 
+function splitRoute(route: string) {
+  const [pathPart, hash] = route.split('#')
+  const path = pathPart === '/' ? '' : pathPart.startsWith('/') ? pathPart : `/${pathPart}`
+  return { path, hash }
+}
+
 /** Default href when embedded on KaiMentors (SSR + first paint). */
 export function portalSiteHref(route: string) {
-  const normalized = route === '/' ? '' : route.startsWith('/') ? route : `/${route}`
-  return normalized ? `/portal/${PORTAL_SLUG}${normalized}` : `/portal/${PORTAL_SLUG}`
+  const { path, hash } = splitRoute(route)
+  const base = path ? `/portal/${PORTAL_SLUG}${path}` : `/portal/${PORTAL_SLUG}`
+  return hash ? `${base}#${hash}` : base
 }
 
 export function assetUrl(relativePath: string) {
@@ -19,26 +26,25 @@ export function assetUrl(relativePath: string) {
  * When embedded on KaiMentors, links target the parent portal URL so pages load correctly.
  */
 export function resolveSiteHref(route: string) {
+  const { path, hash } = splitRoute(route)
+
   if (typeof window === 'undefined') {
     return portalSiteHref(route)
   }
 
-  const normalized = route === '/' ? '' : route.startsWith('/') ? route : `/${route}`
   const top = window.top ?? window
   const topPath = top.location.pathname
 
+  let resolved: string
   if (topPath.startsWith(`/portal/${PORTAL_SLUG}`)) {
-    return normalized
-      ? `/portal/${PORTAL_SLUG}${normalized}`
-      : `/portal/${PORTAL_SLUG}`
+    resolved = path ? `/portal/${PORTAL_SLUG}${path}` : `/portal/${PORTAL_SLUG}`
+  } else if (top !== window && !topPath.startsWith('/custom-sites')) {
+    resolved = path || '/'
+  } else {
+    resolved = `${SITE_BASE}${path || ''}`
   }
 
-  // Custom academy domain (e.g. sharesworldwide.trade) — clean paths on parent.
-  if (top !== window && !topPath.startsWith('/custom-sites')) {
-    return normalized || '/'
-  }
-
-  return `${SITE_BASE}${normalized || ''}`
+  return hash ? `${resolved}#${hash}` : resolved
 }
 
 export function shouldNavigateTopWindow() {

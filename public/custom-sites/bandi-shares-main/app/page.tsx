@@ -7,7 +7,9 @@ import { EXTERNAL_LINKS } from '@/config/links'
 import { PortalAuthLink } from '@/components/portal-auth-link'
 import { SiteLink } from '@/components/site-link'
 import { PARTNER_CODE } from '@/config/site'
-import HomeXmSections from '@/components/xm/HomeXmSections'
+import HomeProgramsPreview from '@/components/home/HomeProgramsPreview'
+import HomeXmDiscount from '@/components/home/HomeXmDiscount'
+import TradingViewTicker from '@/components/layout/TradingViewTicker'
 import { assetUrl } from '@/lib/site-url'
 
 const fadeUp = {
@@ -207,6 +209,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Live markets ticker — home only */}
+      <TradingViewTicker inline />
+
       {/* ─── Why Bandi Shares ──────────────────────────────────── */}
       <section className="section-padding">
         <div className="mx-auto max-w-5xl">
@@ -242,7 +247,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <HomeXmSections />
+      <HomeProgramsPreview />
+      <HomeXmDiscount />
 
       {/* ─── CTA ───────────────────────────────────────────────── */}
       <section className="section-padding">

@@ -4,13 +4,13 @@ import { useEffect, useRef } from 'react'
 
 const TICKER_CONFIG = {
   symbols: [
-    { description: 'Gold',    proName: 'OANDA:XAUUSD'   },
-    { description: 'Nas100',  proName: 'OANDA:NAS100USD' },
-    { description: 'US30',    proName: 'OANDA:US30USD'   },
-    { description: 'Oil',     proName: 'TVC:USOIL'       },
-    { description: 'EUR/USD', proName: 'FX:EURUSD'       },
-    { description: 'GBP/USD', proName: 'FX:GBPUSD'       },
-    { description: 'USD/JPY', proName: 'FX:USDJPY'       },
+    { description: 'Gold', proName: 'OANDA:XAUUSD' },
+    { description: 'Nas100', proName: 'OANDA:NAS100USD' },
+    { description: 'US30', proName: 'OANDA:US30USD' },
+    { description: 'Oil', proName: 'TVC:USOIL' },
+    { description: 'EUR/USD', proName: 'FX:EURUSD' },
+    { description: 'GBP/USD', proName: 'FX:GBPUSD' },
+    { description: 'USD/JPY', proName: 'FX:USDJPY' },
   ],
   showSymbolLogo: true,
   isTransparent: true,
@@ -19,14 +19,18 @@ const TICKER_CONFIG = {
   locale: 'en',
 }
 
-export default function TradingViewTicker() {
+interface TradingViewTickerProps {
+  /** Home-only inline strip (not fixed under the navbar). */
+  inline?: boolean
+}
+
+export default function TradingViewTicker({ inline = false }: TradingViewTickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
-    // Guard against double injection on hot reload.
     container.innerHTML = '<div class="tradingview-widget-container__widget"></div>'
 
     const script = document.createElement('script')
@@ -38,12 +42,19 @@ export default function TradingViewTicker() {
     container.appendChild(script)
 
     return () => {
-      if (container) container.innerHTML = ''
+      container.innerHTML = ''
     }
   }, [])
 
   return (
-    <div className="fixed left-0 right-0 top-16 z-40 border-b border-[hsla(0,0%,100%,0.08)] bg-[hsl(var(--midnight))]">
+    <div
+      className={
+        inline
+          ? 'overflow-hidden border-y border-[hsla(0,0%,100%,0.08)] bg-[hsl(var(--midnight))]'
+          : 'fixed left-0 right-0 top-16 z-40 border-b border-[hsla(0,0%,100%,0.08)] bg-[hsl(var(--midnight))]'
+      }
+      aria-label="Live forex and commodities ticker"
+    >
       <div ref={containerRef} className="tradingview-widget-container" />
     </div>
   )
