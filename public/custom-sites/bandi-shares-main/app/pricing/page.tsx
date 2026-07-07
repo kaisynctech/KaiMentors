@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
+import { SiteLink } from '@/components/site-link'
 import { CheckCircle2, BookOpen, LineChart, Zap, BookMarked, Sparkles } from 'lucide-react'
 import { EXTERNAL_LINKS } from '@/config/links'
 
@@ -220,13 +220,13 @@ export default function PricingPage() {
             <p className="mx-auto max-w-xl text-xs leading-relaxed text-muted-foreground">
               All sales of digital products (Book/Course) are final and non-refundable once access is
               granted. See our{' '}
-              <Link href="/refund-policy" className="text-primary hover:underline">
+              <SiteLink href="/refund-policy" className="text-primary hover:underline">
                 Refund Policy
-              </Link>{' '}
+              </SiteLink>{' '}
               and{' '}
-              <Link href="/terms" className="text-primary hover:underline">
+              <SiteLink href="/terms" className="text-primary hover:underline">
                 Terms of Service
-              </Link>{' '}
+              </SiteLink>{' '}
               for details.
             </p>
           </motion.div>

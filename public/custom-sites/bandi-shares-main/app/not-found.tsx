@@ -1,9 +1,6 @@
-import Link from 'next/link'
-import type { Metadata } from 'next'
+'use client'
 
-export const metadata: Metadata = {
-  title: '404 — Page Not Found',
-}
+import { SiteLink } from '@/components/site-link'
 
 export default function NotFound() {
   return (
@@ -11,11 +8,11 @@ export default function NotFound() {
       <p className="mb-2 font-mono text-xs uppercase tracking-[0.25em] text-primary">404</p>
       <h1 className="mb-4 text-4xl font-bold text-foreground">Page Not Found</h1>
       <p className="mb-8 max-w-sm text-muted-foreground">
-        The route you're looking for doesn't exist. Check the URL or head back to the dashboard.
+        The route you&apos;re looking for doesn&apos;t exist. Check the URL or head back home.
       </p>
-      <Link href="/" className="btn-primary-glow text-sm uppercase tracking-wide">
+      <SiteLink href="/" className="btn-primary-glow text-sm uppercase tracking-wide">
         Return to Home
-      </Link>
+      </SiteLink>
     </div>
   )
 }

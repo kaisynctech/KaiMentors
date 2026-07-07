@@ -19,6 +19,7 @@ export function CustomSiteRenderer({ site }: CustomSiteRendererProps) {
   ) {
     return (
       <iframe
+        key={site.staticExportUrl}
         className="kaimentors-static-export-site"
         src={site.staticExportUrl}
         title={site.title}

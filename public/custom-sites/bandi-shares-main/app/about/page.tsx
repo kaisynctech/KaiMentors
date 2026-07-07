@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Target, BarChart3, Eye, Zap } from 'lucide-react'
+import { assetUrl } from '@/lib/site-url'
 import {
   Accordion,
   AccordionContent,
@@ -82,20 +83,20 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="section-padding flex min-h-[60vh] items-center">
         <div className="mx-auto max-w-5xl">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
+          <motion.div initial={false}>
             <span className="mb-4 block text-sm font-semibold uppercase tracking-widest text-primary">
               About Us
             </span>
           </motion.div>
           <motion.h1
-            initial="hidden" animate="visible" variants={fadeUp} custom={1}
+            initial={false}
             className="mb-6 text-balance text-4xl font-bold leading-[1.1] text-foreground sm:text-5xl md:text-6xl"
           >
             From Retail Noise to{' '}
             <span className="gradient-text-emerald">Macroeconomic Clarity</span>
           </motion.h1>
           <motion.p
-            initial="hidden" animate="visible" variants={fadeUp} custom={2}
+            initial={false}
             className="max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-xl"
           >
             Bandi Shares FX was built on a simple premise: retail traders fail because they ignore
@@ -118,7 +119,7 @@ export default function AboutPage() {
           >
             <div className="glass-card relative aspect-[4/5] overflow-hidden">
               <Image
-                src="/assets/bandi-presentation.jpeg"
+                src={assetUrl('/assets/bandi-presentation.jpeg')}
                 alt="Bandi presenting at a trading seminar"
                 fill
                 className="object-cover"

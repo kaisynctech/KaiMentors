@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import Link from 'next/link'
+import { SiteLink } from '@/components/site-link'
 import { ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -136,9 +136,9 @@ export default function VerifyPage() {
               </p>
               <p>
                 Need to open an account first?{' '}
-                <Link href="/xm" className="font-medium text-primary hover:underline">
+                <SiteLink href="/xm" className="font-medium text-primary hover:underline">
                   See full XM setup &amp; benefits →
-                </Link>
+                </SiteLink>
               </p>
             </div>
           </div>

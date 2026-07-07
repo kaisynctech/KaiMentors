@@ -2,10 +2,11 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
 import { PARTNER_CODE, XM_LINKS } from '@/config/site'
 import { PortalAuthLink } from '@/components/portal-auth-link'
+import { SiteLink } from '@/components/site-link'
+import { assetUrl } from '@/lib/site-url'
 
 const PILLS = [
   { value: '13.5B+', label: 'trades' },
@@ -31,7 +32,7 @@ export default function HomeXmSections() {
           >
             <div className="flex shrink-0 items-start justify-center md:justify-start">
               <Image
-                src="/assets/xm-logo.png"
+                src={assetUrl('/assets/xm-logo.png')}
                 alt="XM Global"
                 width={100}
                 height={44}
@@ -72,9 +73,9 @@ export default function HomeXmSections() {
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href="/xm" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
+                <SiteLink href="/xm" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
                   Full XM benefits &amp; setup
-                </Link>
+                </SiteLink>
                 <a
                   href={XM_LINKS.app}
                   target="_blank"
@@ -114,15 +115,15 @@ export default function HomeXmSections() {
                 from day one.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link href="/xm" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
+                <SiteLink href="/xm" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
                   Start XM setup
-                </Link>
+                </SiteLink>
                 <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                   Sign Up
                 </PortalAuthLink>
-                <Link href="/verify" className="btn-ghost-glass text-center text-sm">
+                <SiteLink href="/verify" className="btn-ghost-glass text-center text-sm">
                   Verify your XM ID
-                </Link>
+                </SiteLink>
                 <a
                   href={XM_LINKS.app}
                   target="_blank"
@@ -142,7 +143,7 @@ export default function HomeXmSections() {
                 {PARTNER_CODE}
               </span>
               <Image
-                src="/assets/xm-logo.png"
+                src={assetUrl('/assets/xm-logo.png')}
                 alt="XM Global"
                 width={120}
                 height={52}

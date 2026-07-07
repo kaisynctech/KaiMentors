@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
 import {
   Smartphone,
   TrendingUp,
@@ -12,6 +11,8 @@ import {
 } from 'lucide-react'
 import { PARTNER_CODE, XM_LINKS } from '@/config/site'
 import { PortalAuthLink } from '@/components/portal-auth-link'
+import { SiteLink } from '@/components/site-link'
+import { assetUrl } from '@/lib/site-url'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -80,29 +81,20 @@ export default function XmPageClient() {
       <section className="section-padding flex min-h-[50vh] items-center">
         <div className="mx-auto max-w-4xl text-center">
           <motion.span
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={0}
+            initial={false}
             className="mb-4 block text-xs font-semibold uppercase tracking-[0.25em] text-primary"
           >
             XM Global Partner
           </motion.span>
           <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={1}
+            initial={false}
             className="mb-6 text-balance text-4xl font-bold leading-[1.1] text-foreground sm:text-5xl md:text-6xl"
           >
             Open a real account,{' '}
             <span className="gradient-text-emerald">the right way.</span>
           </motion.h1>
           <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={2}
+            initial={false}
             className="mx-auto max-w-2xl text-lg text-muted-foreground"
           >
             Bandi Shares is an official partner of XM Global. When you open your real trading account
@@ -145,9 +137,9 @@ export default function XmPageClient() {
                 <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                   Sign Up
                 </PortalAuthLink>
-                <Link href="/verify" className="btn-ghost-glass text-center text-sm">
+                <SiteLink href="/verify" className="btn-ghost-glass text-center text-sm">
                   Verify your XM ID
-                </Link>
+                </SiteLink>
                 <a
                   href={XM_LINKS.app}
                   target="_blank"
@@ -161,7 +153,7 @@ export default function XmPageClient() {
 
             <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-primary/20 bg-primary/5 p-8 text-center">
               <Image
-                src="/assets/xm-logo.png"
+                src={assetUrl('/assets/xm-logo.png')}
                 alt="XM Global"
                 width={160}
                 height={70}
@@ -333,9 +325,9 @@ export default function XmPageClient() {
               <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                 Sign Up
               </PortalAuthLink>
-              <Link href="/verify" className="btn-ghost-glass text-center text-sm">
+              <SiteLink href="/verify" className="btn-ghost-glass text-center text-sm">
                 Verify your XM ID
-              </Link>
+              </SiteLink>
             </div>
           </motion.div>
         </div>
@@ -424,20 +416,20 @@ export default function XmPageClient() {
                 ))}
               </ul>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/verify" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
+                <SiteLink href="/verify" className="btn-primary-glow text-center text-sm uppercase tracking-wide">
                   Verify your XM ID
-                </Link>
+                </SiteLink>
                 <PortalAuthLink kind="join" className="btn-ghost-glass text-center text-sm">
                   Sign Up
                 </PortalAuthLink>
-                <Link href="/pricing" className="btn-ghost-glass text-center text-sm">
+                <SiteLink href="/pricing" className="btn-ghost-glass text-center text-sm">
                   View programs
-                </Link>
+                </SiteLink>
               </div>
             </div>
             <div className="flex items-center justify-center rounded-xl border border-[hsla(var(--glass-border))] bg-[hsla(var(--glass-bg))] p-10">
               <Image
-                src="/assets/xm-logo.png"
+                src={assetUrl('/assets/xm-logo.png')}
                 alt="XM Global"
                 width={240}
                 height={105}

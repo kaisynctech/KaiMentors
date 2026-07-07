@@ -1,13 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import Image from 'next/image'
 import { Globe2, Shield, Users, ChevronDown } from 'lucide-react'
 import { EXTERNAL_LINKS } from '@/config/links'
 import { PortalAuthLink } from '@/components/portal-auth-link'
+import { SiteLink } from '@/components/site-link'
 import { PARTNER_CODE } from '@/config/site'
 import HomeXmSections from '@/components/xm/HomeXmSections'
+import { assetUrl } from '@/lib/site-url'
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 30 },
@@ -45,12 +46,12 @@ const WHY_CARDS = [
 
 // Gallery items — place images in public/assets/ and update src paths.
 const GALLERY = [
-  { src: '/assets/bandi-lecture.jpeg',       span: 'col-span-2 row-span-2', label: 'Live Seminar'       },
-  { src: '/assets/gallery-seminar-1.jpg',    span: 'col-span-1 row-span-1', label: 'Audience Engagement' },
-  { src: '/assets/gallery-charts.jpg',       span: 'col-span-1 row-span-1', label: 'Chart Analysis'      },
-  { src: '/assets/bandi-presentation.jpeg',  span: 'col-span-1 row-span-1', label: 'Strategy Breakdown'  },
-  { src: '/assets/gallery-community.jpg',    span: 'col-span-2 row-span-1', label: 'Community Wins'      },
-  { src: '/assets/gallery-mentorship.jpg',   span: 'col-span-1 row-span-1', label: '1-on-1 Mentorship'   },
+  { src: assetUrl('/assets/bandi-lecture.jpeg'),       span: 'col-span-2 row-span-2', label: 'Live Seminar'       },
+  { src: assetUrl('/assets/gallery-seminar-1.jpg'),    span: 'col-span-1 row-span-1', label: 'Audience Engagement' },
+  { src: assetUrl('/assets/gallery-charts.jpg'),       span: 'col-span-1 row-span-1', label: 'Chart Analysis'      },
+  { src: assetUrl('/assets/bandi-presentation.jpeg'),  span: 'col-span-1 row-span-1', label: 'Strategy Breakdown'  },
+  { src: assetUrl('/assets/gallery-community.jpg'),    span: 'col-span-2 row-span-1', label: 'Community Wins'      },
+  { src: assetUrl('/assets/gallery-mentorship.jpg'),   span: 'col-span-1 row-span-1', label: '1-on-1 Mentorship'   },
 ]
 
 export default function HomePage() {
@@ -61,7 +62,7 @@ export default function HomePage() {
         {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: "url('/assets/hero-bandi.jpeg')" }}
+          style={{ backgroundImage: `url('${assetUrl('/assets/hero-bandi.jpeg')}')` }}
         />
         {/* Overlays */}
         <div className="absolute inset-0 bg-[hsl(var(--midnight))]/80" />
@@ -70,7 +71,7 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           {/* Eyebrow pills */}
           <motion.div
-            initial="hidden" animate="visible" variants={fadeUp} custom={0}
+            initial={false}
             className="mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
           >
             <div className="glass-card inline-flex items-center gap-2 px-4 py-2">
@@ -81,7 +82,7 @@ export default function HomePage() {
             </div>
             <div className="glass-card inline-flex items-center gap-2.5 px-4 py-2">
               <Image
-                src="/assets/xm-logo.png"
+                src={assetUrl('/assets/xm-logo.png')}
                 alt="XM"
                 width={56}
                 height={24}
@@ -95,7 +96,7 @@ export default function HomePage() {
 
           {/* Headline */}
           <motion.h1
-            initial="hidden" animate="visible" variants={fadeUp} custom={1}
+            initial={false}
             className="mb-6 text-balance text-4xl font-bold leading-[1.1] text-foreground sm:text-5xl md:text-7xl"
           >
             Stop Guessing the Candle.{' '}
@@ -104,7 +105,7 @@ export default function HomePage() {
 
           {/* Sub */}
           <motion.p
-            initial="hidden" animate="visible" variants={fadeUp} custom={2}
+            initial={false}
             className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl"
           >
             The Market has a Language. We Teach You to Speak It. Macroeconomic logic for
@@ -113,7 +114,7 @@ export default function HomePage() {
 
           {/* CTAs */}
           <motion.div
-            initial="hidden" animate="visible" variants={fadeUp} custom={3}
+            initial={false}
             className="flex flex-col items-center justify-center gap-4 sm:flex-row"
           >
             <PortalAuthLink
@@ -129,14 +130,14 @@ export default function HomePage() {
             >
               Claim Your Edge
             </a>
-            <Link href="/about" className="btn-ghost-glass text-sm">
+            <SiteLink href="/about" className="btn-ghost-glass text-sm">
               See the Mechanics
-            </Link>
+            </SiteLink>
           </motion.div>
 
           {/* Stats grid */}
           <motion.div
-            initial="hidden" animate="visible" variants={fadeUp} custom={4}
+            initial={false}
             className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-4 md:grid-cols-4"
           >
             {STATS.map((stat) => (

@@ -1,5 +1,6 @@
-import Link from 'next/link'
 import { FooterPortalLinks } from '@/components/layout/FooterPortalLinks'
+import { SiteLink } from '@/components/site-link'
+import { assetUrl } from '@/lib/site-url'
 
 const NAV_ITEMS = [
   { label: 'Home',      href: '/'        },
@@ -19,17 +20,15 @@ export default function Footer() {
   return (
     <footer className="mt-auto border-t border-[hsla(0,0%,100%,0.08)]">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-12">
-        {/* Logo + socials */}
         <div className="mb-12 flex flex-col items-center">
           <img
-            src="/assets/logo.jpeg"
+            src={assetUrl('/assets/logo.jpeg')}
             alt="Bandi Shares — Economic Insights"
             width={45}
             height={45}
             className="logo-glow mb-6 object-cover"
           />
           <div className="flex items-center gap-5">
-            {/* TikTok */}
             <a
               href="https://www.tiktok.com/@bandishares"
               target="_blank"
@@ -41,7 +40,6 @@ export default function Footer() {
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.71a8.21 8.21 0 0 0 4.76 1.52V6.79a4.85 4.85 0 0 1-1-.1z" />
               </svg>
             </a>
-            {/* Instagram */}
             <a
               href="https://www.instagram.com/bandishares/"
               target="_blank"
@@ -56,7 +54,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Three-column grid */}
         <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
             <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -71,13 +68,13 @@ export default function Footer() {
             </h4>
             <div className="flex flex-col gap-2">
               {NAV_ITEMS.map((item) => (
-                <Link
+                <SiteLink
                   key={item.href}
                   href={item.href}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {item.label}
-                </Link>
+                </SiteLink>
               ))}
               <FooterPortalLinks />
             </div>
@@ -89,19 +86,18 @@ export default function Footer() {
             </h4>
             <div className="flex flex-col gap-2">
               {LEGAL_ITEMS.map((item) => (
-                <Link
+                <SiteLink
                   key={item.href}
                   href={item.href}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {item.label}
-                </Link>
+                </SiteLink>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Risk warning */}
         <div className="glass-card mb-8 p-5">
           <p className="text-xs leading-relaxed text-muted-foreground">
             <span className="font-semibold uppercase tracking-wider text-primary">
@@ -116,31 +112,28 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-[hsla(0,0%,100%,0.05)] pt-6 md:flex-row">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Bandi Shares. All rights reserved.
           </p>
           <div className="flex gap-6">
             {LEGAL_ITEMS.map((item) => (
-              <Link
+              <SiteLink
                 key={item.href}
                 href={item.href}
                 className="text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 {item.label}
-              </Link>
+              </SiteLink>
             ))}
           </div>
         </div>
 
-        {/* Disclaimer */}
         <p className="mx-auto mt-6 max-w-2xl text-center text-[11px] leading-relaxed text-muted-foreground/60">
           Bandi Shares: Economic Insights is an educational platform. Trading Forex carries
           significant risk. Past performance does not guarantee future results.
         </p>
 
-        {/* Brand maxim */}
         <p className="mx-auto mt-4 max-w-xl text-center font-mono text-xs italic text-muted-foreground/80">
           Trading is an economic science. Results require discipline. No magic patterns here, just data.
         </p>
