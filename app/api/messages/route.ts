@@ -46,6 +46,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
   }
 
+  const { data: conversation } = await supabase
+    .from("conversations")
+    .select("id,trader_id,type,post_policy")
+    .eq("id", parsed.data.conversationId)
+    .maybeSingle();
+
+  if (!conversation) {
+    return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+  }
+
   const { data, error } = await supabase
     .from("messages")
     .select(
@@ -62,6 +72,19 @@ export async function GET(request: Request) {
       { status: 403 },
     );
   }
+
+  const postPolicy =
+    (conversation.post_policy as "mentors_only" | "everyone" | null) ??
+    "mentors_only";
+
+  const { data: isMentor } = await supabase.rpc("is_trader_member", {
+    target_trader_id: conversation.trader_id,
+  });
+
+  const canPost =
+    conversation.type === "announcement"
+      ? Boolean(isMentor)
+      : postPolicy === "everyone" || Boolean(isMentor);
 
   await supabase.rpc("mark_conversation_read", {
     target_conversation_id: parsed.data.conversationId,
@@ -85,7 +108,13 @@ export async function GET(request: Request) {
     };
   });
 
-  return NextResponse.json({ messages, userId: user.id });
+  return NextResponse.json({
+    messages,
+    userId: user.id,
+    canPost,
+    postPolicy,
+    conversationType: conversation.type,
+  });
 }
 
 export async function POST(request: Request) {

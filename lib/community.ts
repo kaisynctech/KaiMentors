@@ -1,4 +1,5 @@
 export type ConversationType = "direct" | "group" | "announcement";
+export type ConversationPostPolicy = "mentors_only" | "everyone";
 export type ContentAccessScope = "all_verified" | "restricted";
 
 export interface StudentGroupSummary {
@@ -32,6 +33,19 @@ export interface ConversationSummary {
   lastMessageAt: string | null;
   lastMessage: string | null;
   unread: boolean;
+  postPolicy: ConversationPostPolicy;
+  createdBy: string;
+  isAllStudents: boolean;
+}
+
+export interface DailySignalSummary {
+  id: string;
+  title: string;
+  body: string;
+  signalDate: string;
+  conversationId: string;
+  messageId: string;
+  createdAt: string;
 }
 
 export interface ConversationMessage {

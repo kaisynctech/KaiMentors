@@ -8,6 +8,7 @@ import {
   Plus,
   Search,
   Send,
+  TrendingUp,
   UsersRound,
   X,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import type {
   CommunityStudent,
   ConversationMessage,
   ConversationSummary,
+  DailySignalSummary,
   WorkspaceMentor,
 } from "@/lib/community";
 import { createClient } from "@/lib/supabase/browser";
@@ -38,6 +40,8 @@ export function MessagesWorkspace({
   initialConversationId,
   studentApplicationId,
   workspaceMentors = [],
+  initialTodaySignal = null,
+  allStudentsConversationId,
 }: {
   conversations: ConversationSummary[];
   students: CommunityStudent[];
@@ -47,6 +51,8 @@ export function MessagesWorkspace({
   initialConversationId?: string;
   studentApplicationId?: string;
   workspaceMentors?: WorkspaceMentor[];
+  initialTodaySignal?: DailySignalSummary | null;
+  allStudentsConversationId?: string;
 }) {
   const router = useRouter();
   const [conversationRows, setConversationRows] = useState(conversations);
@@ -59,9 +65,11 @@ export function MessagesWorkspace({
   const [loading, setLoading] = useState(Boolean(activeId));
   const [sending, setSending] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createMode, setCreateMode] = useState<
-    "direct" | "announcement" | "group" | null
-  >(null);
+  const [createMode, setCreateMode] = useState<"direct" | "group" | null>(null);
+  const [signalModalOpen, setSignalModalOpen] = useState(false);
+  const [postingSignal, setPostingSignal] = useState(false);
+  const [todaySignal, setTodaySignal] = useState(initialTodaySignal);
+  const [canPostServer, setCanPostServer] = useState(true);
   const [mentorPickerOpen, setMentorPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [threadSearch, setThreadSearch] = useState("");
@@ -108,10 +116,15 @@ export function MessagesWorkspace({
       return;
     }
     setMessages(payload.messages);
+    setCanPostServer(Boolean(payload.canPost));
     setConversationRows((current) =>
       current.map((conversation) =>
         conversation.id === conversationId
-          ? { ...conversation, unread: false }
+          ? {
+              ...conversation,
+              unread: false,
+              postPolicy: payload.postPolicy ?? conversation.postPolicy,
+            }
           : conversation,
       ),
     );
@@ -196,6 +209,9 @@ export function MessagesWorkspace({
                     lastMessage:
                       data.last_message_preview ?? String(payload.new.body),
                     unread: true,
+                    postPolicy: "mentors_only",
+                    createdBy: userId,
+                    isAllStudents: false,
                   },
                   ...current,
                 ];
@@ -242,13 +258,12 @@ export function MessagesWorkspace({
     const payload =
       createMode === "direct"
         ? { type: "direct", applicationId: formData.get("applicationId") }
-        : createMode === "group"
-          ? {
-              type: "group",
-              title: formData.get("title"),
-              applicationIds: formData.getAll("applicationIds[]"),
-            }
-          : { type: "announcement", title: formData.get("title") };
+        : {
+            type: "group",
+            title: formData.get("title"),
+            applicationIds: formData.getAll("applicationIds[]"),
+            allowStudentReplies: formData.get("allowStudentReplies") === "on",
+          };
 
     const response = await fetch("/api/messages/conversations", {
       method: "POST",
@@ -276,6 +291,13 @@ export function MessagesWorkspace({
       lastMessageAt: null,
       lastMessage: null,
       unread: false,
+      postPolicy:
+        createMode === "group" &&
+        formData.get("allowStudentReplies") === "on"
+          ? "everyone"
+          : "mentors_only",
+      createdBy: userId,
+      isAllStudents: false,
     };
 
     setConversationRows((prev) => [newConversation, ...prev]);
@@ -335,6 +357,9 @@ export function MessagesWorkspace({
           lastMessageAt: null,
           lastMessage: null,
           unread: false,
+          postPolicy: "mentors_only",
+          createdBy: userId,
+          isAllStudents: false,
         },
         ...prev,
       ];
@@ -355,9 +380,98 @@ export function MessagesWorkspace({
     window.open(payload.url, "_blank", "noopener,noreferrer");
   }
 
-  const canPost =
-    activeConversation &&
-    (mode === "mentor" || activeConversation.type !== "announcement");
+  useEffect(() => {
+    void fetch(`/api/signals/today?traderId=${encodeURIComponent(traderId)}`)
+      .then((response) => response.json())
+      .then((payload: { signal: DailySignalSummary | null }) => {
+        setTodaySignal(payload.signal ?? null);
+      })
+      .catch(() => undefined);
+  }, [traderId]);
+
+  async function postSignal(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPostingSignal(true);
+    setError("");
+    const formData = new FormData(event.currentTarget);
+    const response = await fetch("/api/signals", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: formData.get("title"),
+        body: formData.get("body"),
+      }),
+    });
+    const payload = await response.json();
+    setPostingSignal(false);
+    if (!response.ok) {
+      setError(payload.error ?? "The signal could not be posted.");
+      return;
+    }
+    setSignalModalOpen(false);
+    const signalResponse = await fetch(
+      `/api/signals/today?traderId=${encodeURIComponent(traderId)}`,
+    );
+    const signalPayload = await signalResponse.json();
+    setTodaySignal(signalPayload.signal ?? null);
+    if (signalPayload.signal?.conversationId) {
+      setActiveId(signalPayload.signal.conversationId);
+      void loadMessages(signalPayload.signal.conversationId);
+    }
+    router.refresh();
+  }
+
+  async function togglePostPolicy() {
+    if (!activeConversation || activeConversation.type !== "group") return;
+    const nextPolicy =
+      activeConversation.postPolicy === "everyone"
+        ? "mentors_only"
+        : "everyone";
+    const response = await fetch("/api/conversations/post-policy", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        conversationId: activeConversation.id,
+        postPolicy: nextPolicy,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setError(payload.error ?? "Posting rules could not be updated.");
+      return;
+    }
+    setConversationRows((current) =>
+      current.map((conversation) =>
+        conversation.id === activeConversation.id
+          ? { ...conversation, postPolicy: nextPolicy }
+          : conversation,
+      ),
+    );
+    setCanPostServer(
+      mode === "mentor" || nextPolicy === "everyone",
+    );
+  }
+
+  function conversationDisplayTitle(conversation: ConversationSummary) {
+    if (mode === "student" && conversation.type === "direct") {
+      return "Academy support";
+    }
+    if (conversation.type === "announcement") {
+      return `${conversation.title} (Legacy)`;
+    }
+    if (conversation.isAllStudents) {
+      return "All Students";
+    }
+    return conversation.title;
+  }
+
+  const canManagePostPolicy =
+    mode === "mentor" &&
+    activeConversation?.type === "group" &&
+    (activeConversation.isAllStudents ||
+      activeConversation.createdBy === userId);
+
+  const canPost = Boolean(activeConversation && canPostServer);
 
   return (
     <div className={styles.workspace}>
@@ -390,10 +504,10 @@ export function MessagesWorkspace({
         {mode === "mentor" ? (
           <button
             className={styles.announcementButton}
-            onClick={() => setCreateMode("announcement")}
+            onClick={() => setSignalModalOpen(true)}
             type="button"
           >
-            <Bell size={15} /> New announcement channel
+            <TrendingUp size={15} /> Post signal
           </button>
         ) : null}
         {mode === "mentor" ? (
@@ -405,6 +519,23 @@ export function MessagesWorkspace({
             <UsersRound size={15} /> New group conversation
           </button>
         ) : null}
+        {todaySignal ? (
+          <button
+            className={styles.announcementButton}
+            onClick={() => {
+              const targetId =
+                todaySignal.conversationId ?? allStudentsConversationId;
+              if (targetId) setActiveId(targetId);
+            }}
+            type="button"
+          >
+            <TrendingUp size={15} />
+            <span>
+              <strong>Today&apos;s signal</strong>
+              <small>{todaySignal.title}</small>
+            </span>
+          </button>
+        ) : null}
         {canStartMentorConversation ? (
           <button
             className={styles.announcementButton}
@@ -412,8 +543,14 @@ export function MessagesWorkspace({
             onClick={() => void startMentorConversation()}
             type="button"
           >
-            {creating ? <Loader2 className={styles.spin} size={15} /> : <MessageCircle size={15} />}
-            {workspaceMentors.length > 1 ? "Message a mentor" : "Message your mentor"}
+            {creating ? (
+              <Loader2 className={styles.spin} size={15} />
+            ) : (
+              <MessageCircle size={15} />
+            )}
+            {workspaceMentors.length > 1
+              ? "Message a mentor"
+              : "Message your mentor"}
           </button>
         ) : null}
         <div className={styles.conversations}>
@@ -434,11 +571,7 @@ export function MessagesWorkspace({
                 )}
               </span>
               <span>
-                <strong>
-                  {mode === "student" && conversation.type === "direct"
-                    ? "Academy support"
-                    : conversation.title}
-                </strong>
+                <strong>{conversationDisplayTitle(conversation)}</strong>
                 <small>
                   {conversation.lastMessage ?? "No messages yet"}
                 </small>
@@ -463,18 +596,27 @@ export function MessagesWorkspace({
             <header className={styles.threadHeader}>
               <div>
                 <span>{activeConversation.type}</span>
-                <h2>
-                  {mode === "student" &&
-                  activeConversation.type === "direct"
-                    ? "Academy support"
-                    : activeConversation.title}
-                </h2>
+                <h2>{conversationDisplayTitle(activeConversation)}</h2>
               </div>
-              <small>
-                {activeConversation.type === "announcement"
-                  ? "Mentor announcements"
-                  : "Private academy conversation"}
-              </small>
+              <div className={styles.threadHeaderActions}>
+                {canManagePostPolicy ? (
+                  <label className={styles.policyToggle}>
+                    <input
+                      checked={activeConversation.postPolicy === "everyone"}
+                      onChange={() => void togglePostPolicy()}
+                      type="checkbox"
+                    />
+                    Allow student replies
+                  </label>
+                ) : null}
+                <small>
+                  {activeConversation.type === "announcement"
+                    ? "Legacy read-only channel"
+                    : activeConversation.postPolicy === "everyone"
+                      ? "Students can reply"
+                      : "Mentors only"}
+                </small>
+              </div>
             </header>
             <div className={styles.threadSearch}>
               <Search size={14} />
@@ -565,7 +707,9 @@ export function MessagesWorkspace({
               </form>
             ) : (
               <p className={styles.readOnly}>
-                This is a read-only announcement channel.
+                {activeConversation.type === "announcement"
+                  ? "This is a legacy read-only announcement channel."
+                  : "Only mentors can post in this conversation."}
               </p>
             )}
           </>
@@ -625,9 +769,7 @@ export function MessagesWorkspace({
                 <h2>
                   {createMode === "direct"
                     ? "Message a student"
-                    : createMode === "group"
-                      ? "Create group conversation"
-                      : "Create announcement channel"}
+                    : "Create group conversation"}
                 </h2>
               </div>
               <button
@@ -654,7 +796,7 @@ export function MessagesWorkspace({
                   ))}
                 </select>
               </label>
-            ) : createMode === "group" ? (
+            ) : (
               <>
                 <label>
                   Group name
@@ -685,17 +827,11 @@ export function MessagesWorkspace({
                   </select>
                   <small>Hold Ctrl / Cmd to select multiple</small>
                 </label>
+                <label className={styles.checkboxLabel}>
+                  <input name="allowStudentReplies" type="checkbox" />
+                  Allow students to post
+                </label>
               </>
-            ) : (
-              <label>
-                Channel name
-                <input
-                  maxLength={160}
-                  name="title"
-                  placeholder="Academy Updates"
-                  required
-                />
-              </label>
             )}
             {error ? <p className={styles.error}>{error}</p> : null}
             <button disabled={creating} type="submit">
@@ -705,6 +841,54 @@ export function MessagesWorkspace({
                 <Plus size={17} />
               )}
               Create conversation
+            </button>
+          </form>
+        </div>
+      ) : null}
+
+      {signalModalOpen ? (
+        <div className={styles.modalOverlay}>
+          <form className={styles.modal} onSubmit={postSignal}>
+            <header>
+              <div>
+                <span>Trade call</span>
+                <h2>Post signal</h2>
+              </div>
+              <button
+                aria-label="Close"
+                onClick={() => setSignalModalOpen(false)}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <label>
+              Signal title
+              <input
+                maxLength={120}
+                name="title"
+                placeholder="EURUSD long setup"
+                required
+              />
+            </label>
+            <label>
+              Signal body
+              <textarea
+                maxLength={5000}
+                name="body"
+                placeholder="Entry, stop loss, take profit, and notes..."
+                required
+                rows={5}
+              />
+            </label>
+            {error ? <p className={styles.error}>{error}</p> : null}
+            <button disabled={postingSignal} type="submit">
+              {postingSignal ? (
+                <Loader2 className={styles.spin} size={17} />
+              ) : (
+                <TrendingUp size={17} />
+              )}
+              Post signal
             </button>
           </form>
         </div>

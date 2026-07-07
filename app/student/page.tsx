@@ -6,6 +6,7 @@ import {
   Clock3,
   ExternalLink,
   MessageSquare,
+  TrendingUp,
   Video,
 } from "lucide-react";
 import Image from "next/image";
@@ -14,6 +15,7 @@ import { redirect } from "next/navigation";
 import { BrokerGuideCard } from "@/components/broker-guide-card";
 import { StudentShell } from "@/components/student-shell";
 import { VerifyAccountForm } from "@/components/verify-account-form";
+import { loadTodaySignal } from "@/lib/community-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -107,11 +109,18 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     status: string;
     session_type: { name: string; duration_minutes: number } | null;
   } | null = null;
+  let todaySignal: Awaited<ReturnType<typeof loadTodaySignal>> = null;
 
   if (isVerified) {
     const now = new Date().toISOString();
-    const [progressResult, liveResult, announcementsResult, coursesResult, sessionResult] =
-      await Promise.all([
+    const [
+      progressResult,
+      liveResult,
+      announcementsResult,
+      coursesResult,
+      sessionResult,
+      signalResult,
+    ] = await Promise.all([
         supabase
           .from("lesson_progress")
           .select(
@@ -155,6 +164,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           .order("starts_at")
           .limit(1)
           .maybeSingle(),
+        loadTodaySignal(supabase, application.trader_id),
       ]);
 
     lessonProgress = (progressResult.data ?? []) as unknown as typeof lessonProgress;
@@ -175,6 +185,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       status: string;
       session_type: { name: string; duration_minutes: number } | null;
     } | null;
+    todaySignal = signalResult;
   }
 
   const continueLearning = lessonProgress.find(
@@ -467,6 +478,36 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                     Join
                     <ExternalLink size={12} />
                   </a>
+                </div>
+              </section>
+            ) : null}
+
+            {todaySignal ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <h2>Signal for today</h2>
+                  <Link
+                    className={styles.sectionLink}
+                    href={`${basePath}/messages${querySuffix}`}
+                  >
+                    Open in Messages →
+                  </Link>
+                </div>
+                <div className={styles.signalCard}>
+                  <div className={styles.signalIcon}>
+                    <TrendingUp size={18} />
+                  </div>
+                  <div>
+                    <p className={styles.signalTitle}>{todaySignal.title}</p>
+                    <p className={styles.signalBody}>{todaySignal.body}</p>
+                    <p className={styles.signalDate}>
+                      Posted{" "}
+                      {new Date(todaySignal.createdAt).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </p>
+                  </div>
                 </div>
               </section>
             ) : null}

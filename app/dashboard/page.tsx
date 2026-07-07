@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock3, Users } from "lucide-react";
+import { DashboardAnnouncementsPanel } from "@/components/dashboard-announcements-panel";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MetricCard } from "@/components/metric-card";
 import { getMentorWorkspace } from "@/lib/workspace";
@@ -21,14 +22,29 @@ export default async function TraderDashboard() {
     submitted_at: string;
     profile: { full_name: string; email: string | null } | null;
   }> = [];
+  let announcements: Array<{
+    id: string;
+    title: string;
+    body: string;
+    status: "draft" | "published";
+    is_pinned: boolean;
+    published_at: string | null;
+    updated_at: string;
+  }> = [];
 
   if (supabase && traderId) {
-    const [students, verified, pending, courses, applications] = await Promise.all([
+    const [students, verified, pending, courses, applications, announcementRows] = await Promise.all([
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).eq("status", "verified"),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).in("status", ["pending", "processing", "manual_review", "needs_more_information"]),
       supabase.from("courses").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
       supabase.from("student_applications").select("id,status,submitted_at,profile:profiles!student_user_id(full_name,email)").eq("trader_id", traderId).order("submitted_at", { ascending: false }).limit(5),
+      supabase
+        .from("announcements")
+        .select("id,title,body,status,is_pinned,published_at,updated_at")
+        .eq("trader_id", traderId)
+        .order("is_pinned", { ascending: false })
+        .order("updated_at", { ascending: false }),
     ]);
 
     stats = {
@@ -43,6 +59,7 @@ export default async function TraderDashboard() {
         ? application.profile[0] ?? null
         : application.profile,
     })) as typeof recent;
+    announcements = (announcementRows.data ?? []) as typeof announcements;
   }
 
   return (
@@ -108,6 +125,8 @@ export default async function TraderDashboard() {
           </div>
         </article>
       </section>
+
+      <DashboardAnnouncementsPanel initialAnnouncements={announcements} />
     </DashboardShell>
   );
 }

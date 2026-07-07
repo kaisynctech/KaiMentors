@@ -23,7 +23,7 @@ export default async function MentorMessagesPage({
   return (
     <DashboardShell
       activePath="/dashboard/messages"
-      description="Direct, group, and announcement communication for your academy."
+      description="Direct, group, and signal communication for your academy."
       title="Messages"
       userLabel={displayName}
       traderId={traderId}

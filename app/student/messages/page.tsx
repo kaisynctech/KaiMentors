@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { MessagesWorkspace } from "@/components/messages-workspace";
 import { StudentShell } from "@/components/student-shell";
-import { loadConversationWorkspace, loadWorkspaceMentors } from "@/lib/community-server";
+import { loadConversationWorkspace, loadTodaySignal, loadWorkspaceMentors } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./messages.module.css";
@@ -82,7 +82,7 @@ export default async function StudentMessagesPage({
           <header className={styles.header}>
             <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
             <h1>Academy messages.</h1>
-            <p>Private support, group conversations, and mentor announcements.</p>
+            <p>Private support, group conversations, and today&apos;s trade signals.</p>
           </header>
           <ContentGate
             applicationStatus={application.status}
@@ -94,10 +94,13 @@ export default async function StudentMessagesPage({
   }
 
   // Verified — full messages
-  const [{ conversations }, workspaceMentors] = await Promise.all([
+  const [{ conversations }, workspaceMentors, todaySignal] = await Promise.all([
     loadConversationWorkspace(supabase, user.id, application.trader_id),
     loadWorkspaceMentors(supabase, application.trader_id),
+    loadTodaySignal(supabase, application.trader_id),
   ]);
+  const allStudentsConversationId =
+    conversations.find((conversation) => conversation.isAllStudents)?.id;
 
   return (
     <Shell>
@@ -106,11 +109,13 @@ export default async function StudentMessagesPage({
           <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
           <h1>Your academy messages.</h1>
           <p>
-            Private support, group conversations, and mentor announcements.
+            Private support, group conversations, and today&apos;s trade signals.
           </p>
         </header>
         <MessagesWorkspace
+          allStudentsConversationId={allStudentsConversationId}
           conversations={conversations}
+          initialTodaySignal={todaySignal}
           mode="student"
           studentApplicationId={application.id}
           students={[]}

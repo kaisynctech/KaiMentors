@@ -406,7 +406,8 @@
 }
 
 .modal select,
-.modal input {
+.modal input,
+.modal textarea {
   width: 100%;
   min-height: 44px;
   border: 1px solid #dce1e4;
@@ -414,6 +415,46 @@
   outline: 0;
   padding: 0 11px;
   background: white;
+}
+
+.modal textarea {
+  min-height: 120px;
+  padding: 11px;
+  resize: vertical;
+}
+
+.threadHeaderActions {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+}
+
+.policyToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #343a3f;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.policyToggle input {
+  width: auto;
+  min-height: auto;
+}
+
+.checkboxLabel {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: auto;
+  min-height: auto;
 }
 
 .spin {

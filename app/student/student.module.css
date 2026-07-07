@@ -243,6 +243,47 @@
   min-height: 36px;
 }
 
+/* Signal card */
+.signalCard {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #c7e0a8;
+  background: linear-gradient(180deg, #f8fcf3 0%, #f2f9ea 100%);
+}
+
+.signalIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: #dff0c8;
+  color: #2f6b1d;
+}
+
+.signalTitle {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.signalBody {
+  margin: 0 0 8px;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.signalDate {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 /* Announcements */
 .announcementList { display: grid; gap: 10px; }
 

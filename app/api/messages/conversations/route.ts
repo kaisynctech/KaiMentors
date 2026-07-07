@@ -16,10 +16,7 @@ const conversationSchema = z.discriminatedUnion("type", [
     type: z.literal("group"),
     title: z.string().trim().min(2).max(160),
     applicationIds: z.array(z.string().uuid()).min(1),
-  }),
-  z.object({
-    type: z.literal("announcement"),
-    title: z.string().trim().min(2).max(160),
+    allowStudentReplies: z.boolean().optional(),
   }),
 ]);
 
@@ -58,14 +55,13 @@ export async function POST(request: Request) {
             target_application_id: parsed.data.applicationId,
             target_mentor_user_id: parsed.data.mentorUserId ?? null,
           })
-        : parsed.data.type === "group"
-          ? await supabase.rpc("create_group_conversation", {
-              target_title: parsed.data.title,
-              target_application_ids: parsed.data.applicationIds,
-            })
-          : await supabase.rpc("create_announcement_conversation", {
-              target_title: parsed.data.title,
-            });
+        : await supabase.rpc("create_group_conversation", {
+            target_title: parsed.data.title,
+            target_application_ids: parsed.data.applicationIds,
+            target_post_policy: parsed.data.allowStudentReplies
+              ? "everyone"
+              : "mentors_only",
+          });
 
   if (result.error) {
     return NextResponse.json(

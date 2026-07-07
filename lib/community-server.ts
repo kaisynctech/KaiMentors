@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   CommunityStudent,
   ConversationSummary,
+  DailySignalSummary,
   WorkspaceMentor,
 } from "@/lib/community";
 
@@ -16,7 +17,7 @@ export async function loadConversationWorkspace(
       supabase
         .from("conversation_members")
         .select(
-          "conversation_id,last_read_at,conversation:conversations(id,type,title,last_message_at,last_message_preview,is_archived)",
+          "conversation_id,last_read_at,conversation:conversations(id,type,title,last_message_at,last_message_preview,is_archived,post_policy,created_by,group_id,student_groups(system_key))",
         )
         .eq("user_id", userId)
         .eq("trader_id", traderId),
@@ -56,6 +57,18 @@ export async function loadConversationWorkspace(
           lastMessageAt &&
             (!lastReadAt || new Date(lastMessageAt) > new Date(lastReadAt)),
         ),
+        postPolicy:
+          (conversation.post_policy as "mentors_only" | "everyone" | null) ??
+          "mentors_only",
+        createdBy: conversation.created_by,
+        isAllStudents:
+          (() => {
+            const group = Array.isArray(conversation.student_groups)
+              ? conversation.student_groups[0]
+              : conversation.student_groups;
+            return (group as { system_key?: string | null } | null)?.system_key ===
+              "all_students";
+          })(),
       };
     })
     .sort((a, b) => {
@@ -82,6 +95,39 @@ export async function loadConversationWorkspace(
   );
 
   return { conversations, students };
+}
+
+export async function loadTodaySignal(
+  supabase: SupabaseClient,
+  traderId: string,
+): Promise<DailySignalSummary | null> {
+  const { data: traderRow } = await supabase
+    .from("traders")
+    .select("timezone")
+    .eq("id", traderId)
+    .maybeSingle();
+
+  const timezone = traderRow?.timezone ?? "UTC";
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+
+  const { data: signal } = await supabase
+    .from("daily_signals")
+    .select("id,title,body,signal_date,conversation_id,message_id,created_at")
+    .eq("trader_id", traderId)
+    .eq("signal_date", today)
+    .maybeSingle();
+
+  if (!signal) return null;
+
+  return {
+    id: signal.id,
+    title: signal.title,
+    body: signal.body,
+    signalDate: signal.signal_date,
+    conversationId: signal.conversation_id,
+    messageId: signal.message_id,
+    createdAt: signal.created_at,
+  };
 }
 
 export async function loadWorkspaceMentors(
