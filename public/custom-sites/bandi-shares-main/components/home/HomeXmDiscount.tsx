@@ -2,15 +2,11 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { Percent, ShieldCheck } from 'lucide-react'
-import {
-  PARTNER_CODE,
-  XM_LINKS,
-  xmMemberDiscountLabel,
-  XM_MEMBER_DISCOUNT_PERCENT,
-} from '@/config/site'
+import { ShieldCheck } from 'lucide-react'
+import { PARTNER_CODE, XM_LINKS } from '@/config/site'
 import { SiteLink } from '@/components/site-link'
 import { assetUrl } from '@/lib/site-url'
+import XmMemberAccessCallout from '@/components/xm/XmMemberAccessCallout'
 
 export default function HomeXmDiscount() {
   return (
@@ -30,45 +26,17 @@ export default function HomeXmDiscount() {
               </span>
             </div>
             <h2 className="mb-4 text-2xl font-bold text-foreground md:text-3xl">
-              Already on XM under Bandi Shares?{' '}
-              <span className="gradient-text-emerald">You don&apos;t pay full price.</span>
+              XM student?{' '}
+              <span className="gradient-text-emerald">Sign in for member rates.</span>
             </h2>
-            <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Public Whop links show standard rates. If your real XM account is linked to partner
-              code <b className="font-mono text-foreground">{PARTNER_CODE}</b>, verified members
-              unlock discounted access to our educational programs — not the full retail price.
+            <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+              Buttons on this public site go to full-price Whop checkout. To access the verified XM
+              student discount, sign in to the Bandi Shares portal first — discounted links unlock
+              inside your portal once your XM account under{' '}
+              <b className="font-mono text-foreground">{PARTNER_CODE}</b> is confirmed.
             </p>
-            <div className="mb-6 flex items-start gap-3 rounded-lg border border-primary/15 bg-primary/5 p-4">
-              <Percent className="mt-0.5 shrink-0 text-primary" size={18} />
-              <div className="text-sm text-muted-foreground">
-                <b className="text-foreground">{xmMemberDiscountLabel()}</b>
-                {!XM_MEMBER_DISCOUNT_PERCENT && (
-                  <span className="mt-1 block text-xs">
-                    Exact discount tiers are being finalised — verify your account now and we&apos;ll
-                    confirm your member rate.
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <SiteLink
-                href="/xm#verify"
-                className="btn-primary-glow text-center text-sm uppercase tracking-wide"
-              >
-                Verify if I have an XM account
-              </SiteLink>
-              <SiteLink href="/xm" className="btn-ghost-glass text-center text-sm">
-                Open XM account
-              </SiteLink>
-              <a
-                href={XM_LINKS.app}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-ghost-glass text-center text-sm"
-              >
-                Get XM App ↗
-              </a>
-            </div>
+
+            <XmMemberAccessCallout />
           </div>
 
           <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-primary/20 bg-primary/5 p-8 text-center">
@@ -85,6 +53,17 @@ export default function HomeXmDiscount() {
             <span className="font-mono text-3xl font-bold tracking-widest text-primary">
               {PARTNER_CODE}
             </span>
+            <SiteLink href="/xm" className="btn-ghost-glass text-xs">
+              Open XM account
+            </SiteLink>
+            <a
+              href={XM_LINKS.app}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Get XM App ↗
+            </a>
           </div>
         </motion.div>
       </div>

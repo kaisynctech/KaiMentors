@@ -15,7 +15,7 @@ import { PortalAuthLink } from '@/components/portal-auth-link'
 import { SiteLink } from '@/components/site-link'
 import { assetUrl } from '@/lib/site-url'
 import XmVerifyForm from '@/components/xm/XmVerifyForm'
-import { xmMemberDiscountLabel } from '@/config/site'
+import XmMemberAccessCallout from '@/components/xm/XmMemberAccessCallout'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -455,10 +455,9 @@ export default function XmPageClient() {
       {/* Verify XM — same page */}
       <section id="verify" className="section-padding scroll-mt-24 border-t border-[hsla(0,0%,100%,0.06)]">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-8 text-center text-sm text-muted-foreground">
-            {xmMemberDiscountLabel()} — verify below to confirm your account is linked under{' '}
-            <b className="font-mono text-foreground">{PARTNER_CODE}</b>.
-          </p>
+          <div className="mb-10">
+            <XmMemberAccessCallout showActions={false} compact />
+          </div>
           <XmVerifyForm />
         </div>
       </section>

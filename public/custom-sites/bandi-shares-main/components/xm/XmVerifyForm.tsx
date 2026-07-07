@@ -105,12 +105,12 @@ export default function XmVerifyForm({ compact = false }: XmVerifyFormProps) {
           <h2 className="mb-4 text-3xl font-bold leading-tight text-foreground md:text-4xl">
             Verify your <span className="gradient-text-emerald">XM account</span>
           </h2>
-          <p className="mx-auto max-w-lg text-muted-foreground">
-            Confirm your XM Account ID is registered under our partner link.{' '}
-            <PortalAuthLink kind="login" className="text-primary hover:underline">
-              Already a member? Login
-            </PortalAuthLink>
-          </p>
+            <p className="text-sm text-muted-foreground">
+              Submit your details so we can confirm your XM account is linked under partner code{' '}
+              <b className="font-mono text-foreground">{PARTNER_CODE}</b>. After verification, sign
+              in to the student portal to access discounted program links — they are not shown on
+              this public website.
+            </p>
         </div>
       )}
 
@@ -127,9 +127,15 @@ export default function XmVerifyForm({ compact = false }: XmVerifyFormProps) {
               you&apos;re registered under partner code{' '}
               <b className="font-mono text-foreground">{PARTNER_CODE}</b>.
             </p>
-            <p>
-              Verified members unlock discounted program pricing — not the full public Whop rate.
-            </p>
+              <p>
+                Verified XM students who are signed in to the portal unlock discounted program
+                checkout links inside their courses — not the full-price Whop links on this site.
+              </p>
+              <p>
+                <PortalAuthLink kind="login" className="font-medium text-primary hover:underline">
+                  Sign in to the portal →
+                </PortalAuthLink>
+              </p>
           </div>
         </div>
 

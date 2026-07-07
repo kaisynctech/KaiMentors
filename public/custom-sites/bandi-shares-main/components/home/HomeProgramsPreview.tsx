@@ -63,6 +63,10 @@ export default function HomeProgramsPreview() {
         </div>
 
         <div className="mt-10 text-center">
+          <p className="mb-4 text-xs text-muted-foreground">
+            Prices shown are public Whop rates. Sign in + verify XM for discounted links in your
+            portal.
+          </p>
           <SiteLink href="/services" className="btn-primary-glow text-sm uppercase tracking-wide">
             View all programs &amp; pricing
           </SiteLink>

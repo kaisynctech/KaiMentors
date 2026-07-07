@@ -53,3 +53,7 @@ export function xmMemberDiscountLabel() {
   }
   return 'Member discount on all programs for verified XM accounts'
 }
+
+/** Shown wherever we explain where discounted Whop links live. */
+export const XM_DISCOUNT_PORTAL_NOTE =
+  'Discounted program links appear inside your student portal after you sign in and your XM account is verified — not on this public website.'

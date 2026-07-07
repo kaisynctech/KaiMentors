@@ -1,9 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Percent, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { PROGRAMS } from '@/config/programs'
-import { PARTNER_CODE, xmMemberDiscountLabel, XM_MEMBER_DISCOUNT_PERCENT } from '@/config/site'
+import XmMemberAccessCallout from '@/components/xm/XmMemberAccessCallout'
 import { SiteLink } from '@/components/site-link'
 
 export default function ProgramsPage() {
@@ -33,8 +33,8 @@ export default function ProgramsPage() {
             transition={{ delay: 0.2 }}
             className="mx-auto max-w-2xl text-lg text-muted-foreground"
           >
-            Five tiers. One macro framework. XM-verified members unlock discounted rates — not the
-            full public price.
+            Five tiers. One macro framework. Public rates below — XM-verified students who are
+            signed in access discounted links inside the portal.
           </motion.p>
         </div>
       </section>
@@ -45,32 +45,9 @@ export default function ProgramsPage() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="glass-card mb-10 flex flex-col gap-4 border-primary/20 p-6 md:flex-row md:items-center md:justify-between md:p-8"
+            className="glass-card mb-10 border-primary/20 p-6 md:p-8"
           >
-            <div className="flex items-start gap-3">
-              <Percent className="mt-0.5 shrink-0 text-primary" size={20} />
-              <div>
-                <p className="mb-1 text-sm font-semibold text-foreground">
-                  {xmMemberDiscountLabel()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Linked to XM under code{' '}
-                  <b className="font-mono text-foreground">{PARTNER_CODE}</b>? Verify your account
-                  and access member pricing on every program below.
-                  {!XM_MEMBER_DISCOUNT_PERCENT && (
-                    <span className="mt-1 block text-xs">
-                      Exact discount percentage coming soon — verify now to lock in member status.
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-            <SiteLink
-              href="/xm#verify"
-              className="btn-primary-glow shrink-0 text-center text-sm uppercase tracking-wide"
-            >
-              Verify XM account
-            </SiteLink>
+            <XmMemberAccessCallout />
           </motion.div>
         </div>
 
@@ -112,7 +89,7 @@ export default function ProgramsPage() {
                 </span>
               </div>
               <p className="mb-4 text-xs text-muted-foreground">
-                Public rate shown — XM-verified members pay less.
+                Full public Whop rate — sign in + verify XM for discounted links in your portal.
               </p>
 
               <div className="mb-8 flex-1 space-y-2.5">

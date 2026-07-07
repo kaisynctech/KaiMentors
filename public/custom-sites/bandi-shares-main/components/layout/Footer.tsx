@@ -138,6 +138,11 @@ export default function Footer() {
         <p className="mx-auto mt-4 max-w-xl text-center font-mono text-xs italic text-muted-foreground/80">
           Trading is an economic science. Results require discipline. No magic patterns here, just data.
         </p>
+
+        <p className="mx-auto mt-6 text-center text-[11px] text-muted-foreground/50">
+          Original website by{' '}
+          <span className="text-muted-foreground/70">Simamkele</span>
+        </p>
       </div>
     </footer>
   )
