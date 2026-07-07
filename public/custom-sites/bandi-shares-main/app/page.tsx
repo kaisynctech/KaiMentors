@@ -60,7 +60,7 @@ export default function HomePage() {
   return (
     <>
       {/* ─── Hero ──────────────────────────────────────────────── */}
-      <section className="hero-section relative flex min-h-[90vh] items-center justify-center overflow-hidden">
+      <section className="hero-section relative flex min-h-[90vh] items-center justify-center overflow-hidden pb-20 md:pb-28">
         {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
@@ -70,7 +70,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[hsl(var(--midnight))]/75" />
         <div className="absolute inset-0 bg-gradient-to-b from-[hsla(155,70%,30%,0.08)] via-transparent to-[hsl(var(--midnight))]" />
 
-        <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
+        <div className="relative z-10 mx-auto max-w-5xl px-6 pt-14 text-center md:pt-20">
           {/* Eyebrow pills */}
           <motion.div
             initial={false}
@@ -99,7 +99,7 @@ export default function HomePage() {
           {/* Headline */}
           <motion.h1
             initial={false}
-            className="hero-headline mb-6 text-balance text-4xl font-bold leading-[1.1] sm:text-5xl md:text-7xl"
+            className="hero-headline mb-6 text-balance text-3xl font-bold leading-[1.12] sm:text-4xl md:text-5xl lg:text-6xl"
           >
             Stop Guessing the Candle.{' '}
             <span className="gradient-text-emerald">Start Understanding the Flow.</span>
@@ -143,7 +143,7 @@ export default function HomePage() {
           {/* Stats grid */}
           <motion.div
             initial={false}
-            className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-4 md:grid-cols-4"
+            className="mx-auto mt-16 mb-2 grid max-w-3xl grid-cols-2 gap-4 md:mt-20 md:grid-cols-4"
           >
             {STATS.map((stat) => (
               <div key={stat.label} className="hero-stat-card rounded-xl border p-4 text-center">

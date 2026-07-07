@@ -314,6 +314,12 @@
 
   .tradingview-ticker-strip {
     width: 100%;
+    background: hsl(0 0% 100%);
+    border-color: hsl(var(--border));
+    transition: background-color 300ms ease, border-color 300ms ease;
+  }
+
+  .dark .tradingview-ticker-strip {
     background: hsl(var(--midnight));
     border-color: hsla(0, 0%, 100%, 0.08);
   }
