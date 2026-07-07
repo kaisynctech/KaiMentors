@@ -114,6 +114,8 @@ Deno.serve(async (request) => {
         status,
         status_reason: result.code,
         verified_at: result.verified ? new Date().toISOString() : null,
+        broker_verified: result.verified,
+        broker_verified_at: result.verified ? new Date().toISOString() : null,
       })
       .eq("id", application.id);
 

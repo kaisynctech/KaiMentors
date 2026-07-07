@@ -5,6 +5,7 @@ import styles from "./content-gate.module.css";
 interface ContentGateProps {
   applicationStatus: string | null;
   returnPath: string;
+  mode?: "broker_verify" | "generic";
 }
 
 const gateMessages: Record<string, { title: string; body: string }> = {
@@ -30,12 +31,24 @@ const gateMessages: Record<string, { title: string; body: string }> = {
   },
 };
 
-export function ContentGate({ applicationStatus, returnPath }: ContentGateProps) {
+export function ContentGate({
+  applicationStatus,
+  returnPath,
+  mode = "broker_verify",
+}: ContentGateProps) {
+  const defaultMessage =
+    mode === "generic"
+      ? {
+          title: "Content unavailable",
+          body: "This section is not available for your account yet. Contact your mentor for help.",
+        }
+      : {
+          title: "Access pending",
+          body: "Complete broker verification to unlock your courses and academy content.",
+        };
+
   const message =
-    (applicationStatus ? gateMessages[applicationStatus] : null) ?? {
-      title: "Access pending",
-      body: "Complete broker verification to access this section.",
-    };
+    (applicationStatus ? gateMessages[applicationStatus] : null) ?? defaultMessage;
 
   return (
     <div className={styles.wrapper}>
@@ -55,7 +68,9 @@ export function ContentGate({ applicationStatus, returnPath }: ContentGateProps)
           <h2>{message.title}</h2>
           <p>{message.body}</p>
           <Link className={styles.link} href={returnPath}>
-            Check verification status
+            {mode === "broker_verify"
+              ? "Check verification status"
+              : "Back to dashboard"}
           </Link>
         </div>
       </div>

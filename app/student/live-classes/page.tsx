@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { StudentShell } from "@/components/student-shell";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./live-classes.module.css";
 
@@ -24,25 +25,12 @@ export default async function StudentLiveClassesPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`${base}/login${suffix}`);
 
-  let appQuery = supabase
-    .from("student_applications")
-    .select(
-      "id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)",
-    )
-    .eq("student_user_id", user.id);
-  if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
-  const { data: app } = await appQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  if (!app) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application: app, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified = app.status === "verified";
 
   function Shell({ children }: { children: React.ReactNode }) {
     return (
@@ -50,23 +38,23 @@ export default async function StudentLiveClassesPage({
         academyName={academyName}
         basePath={base}
         displayName={displayName}
-        isVerified={isVerified}
-        logoPath={portal?.logo_path ?? null}
-        portalSlug={portal?.slug}
+        hasModuleAccess={hasModuleAccess}
+        logoPath={portal.logo_path}
+        portalSlug={portal.slug}
         querySuffix={suffix}
-        traderId={app?.trader_id}
+        traderId={app.trader_id}
       >
         {children}
       </StudentShell>
     );
   }
 
-  if (!isVerified) {
+  if (!hasModuleAccess) {
     return (
       <Shell>
         <div className={styles.page}>
           <div className={styles.pageHeader}>
-            <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+            <p className="eyebrow">{portal.portal_name}</p>
             <h1>Live Classes</h1>
           </div>
           <ContentGate
@@ -119,7 +107,7 @@ export default async function StudentLiveClassesPage({
     <Shell>
       <div className={styles.page}>
         <div className={styles.pageHeader}>
-          <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+          <p className="eyebrow">{portal.portal_name}</p>
           <h1>Live Classes</h1>
         </div>
 

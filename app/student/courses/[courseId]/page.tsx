@@ -6,6 +6,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { formatDuration } from "@/lib/courses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./course-detail.module.css";
 
@@ -38,21 +39,17 @@ export default async function StudentCoursePage({
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
   const supabase = await createClient();
-  if (!supabase) redirect("/login");
+  if (!supabase) redirect(`${academy.basePath}/login${academy.querySuffix}`);
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`${academy.basePath}/login${academy.querySuffix}`);
 
-  let aq = supabase
-    .from("student_applications")
-    .select("trader_id,portal:portals!inner(portal_name,slug)")
-    .eq("student_user_id", user.id)
-    .eq("status", "verified");
-  if (academy.portalId) aq = aq.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) aq = aq.eq("portal.slug", academy.portalSlug);
-  const { data: app } = await aq.limit(1).maybeSingle();
-  if (!app) redirect(`${academy.basePath}${academy.querySuffix}`);
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(academy.joinAcademyPath);
+  if (!ctx.hasModuleAccess) redirect(`${academy.basePath}${academy.querySuffix}`);
+
+  const { application: app, portal } = ctx;
 
   const [{ data: course }, { data: modules }, { data: lessons }, { data: progress }] =
     await Promise.all([
@@ -134,7 +131,6 @@ export default async function StudentCoursePage({
     }
   });
 
-  const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
   const base = academy.basePath;
   const suffix = academy.querySuffix;
 
@@ -143,7 +139,7 @@ export default async function StudentCoursePage({
       <nav className={styles.nav}>
         <BrandMark
           href={`${base}/courses${suffix}`}
-          label={portal?.portal_name ?? "Academy"}
+          label={portal.portal_name}
         />
         <div className={styles.navActions}>
           <Link href={`${base}/courses${suffix}`}>My learning</Link>
@@ -161,7 +157,7 @@ export default async function StudentCoursePage({
           )}
         </div>
         <div className={styles.heroCopy}>
-          <p className="eyebrow">{portal?.portal_name ?? "Academy"}</p>
+          <p className="eyebrow">{portal.portal_name}</p>
           <h1>Course curriculum</h1>
           <p className={styles.courseDesc}>{course.description || "Work through the curriculum below."}</p>
           {percent === 100 ? (

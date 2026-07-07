@@ -1,8 +1,10 @@
-import { redirect }              from "next/navigation";
-import { StudentShell }          from "@/components/student-shell";
-import { ResourcesView }         from "@/components/resources-view";
-import { createClient }          from "@/lib/supabase/server";
-import { createAdminClient }     from "@/lib/supabase/admin";
+import { redirect } from "next/navigation";
+import { ContentGate } from "@/components/content-gate";
+import { ResourcesView } from "@/components/resources-view";
+import { StudentShell } from "@/components/student-shell";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 
 export const dynamic = "force-dynamic";
@@ -12,34 +14,57 @@ export default async function AcademyResourcesPage({
 }: {
   searchParams?: Promise<{ portal?: string }>;
 }) {
-  const query   = await searchParams;
+  const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
-  const { basePath: base, querySuffix: suffix } = academy;
+  const { basePath: base, querySuffix: suffix, joinAcademyPath } = academy;
 
   const supabase = await createClient();
   if (!supabase) redirect(`${base}/login${suffix}`);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect(`${base}/login${suffix}`);
 
-  let appQuery = supabase
-    .from("student_applications")
-    .select("id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)")
-    .eq("student_user_id", user.id);
-  if (academy.portalId)   appQuery = appQuery.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  const { data: app } = await appQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!app) redirect(`${base}/join-academy${suffix}`);
-
-  const portal      = Array.isArray(app.portal) ? app.portal[0] : app.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application: app, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified  = app.status === "verified";
-  const traderId    = app.trader_id as string;
+  const traderId = app.trader_id;
+
+  function Shell({ children }: { children: React.ReactNode }) {
+    return (
+      <StudentShell
+        academyName={academyName}
+        basePath={base}
+        displayName={displayName}
+        hasModuleAccess={hasModuleAccess}
+        logoPath={portal.logo_path}
+        querySuffix={suffix}
+        traderId={traderId}
+      >
+        {children}
+      </StudentShell>
+    );
+  }
+
+  if (!hasModuleAccess) {
+    return (
+      <Shell>
+        <div style={{ padding: "36px 40px 60px", maxWidth: 900 }}>
+          <p className="eyebrow">{portal.portal_name}</p>
+          <h1 style={{ fontSize: 30, letterSpacing: "-0.04em", margin: "4px 0 8px" }}>
+            Resources
+          </h1>
+          <ContentGate
+            applicationStatus={app.status}
+            returnPath={`${base}${suffix}`}
+          />
+        </div>
+      </Shell>
+    );
+  }
 
   const { data: rows } = await supabase
     .from("resource_items")
@@ -51,48 +76,46 @@ export default async function AcademyResourcesPage({
   const admin = createAdminClient();
   const resources = await Promise.all(
     (rows ?? []).map(async (r) => {
-      const mediaUrl = r.storage_path && admin
-        ? (await admin.storage.from("academy-media").createSignedUrl(r.storage_path, 3600)).data?.signedUrl ?? null
-        : null;
-      const thumbnailUrl = r.thumbnail_path && admin
-        ? (await admin.storage.from("academy-media").createSignedUrl(r.thumbnail_path, 3600)).data?.signedUrl ?? null
-        : null;
+      const mediaUrl =
+        r.storage_path && admin
+          ? (await admin.storage.from("academy-media").createSignedUrl(r.storage_path, 3600))
+              .data?.signedUrl ?? null
+          : null;
+      const thumbnailUrl =
+        r.thumbnail_path && admin
+          ? (await admin.storage.from("academy-media").createSignedUrl(r.thumbnail_path, 3600))
+              .data?.signedUrl ?? null
+          : null;
       return {
-        id:           r.id,
-        title:        r.title,
-        description:  r.description,
-        type:         r.type as "video" | "pdf" | "link",
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        type: r.type as "video" | "pdf" | "link",
         mediaUrl,
         thumbnailUrl,
-        externalUrl:  r.external_url,
-        labels:       (r.labels ?? []) as string[],
-        accessScope:  r.access_scope as "all_students" | "all_verified",
+        externalUrl: r.external_url,
+        labels: (r.labels ?? []) as string[],
+        accessScope: r.access_scope as "all_students" | "all_verified",
       };
     }),
   );
 
   return (
-    <StudentShell
-      academyName={academyName}
-      basePath={base}
-      displayName={displayName}
-      isVerified={isVerified}
-      logoPath={portal?.logo_path ?? null}
-      querySuffix={suffix}
-      traderId={traderId}
-    >
+    <Shell>
       <div style={{ padding: "36px 40px 60px", maxWidth: 900 }}>
-        <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
-        <h1 style={{ fontSize: 30, letterSpacing: "-0.04em", margin: "4px 0 8px" }}>Resources</h1>
+        <p className="eyebrow">{portal.portal_name}</p>
+        <h1 style={{ fontSize: 30, letterSpacing: "-0.04em", margin: "4px 0 8px" }}>
+          Resources
+        </h1>
         <p style={{ color: "var(--text-muted)", margin: "0 0 28px" }}>
           Videos, PDFs, and links from your mentor.
         </p>
         <ResourcesView
-          isVerified={isVerified}
+          hasModuleAccess={hasModuleAccess}
           resources={resources}
           traderId={traderId}
         />
       </div>
-    </StudentShell>
+    </Shell>
   );
 }

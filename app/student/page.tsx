@@ -18,6 +18,8 @@ import { BrokerGuideCard } from "@/components/broker-guide-card";
 import { StudentShell } from "@/components/student-shell";
 import { VerifyAccountForm } from "@/components/verify-account-form";
 import { loadTodaySignal } from "@/lib/community-server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
+import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -42,35 +44,19 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`${basePath}/login${querySuffix}`);
 
-  // Application query — any status (dashboard is the status hub)
-  let appQuery = supabase
-    .from("student_applications")
-    .select(
-      "id,trader_id,status,status_reason,portal_id,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path,primary_color)",
-    )
-    .eq("student_user_id", user.id);
-  if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
-  // Without portal context, skip rejected applications so a dual-role user with
-  // a rejected application at one academy still lands on their active application.
-  if (!academy.portalId && !academy.portalSlug) appQuery = appQuery.neq("status", "rejected");
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  const { data: application } = await appQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!application) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(application.portal)
-    ? application.portal[0]
-    : application.portal;
-
-  const academyName = portal?.portal_name ?? "Academy";
-
+  const {
+    application,
+    portal,
+    hasModuleAccess,
+    showBrokerVerification,
+    policy,
+  } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
   const status = application.status;
-  const isVerified = status === "verified";
 
   // Fetch broker guides via SECURITY DEFINER RPC — now returns all active connections
   const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
@@ -113,7 +99,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   } | null = null;
   let todaySignal: Awaited<ReturnType<typeof loadTodaySignal>> = null;
 
-  if (isVerified) {
+  if (hasModuleAccess) {
     const now = new Date().toISOString();
     const [
       progressResult,
@@ -242,7 +228,13 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       icon: <CheckCircle2 size={22} />,
       iconClass: styles.statusIconVerified,
       title: "You have full academy access.",
-      body: `Welcome to ${portal?.portal_name ?? "your mentor academy"}.`,
+      body: `Welcome to ${portal.portal_name}.`,
+    },
+    open_access: {
+      icon: <CheckCircle2 size={22} />,
+      iconClass: styles.statusIconVerified,
+      title: `Welcome to ${portal.portal_name}.`,
+      body: "Your courses are ready.",
     },
     processing_default: {
       icon: <Clock3 size={22} />,
@@ -253,18 +245,20 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   } as const;
 
   const statusDisplay =
-    statusConfig[status as keyof typeof statusConfig] ??
-    statusConfig.processing_default;
+    hasModuleAccess && status !== "verified"
+      ? statusConfig.open_access
+      : (statusConfig[status as keyof typeof statusConfig] ??
+        statusConfig.processing_default);
 
   return (
     <StudentShell
       academyName={academyName}
       basePath={basePath}
       displayName={displayName}
-      isVerified={isVerified}
-      logoPath={portal?.logo_path ?? null}
-      portalSlug={portal?.slug}
-      primaryColor={portal?.primary_color ?? undefined}
+      hasModuleAccess={hasModuleAccess}
+      logoPath={portal.logo_path}
+      portalSlug={portal.slug}
+      primaryColor={portal.primary_color ?? undefined}
       querySuffix={querySuffix}
       traderId={application.trader_id}
     >
@@ -286,7 +280,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
         </div>
 
         {/* Verified dashboard sections */}
-        {isVerified ? (
+        {hasModuleAccess ? (
           <>
             <PwaInstallCard academyName={academyName} />
             <SignalAlertsPrompt traderId={application.trader_id} />
@@ -548,17 +542,23 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           </>
         ) : null}
 
-        {/* Verification form — visible to all unverified students */}
-        {!isVerified && status !== "rejected" ? (
-          <VerifyAccountForm
-            brokers={brokerGuides.map((g) => ({
-              id: g.id,
-              broker_name: g.broker_name,
-              verification_method: g.verification_method,
-            }))}
-            portalId={application.portal_id}
-            querySuffix={querySuffix}
-          />
+        {showBrokerVerification && status !== "rejected" ? (
+          <>
+            {isOpenWithOptionalBrokerVerify(policy) ? (
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "0.75rem" }}>
+                <strong>Optional:</strong> Verify with a partner broker to unlock partner benefits.
+              </p>
+            ) : null}
+            <VerifyAccountForm
+              brokers={brokerGuides.map((g) => ({
+                id: g.id,
+                broker_name: g.broker_name,
+                verification_method: g.verification_method,
+              }))}
+              portalId={application.portal_id}
+              querySuffix={querySuffix}
+            />
+          </>
         ) : null}
 
         {/* Broker guide — always visible */}

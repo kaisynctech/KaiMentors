@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { ContentGate } from "@/components/content-gate";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { StudentShell } from "@/components/student-shell";
 import { CommunityView } from "@/components/community-view";
 import type { GalleryAlbum, GalleryItem, TradePost } from "@/components/community-view";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "../../student/community/community.module.css";
 
@@ -20,28 +22,52 @@ export default async function AcademyCommunityPage({
 
   const supabase = await createClient();
   if (!supabase) redirect(`${basePath}/login${querySuffix}`);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect(`${basePath}/login${querySuffix}`);
 
-  let appQuery = supabase
-    .from("student_applications")
-    .select("id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)")
-    .eq("student_user_id", user.id);
-  if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  const { data: application } = await appQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!application) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(application.portal) ? application.portal[0] : application.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified = application.status === "verified";
-  const traderId = application.trader_id as string;
+  const traderId = application.trader_id;
+
+  function Shell({ children }: { children: React.ReactNode }) {
+    return (
+      <StudentShell
+        academyName={academyName}
+        basePath={basePath}
+        displayName={displayName}
+        hasModuleAccess={hasModuleAccess}
+        logoPath={portal.logo_path}
+        querySuffix={querySuffix}
+        traderId={traderId}
+      >
+        {children}
+      </StudentShell>
+    );
+  }
+
+  if (!hasModuleAccess) {
+    return (
+      <Shell>
+        <div className={styles.page}>
+          <div className={styles.header}>
+            <p className="eyebrow">{portal.portal_name}</p>
+            <h1>Community</h1>
+            <p>Gallery highlights and daily trade posts from your mentor.</p>
+          </div>
+          <ContentGate
+            applicationStatus={application.status}
+            returnPath={`${basePath}${querySuffix}`}
+          />
+        </div>
+      </Shell>
+    );
+  }
 
   const [albumsResult, itemsResult, postsResult, likesResult] = await Promise.all([
     supabase
@@ -80,15 +106,16 @@ export default async function AcademyCommunityPage({
     ...rawItems.map((i) => i.id),
     ...rawPosts.map((p) => p.id),
   ];
-  const { data: likeCountRows } = allTargetIds.length > 0
-    ? await supabase
-        .from("community_likes")
-        .select("target_id")
-        .in("target_id", allTargetIds)
-    : { data: [] as { target_id: string }[] };
+  const { data: likeCountRows } =
+    allTargetIds.length > 0
+      ? await supabase
+          .from("community_likes")
+          .select("target_id")
+          .in("target_id", allTargetIds)
+      : { data: [] as { target_id: string }[] };
 
   const countMap: Record<string, number> = {};
-  for (const row of (likeCountRows ?? [])) {
+  for (const row of likeCountRows ?? []) {
     countMap[row.target_id] = (countMap[row.target_id] ?? 0) + 1;
   }
 
@@ -132,7 +159,9 @@ export default async function AcademyCommunityPage({
 
   const tradePosts: TradePost[] = await Promise.all(
     rawPosts.map(async (post) => {
-      const profileData = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+      const profileData = Array.isArray(post.profiles)
+        ? post.profiles[0]
+        : post.profiles;
       return {
         id: post.id,
         body: post.body,
@@ -140,24 +169,17 @@ export default async function AcademyCommunityPage({
         createdAt: post.created_at,
         likeCount: countMap[post.id] ?? 0,
         likedByMe: myLikes.has(`trade_post:${post.id}`),
-        authorName: (profileData as { full_name?: string } | null)?.full_name ?? "Mentor",
+        authorName:
+          (profileData as { full_name?: string } | null)?.full_name ?? "Mentor",
       };
     }),
   );
 
   return (
-    <StudentShell
-      academyName={academyName}
-      basePath={basePath}
-      displayName={displayName}
-      isVerified={isVerified}
-      logoPath={portal?.logo_path ?? null}
-      querySuffix={querySuffix}
-      traderId={traderId}
-    >
+    <Shell>
       <div className={styles.page}>
         <div className={styles.header}>
-          <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+          <p className="eyebrow">{portal.portal_name}</p>
           <h1>Community</h1>
           <p>Gallery highlights and daily trade posts from your mentor.</p>
         </div>
@@ -168,6 +190,6 @@ export default async function AcademyCommunityPage({
           traderId={traderId}
         />
       </div>
-    </StudentShell>
+    </Shell>
   );
 }

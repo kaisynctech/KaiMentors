@@ -6,6 +6,7 @@ import { ContentGate } from "@/components/content-gate";
 import { StudentShell } from "@/components/student-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./courses.module.css";
 
@@ -27,59 +28,41 @@ export default async function StudentCoursesPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`${base}/login${suffix}`);
 
-  // Fetch application — any status
-  let aq = supabase
-    .from("student_applications")
-    .select(
-      "id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)",
-    )
-    .eq("student_user_id", user.id);
-  if (academy.portalId) aq = aq.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) aq = aq.eq("portal.slug", academy.portalSlug);
-  const { data: app } = await aq
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  if (!app) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified = app.status === "verified";
 
-  // Shell wrapper — wraps both verified and unverified renders
   function Shell({ children }: { children: React.ReactNode }) {
     return (
       <StudentShell
         academyName={academyName}
         basePath={base}
         displayName={displayName}
-        isVerified={isVerified}
-        logoPath={portal?.logo_path ?? null}
-        portalSlug={portal?.slug}
+        hasModuleAccess={hasModuleAccess}
+        logoPath={portal.logo_path}
+        portalSlug={portal.slug}
         querySuffix={suffix}
-        traderId={app?.trader_id}
+        traderId={application.trader_id}
       >
         {children}
       </StudentShell>
     );
   }
 
-  // Unverified — ContentGate
-  if (!isVerified) {
+  if (!hasModuleAccess) {
     return (
       <Shell>
         <div className={styles.page} style={{ paddingTop: 0 }}>
           <div className={styles.hero}>
-            <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+            <p className="eyebrow">{portal.portal_name}</p>
             <h1>My Learning</h1>
-            <p>
-              Complete broker verification to unlock your courses.
-            </p>
+            <p>Complete broker verification to unlock your courses.</p>
           </div>
           <ContentGate
-            applicationStatus={app.status}
+            applicationStatus={application.status}
             returnPath={`${base}${suffix}`}
           />
         </div>
@@ -87,14 +70,13 @@ export default async function StudentCoursesPage({
     );
   }
 
-  // Verified — full course list
   const [{ data: courseRows }, { data: progressRows }] = await Promise.all([
     supabase
       .from("courses")
       .select(
         "id,title,description,cover_path,sort_order,course_modules(id,title),lessons(id,is_required,status,title,module_id)",
       )
-      .eq("trader_id", app.trader_id)
+      .eq("trader_id", application.trader_id)
       .eq("status", "published")
       .order("sort_order"),
     supabase
@@ -102,7 +84,7 @@ export default async function StudentCoursesPage({
       .select(
         "course_id,lesson_id,position_seconds,is_started,is_completed,last_activity_at",
       )
-      .eq("trader_id", app.trader_id)
+      .eq("trader_id", application.trader_id)
       .eq("student_user_id", user.id),
   ]);
 
@@ -188,7 +170,7 @@ export default async function StudentCoursesPage({
     <Shell>
       <main className={styles.page}>
         <div className={styles.hero}>
-          <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
+          <p className="eyebrow">{portal.portal_name}</p>
           <h1>My Learning</h1>
           <p>
             Resume protected lessons, track your progress, and revisit
@@ -196,7 +178,6 @@ export default async function StudentCoursesPage({
           </p>
         </div>
 
-        {/* Resume card */}
         {continueCourse && continueCourse.resume ? (
           <section className={styles.section}>
             <div className={styles.sectionHead}>
@@ -247,7 +228,6 @@ export default async function StudentCoursesPage({
           </section>
         ) : null}
 
-        {/* Library */}
         <section className={styles.section}>
           <div className={styles.sectionHead}>
             <p className="eyebrow">Library</p>
@@ -308,7 +288,6 @@ export default async function StudentCoursesPage({
           )}
         </section>
 
-        {/* Completed */}
         {completed.length > 0 ? (
           <section className={styles.section}>
             <div className={styles.sectionHead}>

@@ -3,6 +3,7 @@ import { StudentBrokerView } from "@/components/student-broker-view";
 import { StudentShell } from "@/components/student-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 
 export const dynamic = "force-dynamic";
@@ -24,27 +25,13 @@ export default async function AcademyBrokerPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`${basePath}/login${querySuffix}`);
 
-  let appQuery = supabase
-    .from("student_applications")
-    .select("id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)")
-    .eq("student_user_id", user.id);
-  if (academy.portalId) appQuery = appQuery.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) appQuery = appQuery.eq("portal.slug", academy.portalSlug);
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(joinAcademyPath);
 
-  const { data: application } = await appQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!application) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(application.portal)
-    ? application.portal[0]
-    : application.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified = application.status === "verified";
-  const traderId = application.trader_id as string;
+  const traderId = application.trader_id;
 
   const { data: brokerData } = await supabase
     .from("trader_broker_accounts")
@@ -99,9 +86,9 @@ export default async function AcademyBrokerPage({
       academyName={academyName}
       basePath={basePath}
       displayName={displayName}
-      isVerified={isVerified}
-      logoPath={portal?.logo_path ?? null}
-      portalSlug={portal?.slug}
+      hasModuleAccess={hasModuleAccess}
+      logoPath={portal.logo_path}
+      portalSlug={portal.slug}
       querySuffix={querySuffix}
       traderId={traderId}
     >

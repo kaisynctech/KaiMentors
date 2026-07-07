@@ -47,6 +47,7 @@ interface QueueRecord {
   broker_name: string | null;
   verification_method: VerificationMethod | null;
   trading_level: string | null;
+  broker_verified: boolean;
   total_count: number;
 }
 
@@ -143,7 +144,7 @@ export default async function StudentsPage({
     let fallback = supabase
       .from("student_applications")
       .select(
-        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,screenshot_path,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
+        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,screenshot_path,broker_verified,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
         { count: "exact" },
       )
       .eq("trader_id", traderId);
@@ -197,6 +198,7 @@ export default async function StudentsPage({
           (connection?.verification_method as VerificationMethod | null) ??
           null,
         trading_level: null,
+        broker_verified: application.broker_verified ?? false,
         total_count: result.count ?? 0,
       };
     });
@@ -220,6 +222,7 @@ export default async function StudentsPage({
     brokerName: application.broker_name,
     verificationMethod: application.verification_method,
     tradingLevel: application.trading_level ?? null,
+    brokerVerified: application.broker_verified,
   }));
 
   const brokers = (connectionResult.data ?? []).map((connection) => {

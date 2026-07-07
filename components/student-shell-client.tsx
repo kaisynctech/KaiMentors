@@ -27,7 +27,7 @@ import styles from "./student-shell.module.css";
 interface StudentShellClientProps {
   academyName: string;
   logoUrl: string | null;
-  isVerified: boolean;
+  hasModuleAccess: boolean;
   basePath: string;
   querySuffix: string;
   displayName: string;
@@ -47,7 +47,7 @@ interface NavItem {
 export function StudentShellClient({
   academyName,
   logoUrl,
-  isVerified,
+  hasModuleAccess,
   basePath,
   querySuffix,
   displayName,
@@ -76,31 +76,31 @@ export function StudentShellClient({
       href: `${basePath}/live-classes${querySuffix}`,
       label: "Live Classes",
       icon: Video,
-      locked: !isVerified,
+      locked: !hasModuleAccess,
     },
     {
       href: `${basePath}/bookings${querySuffix}`,
       label: "Book a session",
       icon: CalendarCheck,
-      locked: !isVerified,
+      locked: !hasModuleAccess,
     },
     {
       href: `${basePath}/bookings/sessions${querySuffix}`,
       label: "My sessions",
       icon: CalendarClock,
-      locked: !isVerified,
+      locked: !hasModuleAccess,
     },
     {
       href: `${basePath}/groups${querySuffix}`,
       label: "Groups",
       icon: Users,
-      locked: !isVerified,
+      locked: !hasModuleAccess,
     },
     {
       href: `${basePath}/messages${querySuffix}`,
       label: "Messages",
       icon: MessageSquare,
-      locked: !isVerified,
+      locked: !hasModuleAccess,
     },
     {
       href: `${basePath}/community${querySuffix}`,
@@ -172,7 +172,7 @@ export function StudentShellClient({
               {item.label}
               {item.locked ? (
                 <LockKeyhole className={styles.lockIcon} size={13} />
-              ) : item.label === "Messages" && isVerified && traderId ? (
+              ) : item.label === "Messages" && hasModuleAccess && traderId ? (
                 <MessagesUnreadDot
                   apiPath={`/api/student/messages/unread?traderId=${traderId}`}
                   traderId={traderId}

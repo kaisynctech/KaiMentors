@@ -6,9 +6,11 @@ import { OwnerEmailChangeForm }   from "@/components/owner-email-change-form";
 import { TeamManager }            from "@/components/team-manager";
 import { BrokerAccountsManager }  from "@/components/broker-accounts-manager";
 import { PortalBrandingForm }     from "@/components/portal-branding-form";
+import { StudentAccessSettings }  from "@/components/student-access-settings";
 import { MentorBillingPanel }     from "@/components/mentor-billing-panel";
 import type { VerificationMethod } from "@/lib/database.types";
 import { getSubscriptionSummary } from "@/lib/entitlements";
+import { parsePortalAccessPolicy } from "@/lib/student-access";
 import { getMentorWorkspace }     from "@/lib/workspace";
 import { createAdminClient }      from "@/lib/supabase/admin";
 import {
@@ -18,8 +20,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SettingsTab = "account" | "team" | "brokers" | "branding" | "billing" | "audit-logs";
-const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "billing", "audit-logs"]);
+type SettingsTab = "account" | "team" | "brokers" | "branding" | "student-access" | "billing" | "audit-logs";
+const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "student-access", "billing", "audit-logs"]);
 
 export default async function WorkspaceSettingsPage({
   searchParams,
@@ -209,6 +211,34 @@ export default async function WorkspaceSettingsPage({
           primarySiteHostname={primaryDomain?.hostname ?? null}
           riskTemplates={riskTemplates ?? []}
           websiteDeliveryMode={portalData.website_delivery_mode ?? "core_page"}
+        />
+      </DashboardShell>
+    );
+  }
+
+  // ── Student access tab ────────────────────────────────────────────────────
+  if (tab === "student-access") {
+    const { data: portalPolicy } = await supabase
+      .from("portals")
+      .select(
+        "require_broker_verification_for_modules, allow_full_access_without_verification",
+      )
+      .eq("id", portal.id)
+      .single();
+
+    return (
+      <DashboardShell
+        activePath="/dashboard/settings"
+        description="Manage workspace security, identity, and team members."
+        title="Settings"
+        userLabel={displayName}
+        traderId={traderId}
+        portalName={portal.portal_name}
+        portalSlug={portal.slug}
+      >
+        <SettingsTabs activeTab="student-access" />
+        <StudentAccessSettings
+          initial={parsePortalAccessPolicy(portalPolicy ?? {})}
         />
       </DashboardShell>
     );

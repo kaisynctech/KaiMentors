@@ -146,6 +146,14 @@ export async function POST(request: Request) {
     );
 
     if (!efError && efResult && (efResult as { status?: string }).status === "verified") {
+      await admin
+        .from("student_applications")
+        .update({
+          broker_verified: true,
+          broker_verified_at: new Date().toISOString(),
+        })
+        .eq("id", application.id);
+
       // EF has already updated application status and created verification_attempts internally.
       await admin.from("audit_logs").insert({
         trader_id: application.trader_id,

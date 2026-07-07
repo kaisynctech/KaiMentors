@@ -5,6 +5,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { LessonSidebar } from "@/components/lesson-sidebar";
 import { ProtectedLessonContent } from "@/components/protected-lesson-content";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./lesson.module.css";
 
@@ -19,23 +20,24 @@ export default async function LessonPage({
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
   const supabase = await createClient();
-  if (!supabase) redirect("/login");
+  if (!supabase) redirect(`${academy.basePath}/login${academy.querySuffix}`);
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`${academy.basePath}/login${academy.querySuffix}`);
 
-  let aq = supabase
-    .from("student_applications")
-    .select(
-      "trader_id,full_name,portal:portals!inner(portal_name,slug)",
-    )
-    .eq("student_user_id", user.id)
-    .eq("status", "verified");
-  if (academy.portalId) aq = aq.eq("portal_id", academy.portalId);
-  if (academy.portalSlug) aq = aq.eq("portal.slug", academy.portalSlug);
-  const { data: app } = await aq.limit(1).maybeSingle();
-  if (!app) redirect(`${academy.basePath}${academy.querySuffix}`);
+  const ctx = await loadStudentSessionContext(supabase, user.id, academy);
+  if (!ctx) redirect(academy.joinAcademyPath);
+  if (!ctx.hasModuleAccess) redirect(`${academy.basePath}${academy.querySuffix}`);
+
+  const { application: app, portal } = ctx;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+  const studentName = profile?.full_name ?? user.email?.split("@")[0] ?? "Student";
 
   const [
     { data: lesson },
@@ -148,10 +150,9 @@ export default async function LessonPage({
   const courseWillBeComplete =
     currentLessonIsRequired && otherRequiredDone && !alreadyComplete;
 
-  const portal = Array.isArray(app.portal) ? app.portal[0] : app.portal;
-  const course = Array.isArray(lesson.course) ? lesson.course[0] : lesson.course;
   const base = academy.basePath;
   const suffix = academy.querySuffix;
+  const course = Array.isArray(lesson.course) ? lesson.course[0] : lesson.course;
 
   const progress = (allProgress ?? []).find((p) => p.lesson_id === lessonId) ?? null;
 
@@ -236,9 +237,7 @@ export default async function LessonPage({
       <nav className={styles.topNav}>
         <BrandMark
           href={`${base}/courses/${courseId}${suffix}`}
-          label={
-            portal?.portal_name ?? "Academy"
-          }
+          label={portal.portal_name}
         />
         <div className={styles.navActions}>
           <Link href="/auth/signout">Sign out</Link>
@@ -272,7 +271,7 @@ export default async function LessonPage({
               courseWillBeComplete={courseWillBeComplete}
               lessonId={lesson.id}
               resumeSeconds={progress?.position_seconds ?? 0}
-              watermark={`${portal?.portal_name ?? "Academy"} · ${app.full_name} · ${user.email ?? ""}`}
+              watermark={`${portal.portal_name} · ${studentName} · ${user.email ?? ""}`}
             />
           </div>
 

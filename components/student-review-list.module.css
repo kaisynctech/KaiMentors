@@ -318,6 +318,19 @@
   flex-shrink: 0;
 }
 
+.brokerVerifiedTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 750;
+  color: #15803d;
+  background: #dcfce7;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .studentCell strong,
 .stackedCell strong {
   overflow: hidden;

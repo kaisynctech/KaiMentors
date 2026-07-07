@@ -481,6 +481,14 @@ export function StudentReviewList({
                       <div>
                         <div className={styles.studentNameRow}>
                           <strong>{application.studentName}</strong>
+                          {application.brokerVerified ? (
+                            <span
+                              className={styles.brokerVerifiedTag}
+                              title="Broker verified via API or mentor approval"
+                            >
+                              Broker verified
+                            </span>
+                          ) : null}
                           {application.tradingLevel && (
                             <span
                               className={styles.levelTag}

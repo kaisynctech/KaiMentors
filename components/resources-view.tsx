@@ -22,12 +22,12 @@ interface ResourceItem {
 interface Props {
   traderId:   string;
   resources:  ResourceItem[];
-  isVerified: boolean;
+  hasModuleAccess?: boolean;
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
 
-export function ResourcesView({ resources, isVerified: _isVerified }: Props) {
+export function ResourcesView({ resources, hasModuleAccess: _hasModuleAccess }: Props) {
   const [activeLabels, setActiveLabels] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<ResourceItem | null>(null);
 

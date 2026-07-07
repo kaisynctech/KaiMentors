@@ -4,6 +4,7 @@ import { MessagesWorkspace } from "@/components/messages-workspace";
 import { StudentShell } from "@/components/student-shell";
 import { loadConversationWorkspace, loadTodaySignal, loadWorkspaceMentors } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
+import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import styles from "./messages.module.css";
 
@@ -27,35 +28,12 @@ export default async function StudentMessagesPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`${basePath}/login${suffix}`);
 
-  // Fetch application — any status
-  let applicationQuery = supabase
-    .from("student_applications")
-    .select(
-      "id,trader_id,status,portal_id,portal:portals!inner(portal_name,slug,logo_path)",
-    )
-    .eq("student_user_id", user.id);
-  if (academyContext.portalId) {
-    applicationQuery = applicationQuery.eq("portal_id", academyContext.portalId);
-  }
-  if (academyContext.portalSlug) {
-    applicationQuery = applicationQuery.eq(
-      "portal.slug",
-      academyContext.portalSlug,
-    );
-  }
-  const { data: application } = await applicationQuery
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const ctx = await loadStudentSessionContext(supabase, user.id, academyContext);
+  if (!ctx) redirect(joinAcademyPath);
 
-  if (!application) redirect(joinAcademyPath);
-
-  const portal = Array.isArray(application.portal)
-    ? application.portal[0]
-    : application.portal;
-  const academyName = portal?.portal_name ?? "Academy";
+  const { application, portal, hasModuleAccess } = ctx;
+  const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
-  const isVerified = application.status === "verified";
 
   function Shell({ children }: { children: React.ReactNode }) {
     return (
@@ -63,19 +41,18 @@ export default async function StudentMessagesPage({
         academyName={academyName}
         basePath={basePath}
         displayName={displayName}
-        isVerified={isVerified}
-        logoPath={portal?.logo_path ?? null}
-        portalSlug={portal?.slug}
+        hasModuleAccess={hasModuleAccess}
+        logoPath={portal.logo_path}
+        portalSlug={portal.slug}
         querySuffix={suffix}
-        traderId={application?.trader_id}
+        traderId={application.trader_id}
       >
         {children}
       </StudentShell>
     );
   }
 
-  // Unverified — ContentGate
-  if (!isVerified) {
+  if (!hasModuleAccess) {
     return (
       <Shell>
         <div className={styles.page}>

@@ -6,7 +6,7 @@ import { StudentShellClient } from "./student-shell-client";
 interface StudentShellProps {
   academyName: string;
   logoPath: string | null;
-  isVerified: boolean;
+  hasModuleAccess: boolean;
   basePath: string;
   querySuffix: string;
   displayName: string;
@@ -19,7 +19,7 @@ interface StudentShellProps {
 export async function StudentShell({
   academyName,
   logoPath,
-  isVerified,
+  hasModuleAccess,
   basePath,
   querySuffix,
   displayName,
@@ -46,7 +46,7 @@ export async function StudentShell({
       academyName={academyName}
       basePath={basePath}
       displayName={displayName}
-      isVerified={isVerified}
+      hasModuleAccess={hasModuleAccess}
       logoUrl={logoUrl}
       portalSlug={portalSlug}
       primaryColor={primaryColor}
