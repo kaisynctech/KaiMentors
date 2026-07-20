@@ -334,4 +334,18 @@
     width: 100% !important;
     max-width: none !important;
   }
+
+  .article-body p {
+    margin-bottom: 1.25rem;
+    line-height: 1.75;
+  }
+
+  .article-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .article-body strong {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
 }

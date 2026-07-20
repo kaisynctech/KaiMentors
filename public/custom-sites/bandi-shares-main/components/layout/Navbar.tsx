@@ -15,7 +15,13 @@ const NAV_LINKS = [
   { label: 'About',    href: '/about'   },
   { label: 'Programs', href: '/services' },
   { label: 'XM',       href: '/xm'      },
+  { label: 'Articles', href: '/articles' },
 ]
+
+function isNavActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/'
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
 
 export default function Navbar() {
   const pathname    = usePathname()
@@ -59,7 +65,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className={`text-sm font-medium transition-colors duration-200 ${
-                pathname === link.href
+                isNavActive(pathname, link.href)
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
@@ -108,7 +114,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={`py-2 text-sm font-medium ${
-                    pathname === link.href
+                    isNavActive(pathname, link.href)
                       ? 'text-primary'
                       : 'text-muted-foreground'
                   }`}

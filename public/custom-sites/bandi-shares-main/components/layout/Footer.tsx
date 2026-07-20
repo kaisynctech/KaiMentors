@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: 'About',    href: '/about'   },
   { label: 'Programs', href: '/services' },
   { label: 'XM',       href: '/xm'      },
+  { label: 'Articles', href: '/articles' },
 ]
 
 const LEGAL_ITEMS = [

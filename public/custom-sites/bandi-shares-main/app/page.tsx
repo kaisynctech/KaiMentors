@@ -64,7 +64,7 @@ export default function HomePage() {
         {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: `url('${assetUrl('/assets/hero-bandi.jpeg')}')` }}
+          style={{ backgroundImage: `url('${assetUrl('/assets/bandile-hero.png')}')` }}
         />
         {/* Overlays — dark scrim; bottom fades to midnight (not page bg) to avoid cloudy wash */}
         <div className="absolute inset-0 bg-[hsl(var(--midnight))]/75" />

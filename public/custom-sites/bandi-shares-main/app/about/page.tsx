@@ -85,7 +85,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-5xl">
           <motion.div initial={false}>
             <span className="mb-4 block text-sm font-semibold uppercase tracking-widest text-primary">
-              About Us
+              Who am I?
             </span>
           </motion.div>
           <motion.h1
@@ -119,10 +119,10 @@ export default function AboutPage() {
           >
             <div className="glass-card relative aspect-[4/5] overflow-hidden">
               <Image
-                src={assetUrl('/assets/bandi-presentation.jpeg')}
-                alt="Bandi presenting at a trading seminar"
+                src={assetUrl('/assets/bandile-portrait.png')}
+                alt="Bandile — founder of Bandi Shares"
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
