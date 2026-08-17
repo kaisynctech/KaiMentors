@@ -50,7 +50,9 @@ export async function getMentorWorkspace() {
 
     const { data: portal } = await supabase
       .from("portals")
-      .select("id,trader_id,slug,portal_name,is_published,custom_domain")
+      .select(
+        "id,trader_id,slug,portal_name,is_published,custom_domain,access_model,student_portal_features",
+      )
       .eq("trader_id", domainRow.trader_id)
       .maybeSingle();
     if (!portal) return null;
@@ -69,6 +71,11 @@ export async function getMentorWorkspace() {
       displayName: trader?.display_name ?? "Mentor workspace",
       timezone: trader?.timezone ?? "UTC",
       customDomain: true as const,
+      accessModel: portal.access_model as "verification" | "subscription",
+      studentPortalFeatures: (portal.student_portal_features ?? {}) as Record<
+        string,
+        boolean
+      >,
     };
   }
 
@@ -90,7 +97,9 @@ export async function getMentorWorkspace() {
 
   const { data: portal } = await supabase
     .from("portals")
-    .select("id,trader_id,slug,portal_name,is_published,custom_domain")
+    .select(
+      "id,trader_id,slug,portal_name,is_published,custom_domain,access_model,student_portal_features",
+    )
     .eq("trader_id", membership.trader_id)
     .maybeSingle();
   if (!portal) return null;
@@ -109,5 +118,10 @@ export async function getMentorWorkspace() {
     displayName: trader?.display_name ?? "Mentor workspace",
     timezone: trader?.timezone ?? "UTC",
     customDomain: false as const,
+    accessModel: portal.access_model as "verification" | "subscription",
+    studentPortalFeatures: (portal.student_portal_features ?? {}) as Record<
+      string,
+      boolean
+    >,
   };
 }
