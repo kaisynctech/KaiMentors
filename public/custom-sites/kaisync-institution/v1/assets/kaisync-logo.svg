@@ -1,0 +1,17 @@
+<svg width="320" height="96" viewBox="0 0 320 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KaiSync Institution">
+  <defs>
+    <linearGradient id="ksiMarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D1B8E"/>
+      <stop offset="100%" stop-color="#00C4D8"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="8" width="80" height="80" rx="18" fill="url(#ksiMarkGrad)"/>
+  <path d="M30 30 C30 20, 46 18, 54 26 C60 32, 60 40, 54 46"
+        fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M22 42 L30 34 M22 42 L30 50" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M58 66 C58 76, 42 78, 34 70 C28 64, 28 56, 34 50"
+        fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M66 54 L58 62 M66 54 L58 46" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="100" y="44" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-weight="800" font-size="30" fill="#F0EEF8">KaiSync</text>
+  <text x="100" y="72" font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-weight="600" font-size="17" letter-spacing="0.06em" fill="#9B98B8">INSTITUTION</text>
+</svg>
