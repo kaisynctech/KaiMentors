@@ -367,19 +367,6 @@ p { margin: 0; line-height: 1.6; }
   flex-shrink: 0;
   object-fit: contain;
 }
-/* Fallback for tools whose official logo hasn't been sourced yet — see
-   assets/tools/README.md. Sized/positioned to match .tool-logo so the grid
-   stays visually consistent until the real logo is dropped in. */
-.tool-logo-fallback {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--cyan);
-}
-.tool-logo-fallback svg { width: 30px; height: 30px; }
 .tool-tile .tool-name { font-weight: 600; font-size: 0.92rem; }
 .tool-tile .tool-desc { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
 

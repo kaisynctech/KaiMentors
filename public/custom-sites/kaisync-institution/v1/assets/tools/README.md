@@ -1,37 +1,67 @@
 # AI tool logos
 
-5 of the 12 tools in the grid have real official logos here, sourced from
-[Simple Icons](https://simpleicons.org) (`https://cdn.simpleicons.org/<slug>`)
-— the one source available that legitimately serves brand marks for exactly
-this "built with X" use case:
+All 12 tools now have real, verified official logos.
 
-| File | Tool | Notes |
+| File | Tool | Source |
 |---|---|---|
-| `anthropic.svg` | Claude Code | Anthropic mark, recolored white (default fill is near-black, invisible on this dark page) |
-| `cursor.svg` | Cursor AI | Recolored white |
-| `elevenlabs.svg` | ElevenLabs | Recolored white |
-| `github.svg` | GitHub Copilot | Recolored white |
-| `python.svg` | Python | Kept Simple Icons' default brand blue (`#3776AB`) — already visible on dark, and dropping to white would lose the recognizable "Python blue" |
+| `anthropic.png` | Claude Code | anthropic.com favicon (`apple-icon.png`) |
+| `openai.png` | ChatGPT | openai.com favicon (`apple-icon.png`) |
+| `grok.png` | Grok | grok.com's own icon (distinct from xAI's corporate mark at x.ai) |
+| `cursor.svg` | Cursor AI | Simple Icons (`cdn.simpleicons.org/cursor`) |
+| `lovable.png` | Lovable | lovable.dev favicon |
+| `runway.png` | Runway | runway.com favicon |
+| `elevenlabs.png` | ElevenLabs | elevenlabs.io favicon |
+| `github.svg` | GitHub Copilot | Simple Icons (`cdn.simpleicons.org/github`) |
+| `python.svg` | Python | Simple Icons (`cdn.simpleicons.org/python`) |
+| `base44.png` | Base44 | base44.com favicon |
+| `higgsfield.png` | Higgsfield | higgsfield.ai favicon |
+| `design-io.png` | Designer.io | as supplied |
 
-## Not sourced (7 of 12)
+## Important: a round of file mislabeling was caught and fixed here
 
-**ChatGPT/OpenAI, Grok/xAI, Lovable, Runway, Base44, Higgsfield, Designer.io**
-are not on Simple Icons (confirmed via direct CDN requests, including several
-slug variants for each — not a network fluke: e.g. `cdn.simpleicons.org/openai`
-returns a genuine 404 with `access-control-allow-origin` headers present,
-meaning the CDN is up but has no icon for that slug).
+A batch of files supplied for this task were misnamed relative to what they
+actually contained — verified by cross-checking each against the real
+company's own site favicon, not by visual guessing:
 
-Getting the *actual* official logo for these would mean navigating each
-company's brand-kit page, finding a downloadable asset (often behind a
-"download brand kit" zip), and extracting the right file — not something
-achievable with an automated CDN fetch. Rather than hand-drawing a
-look-alike of a company's trademark from memory (which risks producing an
-inaccurate, unauthorized imitation of protected IP), these 7 tiles keep
-their original hand-drawn abstract icon as a placeholder
-(`.tool-logo-fallback` in `styles.css`, sized to match the real logos so the
-grid stays visually consistent).
+- The file supplied as `anthropic.png` was actually **Runway's** logo.
+- The file supplied as `runway.png` was actually **Higgsfield's** logo.
+- The file supplied as `elevenlabs.png` did not match ElevenLabs' real logo
+  (a black "II" mark) — it was something else, closest in style to Base44's
+  dome-shaped mark but not a pixel match either.
+- The file supplied as `base44.png` (an orange multi-point starburst) did
+  not match Base44's real logo (an orange dome with a white stripe cutout)
+  or any other brand checked here — left unidentified and not used.
 
-To finish this: drop the real logo file into this folder using the
-filename from the original brief's table, then in `index.html` and
-`tools.html` swap that tile's `<span class="tool-logo-fallback">...</span>`
-for `<img src="assets/tools/<filename>" alt="<tool>" class="tool-logo">`.
+Anthropic, Runway, ElevenLabs, and Base44's real logos above were re-sourced
+directly from each company's own site favicon instead. `grok.png`,
+`openai.png`, and `lovable.png` were double-checked and are correct as
+originally supplied.
+
+## Processing applied
+
+Real company logos are almost never delivered pre-styled for a dark page —
+most come as a dark mark on a white/cream canvas. Two fixes were applied
+per logo, each verified programmatically (pixel/alpha sampling), not just
+eyeballed:
+
+1. **Chroma-key to transparent.** Each logo's actual background color was
+   sampled (not assumed to be pure white — several were cream, e.g.
+   `#EFEEE6`) and keyed out by color distance, with a soft falloff band for
+   anti-aliased edges. Skipped for logos already delivered on a transparent
+   or intentional colored "app icon" canvas (`grok.png`'s black rounded
+   square, `base44.png` and `higgsfield.png`'s icon backgrounds) — those
+   badge colors are part of the brand's own icon design, not an incidental
+   white canvas, so they were left alone.
+2. **Invert for visibility.** A logo that's solid/near-solid black reads as
+   invisible on this page's near-black background. For single- or two-tone
+   marks (`anthropic.png`, `openai.png`, `runway.png`, `elevenlabs.png`,
+   `design-io.png`), a literal per-channel RGB invert (`255 - value` on each
+   of R/G/B, alpha untouched) was applied instead of the
+   `filter: brightness(0) invert(1)` CSS trick used elsewhere on this site —
+   that trick crushes every opaque pixel to black before inverting, which
+   destroys contrast in anything with more than one tone (confirmed
+   visually on `design-io.png`, which has both black and white as
+   meaningful content). A literal channel invert preserves that contrast
+   while still flipping dark-on-light to light-on-dark.
+   `lovable.png` (colorful gradient) needed neither step 2 nor further
+   changes beyond the background key — it already reads fine on dark.
