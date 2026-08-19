@@ -26,6 +26,9 @@ const registrationSchema = z.object({
   tradingLevel: z.string().nullable().optional(),
   yearsTrading: z.string().nullable().optional(),
   tradingChallenge: z.string().max(500).nullable().optional(),
+  province: z.string().max(80).nullable().optional(),
+  country: z.string().max(80).nullable().optional(),
+  notificationsOptIn: z.enum(["on", "off"]).optional(),
 });
 
 async function resolveRegistrationPortal(
@@ -87,6 +90,9 @@ export async function POST(request: Request) {
     tradingLevel: tradingLevelRaw,
     yearsTrading: yearsRaw,
     tradingChallenge: formData.get("tradingChallenge")?.toString() || null,
+    province: formData.get("province")?.toString() || null,
+    country: formData.get("country")?.toString() || null,
+    notificationsOptIn: (formData.get("notificationsOptIn")?.toString() as "on" | "off") ?? "off",
   });
   if (!parsed.success) {
     return NextResponse.json(
@@ -169,6 +175,9 @@ export async function POST(request: Request) {
         trading_level: input.tradingLevel ?? null,
         years_trading: input.yearsTrading ?? null,
         trading_challenge: input.tradingChallenge ?? null,
+        province: input.province ?? null,
+        country: input.country ?? null,
+        notifications_opt_in: input.notificationsOptIn === "on",
       });
       // Ignore insert error — existing user keeps their account regardless.
     }
@@ -224,6 +233,9 @@ export async function POST(request: Request) {
       trading_level: input.tradingLevel ?? null,
       years_trading: input.yearsTrading ?? null,
       trading_challenge: input.tradingChallenge ?? null,
+      province: input.province ?? null,
+      country: input.country ?? null,
+      notifications_opt_in: input.notificationsOptIn === "on",
     });
 
   if (applicationError) {

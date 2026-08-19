@@ -18,13 +18,17 @@ export function AcademyJoinPage({
   const homeHref = getAcademyEntryHref(routeContext, "home");
   const loginHref = getAcademyEntryHref(routeContext, "login");
   const studentPortalPath = getAcademyEntryHref(routeContext, "academy");
+  const isSubscription = data.portal.access_model === "subscription";
   const theme = {
     "--academy-primary": data.portal.primary_color,
     "--academy-accent": data.portal.accent_color,
   } as React.CSSProperties;
 
   return (
-    <main className={styles.page} style={theme}>
+    <main
+      className={`${styles.page}${isSubscription ? ` ${styles.pageDark}` : ""}`}
+      style={theme}
+    >
       <section className={styles.shell}>
         <nav className={styles.nav}>
           <Link className={styles.brand} href={homeHref}>
@@ -50,22 +54,27 @@ export function AcademyJoinPage({
             </Link>
           </div>
         </nav>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <p className={styles.eyebrow}>Student application</p>
-              <h2>{data.portal.portal_name}</h2>
-              <p>
-                Use the form below to request private academy access. Returning
-                students should use Sign In.
-              </p>
-            </div>
-            <StudentRegistrationForm
-              academyName={data.portal.portal_name}
-              loginPath={loginHref}
-              portalSlug={data.portal.slug}
-              primaryColor={data.portal.primary_color}
-              studentDestination={studentPortalPath}
-            />
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <p className={styles.eyebrow}>
+              {isSubscription ? "Enrolment" : "Student application"}
+            </p>
+            <h2>{data.portal.portal_name}</h2>
+            <p>
+              {isSubscription
+                ? "Create your account below. Returning students should use Sign In."
+                : "Use the form below to request private academy access. Returning students should use Sign In."}
+            </p>
+          </div>
+          <StudentRegistrationForm
+            accessModel={data.portal.access_model}
+            academyName={data.portal.portal_name}
+            loginPath={loginHref}
+            portalSlug={data.portal.slug}
+            primaryColor={data.portal.primary_color}
+            studentDestination={studentPortalPath}
+          />
+          {!isSubscription && (
             <div className={styles.partnerBadge}>
               <Image
                 alt="XM Global"
@@ -76,7 +85,8 @@ export function AcademyJoinPage({
               />
               <span>Partnered with XM Global</span>
             </div>
-          </section>
+          )}
+        </section>
       </section>
     </main>
   );

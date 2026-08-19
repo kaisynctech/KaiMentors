@@ -20,19 +20,29 @@ export function AcademyLoginPage({
   const joinHref = getAcademyEntryHref(routeContext, "join-academy");
   const studentDestination = getAcademyEntryHref(routeContext, "academy");
   const platformOrigin = process.env.NEXT_PUBLIC_SITE_URL;
-  const setupHref = customDomain && platformOrigin ? new URL("/account-setup", platformOrigin).toString() : "/account-setup";
-  const recoveryHref = customDomain && platformOrigin ? new URL("/recover", platformOrigin).toString() : "/recover";
+  const setupHref =
+    customDomain && platformOrigin
+      ? new URL("/account-setup", platformOrigin).toString()
+      : "/account-setup";
+  const recoveryHref =
+    customDomain && platformOrigin
+      ? new URL("/recover", platformOrigin).toString()
+      : "/recover";
   // Mentor dashboard is served on the same domain as the login page (custom domain
   // or platform). Workspace is resolved server-side from the hostname (custom domain)
   // or km_workspace cookie (platform) — no cross-domain goto chain needed.
   const mentorDashboardHref = "/dashboard";
+  const isSubscription = data.portal.access_model === "subscription";
   const theme = {
     "--academy-primary": data.portal.primary_color,
     "--academy-accent": data.portal.accent_color,
   } as React.CSSProperties;
 
   return (
-    <main className={styles.page} style={theme}>
+    <main
+      className={`${styles.page}${isSubscription ? ` ${styles.pageDark}` : ""}`}
+      style={theme}
+    >
       <section className={styles.shell}>
         <nav className={styles.nav}>
           <Link className={styles.brand} href={homeHref}>
@@ -54,30 +64,37 @@ export function AcademyLoginPage({
           <div className={styles.navActions}>
             <Link href={homeHref}>← Home</Link>
             <Link className={styles.primaryNav} href={joinHref}>
-              Join Academy
+              {isSubscription ? "Enrol" : "Join Academy"}
             </Link>
           </div>
         </nav>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <LockKeyhole size={28} />
-              <p className={styles.eyebrow}>Academy login</p>
-              <h2>Welcome back</h2>
-              <p>
-                Sign in to {data.portal.portal_name}. Students and mentors of this academy can sign in here.
-              </p>
-            </div>
-            <LoginForm
-              academyContext={{
-                traderId: data.portal.trader_id,
-                studentDestination,
-                mentorDestination: mentorDashboardHref,
-                customDomain,
-              }}
-              submitLabel="Sign In"
-            />
-            <p className={styles.footerNote}><Link href={setupHref}>Resume account setup</Link> · <Link href={recoveryHref}>Forgot password</Link></p>
-
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <LockKeyhole size={28} />
+            <p className={styles.eyebrow}>
+              {isSubscription ? "Student login" : "Academy login"}
+            </p>
+            <h2>Welcome back</h2>
+            <p>
+              {isSubscription
+                ? `Sign in to ${data.portal.portal_name}. Use the email and password you registered with.`
+                : `Sign in to ${data.portal.portal_name}. Students and mentors of this academy can sign in here.`}
+            </p>
+          </div>
+          <LoginForm
+            academyContext={{
+              traderId: data.portal.trader_id,
+              studentDestination,
+              mentorDestination: mentorDashboardHref,
+              customDomain,
+            }}
+            submitLabel="Sign In"
+          />
+          <p className={styles.footerNote}>
+            <Link href={setupHref}>Resume account setup</Link> ·{" "}
+            <Link href={recoveryHref}>Forgot password</Link>
+          </p>
+          {!isSubscription && (
             <div className={styles.partnerBadge}>
               <Image
                 alt="XM Global"
@@ -88,7 +105,8 @@ export function AcademyLoginPage({
               />
               <span>Partnered with XM Global</span>
             </div>
-          </section>
+          )}
+        </section>
       </section>
     </main>
   );

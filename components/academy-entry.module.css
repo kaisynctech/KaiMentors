@@ -155,3 +155,36 @@
     padding: 22px;
   }
 }
+
+/* ─── Dark theme — subscription portals (e.g. KSI) ─────────────────── */
+.pageDark {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--academy-accent) 22%, transparent), transparent 34rem),
+    #06060E;
+  color: #F0EEF8;
+}
+
+.pageDark .navActions a,
+.pageDark .backLink {
+  border-color: rgba(240, 238, 248, 0.18);
+  color: #F0EEF8;
+}
+
+.pageDark .primaryNav {
+  background: var(--academy-primary);
+  border-color: var(--academy-primary);
+  color: #fff;
+}
+
+.pageDark .eyebrow {
+  color: color-mix(in srgb, var(--academy-accent) 80%, #fff);
+}
+
+.pageDark .cardHeader p {
+  color: rgba(240, 238, 248, 0.60);
+}
+
+.pageDark .footerNote,
+.pageDark .footerNote a {
+  color: rgba(240, 238, 248, 0.45);
+}

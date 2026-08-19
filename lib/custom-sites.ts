@@ -77,6 +77,7 @@ export interface CustomSitePortal {
   accent_color: string;
   logo_path: string | null;
   is_published: boolean;
+  access_model: "verification" | "subscription";
   website_delivery_mode: WebsiteDeliveryMode;
   contact_phone?:  string | null;
   contact_email?:  string | null;
@@ -358,7 +359,7 @@ async function loadPortalBySlug(
   const { data } = await supabase
     .from("portals")
     .select(
-      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,is_published,website_delivery_mode,contact_phone,contact_email,whatsapp_number,telegram_url,instagram_url,facebook_url,youtube_url,twitter_url,tiktok_url,linkedin_url",
+      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,is_published,access_model,website_delivery_mode,contact_phone,contact_email,whatsapp_number,telegram_url,instagram_url,facebook_url,youtube_url,twitter_url,tiktok_url,linkedin_url",
     )
     .eq("slug", slug)
     .eq("is_published", true)
@@ -472,7 +473,7 @@ export async function loadCustomSiteByResolution(
   const { data } = await supabase
     .from("portals")
     .select(
-      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,is_published,website_delivery_mode,contact_phone,contact_email,whatsapp_number,telegram_url,instagram_url,facebook_url,youtube_url,twitter_url,tiktok_url,linkedin_url",
+      "id,trader_id,slug,portal_name,hero_title,hero_subtitle,welcome_message,primary_color,accent_color,logo_path,is_published,access_model,website_delivery_mode,contact_phone,contact_email,whatsapp_number,telegram_url,instagram_url,facebook_url,youtube_url,twitter_url,tiktok_url,linkedin_url",
     )
     .eq("id", resolution.portal_id)
     .eq("is_published", true)
