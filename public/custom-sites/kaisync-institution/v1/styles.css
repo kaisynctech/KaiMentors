@@ -360,19 +360,26 @@ p { margin: 0; line-height: 1.6; }
   gap: 12px;
   transition: border-color 0.2s, transform 0.2s;
 }
-.tool-tile:hover { border-color: var(--line-accent); transform: translateY(-2px); }
-.tool-tile .tool-icon {
-  width: 36px;
-  height: 36px;
+.tool-tile:hover { transform: translateY(-2px); }
+.tool-logo {
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid));
-  display: flex;
+  object-fit: contain;
+}
+/* Fallback for tools whose official logo hasn't been sourced yet — see
+   assets/tools/README.md. Sized/positioned to match .tool-logo so the grid
+   stays visually consistent until the real logo is dropped in. */
+.tool-logo-fallback {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--cyan);
 }
-.tool-tile .tool-icon svg { width: 18px; height: 18px; }
+.tool-logo-fallback svg { width: 30px; height: 30px; }
 .tool-tile .tool-name { font-weight: 600; font-size: 0.92rem; }
 .tool-tile .tool-desc { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
 
