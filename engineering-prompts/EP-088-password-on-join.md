@@ -1,30 +1,49 @@
+# EP-088 — Add Password Field to Join Form
+
+## What changes
+
+`components/join-form.tsx` only. No API changes.
+
+The profile step (step 1) collects first name, last name, and now also
+password + confirm password. The OTP flow is unchanged. After the OTP
+is verified and the user is authenticated, `supabase.auth.updateUser({ password })`
+is called to set the password before `/api/join/complete` runs.
+
+---
+
+## Full replacement of `components/join-form.tsx`
+
+```tsx
 "use client";
 
-import { useState }              from "react";
-import { createBrowserClient }   from "@supabase/ssr";
+import { useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import styles                    from "./join-form.module.css";
+import styles from "./join-form.module.css";
 
-interface JoinWorkspaceFormProps {
-  workspaceToken: string;
+interface JoinFormProps {
+  email: string;
+  invitationId: string;
   workspaceName: string;
+  inviterName: string;
 }
 
 type Step = "profile" | "otp" | "completing" | "done";
 
-export function JoinWorkspaceForm({
-  workspaceToken,
+export function JoinForm({
+  email,
+  invitationId,
   workspaceName,
-}: JoinWorkspaceFormProps) {
-  const [step, setStep]           = useState<Step>("profile");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [confirm, setConfirm]     = useState("");
-  const [otp, setOtp]             = useState("");
-  const [busy, setBusy]           = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  inviterName,
+}: JoinFormProps) {
+  const [step, setStep]             = useState<Step>("profile");
+  const [firstName, setFirstName]   = useState("");
+  const [lastName, setLastName]     = useState("");
+  const [password, setPassword]     = useState("");
+  const [confirm, setConfirm]       = useState("");
+  const [otp, setOtp]               = useState("");
+  const [busy, setBusy]             = useState(false);
+  const [error, setError]           = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,14 +54,8 @@ export function JoinWorkspaceForm({
     e.preventDefault();
     setError(null);
 
-    const trimmedEmail = email.trim().toLowerCase();
-
     if (!firstName.trim() || !lastName.trim()) {
       setError("Please enter your first and last name.");
-      return;
-    }
-    if (!trimmedEmail || !/\S+@\S+\.\S+/.test(trimmedEmail)) {
-      setError("Please enter a valid email address.");
       return;
     }
     if (password.length < 8) {
@@ -56,7 +69,7 @@ export function JoinWorkspaceForm({
 
     setBusy(true);
     const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: trimmedEmail,
+      email,
       options: { shouldCreateUser: true },
     });
     setBusy(false);
@@ -79,8 +92,9 @@ export function JoinWorkspaceForm({
 
     setBusy(true);
 
+    // Verify OTP
     const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
+      email,
       token: otp.trim(),
       type: "email",
     });
@@ -90,33 +104,24 @@ export function JoinWorkspaceForm({
       return;
     }
 
-    // Set password now that the user is authenticated.
-    // Non-blocking: a failure here doesn't block workspace join.
+    // Set password now that user is authenticated
     const { error: pwError } = await supabase.auth.updateUser({ password });
     if (pwError) {
+      // Don't block join — password can be set from Account Settings
       console.warn("Could not set password:", pwError.message);
     }
 
     setStep("completing");
 
-    let res: Response;
-    try {
-      res = await fetch("/api/join/workspace/complete", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          workspaceToken,
-          firstName: firstName.trim(),
-          lastName:  lastName.trim(),
-        }),
-        signal: AbortSignal.timeout(20000),
-      });
-    } catch {
-      setBusy(false);
-      setStep("otp");
-      setError("Connection timed out. Please try again.");
-      return;
-    }
+    const res = await fetch("/api/join/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        invitationId,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      }),
+    });
 
     if (!res.ok) {
       const json = await res.json().catch(() => ({})) as { error?: string };
@@ -124,20 +129,6 @@ export function JoinWorkspaceForm({
       setStep("otp");
       setError(json.error ?? "Something went wrong. Please try again.");
       return;
-    }
-
-    const json = (await res.json().catch(() => ({}))) as { traderId?: string };
-    if (json.traderId) {
-      try {
-        await fetch("/api/workspace/activate", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ traderId: json.traderId }),
-          signal: AbortSignal.timeout(10000),
-        });
-      } catch {
-        // Non-blocking — dashboard still resolves membership if this is the only workspace.
-      }
     }
 
     setStep("done");
@@ -152,16 +143,13 @@ export function JoinWorkspaceForm({
         <p className={styles.eyebrow}>Workspace invitation</p>
         <h1 className={styles.title}>Join {workspaceName}</h1>
         <p className={styles.sub}>
-          Fill in your details to join the{" "}
+          {inviterName} has invited you to join the{" "}
           <strong>{workspaceName}</strong> mentor workspace.
         </p>
       </div>
 
       {step === "profile" && (
-        <form
-          className={styles.form}
-          onSubmit={(e) => void handleProfileSubmit(e)}
-        >
+        <form className={styles.form} onSubmit={(e) => void handleProfileSubmit(e)}>
           <div className={styles.row}>
             <label className={styles.label}>
               First name
@@ -193,10 +181,9 @@ export function JoinWorkspaceForm({
           <label className={styles.label}>
             Email address
             <input
-              className={styles.input}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
+              className={`${styles.input} ${styles.inputLocked}`}
+              disabled
+              readOnly
               type="email"
               value={email}
             />
@@ -237,14 +224,10 @@ export function JoinWorkspaceForm({
       )}
 
       {step === "otp" && (
-        <form
-          className={styles.form}
-          onSubmit={(e) => void handleOtpSubmit(e)}
-        >
+        <form className={styles.form} onSubmit={(e) => void handleOtpSubmit(e)}>
           <p className={styles.otpHint}>
-            We sent a 6-digit code to{" "}
-            <strong>{email.trim().toLowerCase()}</strong>. Enter it below to
-            verify your account.
+            We sent a 6-digit code to <strong>{email}</strong>. Enter it below
+            to verify your account.
           </p>
           <label className={styles.label}>
             Verification code
@@ -296,3 +279,27 @@ export function JoinWorkspaceForm({
     </div>
   );
 }
+```
+
+---
+
+## What changed from the original
+
+| | Before | After |
+|---|---|---|
+| Profile step fields | First name, last name, email (locked) | + Password, Confirm password |
+| On Continue | Sends OTP immediately | Validates password match + length first, then sends OTP |
+| After OTP verified | Goes straight to `/api/join/complete` | Calls `updateUser({ password })` first, then `/api/join/complete` |
+| Password not set | N/A | `updateUser` error is logged but doesn't block join — mentor lands in dashboard and can update password from Account Settings |
+
+---
+
+## Verification
+
+1. Open a fresh join link.
+2. Fill first name, last name, and a password. Leave confirm blank → "Passwords do not match."
+3. Enter mismatched confirm → same error.
+4. Enter short password (< 8 chars) → "Password must be at least 8 characters."
+5. Fill everything correctly → Continue → OTP arrives in email.
+6. Enter OTP → "Setting up your account…" → dashboard.
+7. Go to Account Settings → verify email matches and password works for future login.
