@@ -195,8 +195,9 @@ p { margin: 0; line-height: 1.6; }
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
-.ksi-header .brand { display: inline-flex; align-items: center; }
-.ksi-header .brand img { height: 40px; width: auto; }
+.ksi-header .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.ksi-header .brand img { height: 60px; width: auto; }
+.ksi-header .brand-name { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; white-space: nowrap; }
 
 .ksi-nav {
   display: flex;
