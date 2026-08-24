@@ -363,6 +363,114 @@ p { margin: 0; line-height: 1.6; }
 .hero-note { margin-top: 12px; color: var(--text-muted); font-size: 0.82rem; }
 .hero-note b { color: var(--text); }
 
+/* ── Hero social proof avatars ─────────────────────────── */
+.hero-social-proof {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 4px;
+}
+.hero-avatars {
+  display: flex;
+}
+.hero-avatars img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  border: 2px solid rgba(0,196,216,0.5);
+  margin-left: -10px;
+  background: var(--surface-2);
+}
+.hero-avatars img:first-child { margin-left: 0; }
+.hero-social-proof span { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+.hero-social-proof b { color: rgba(0,196,216,0.85); font-weight: 700; }
+
+/* ── About image frame ─────────────────────────────────── */
+.about-img-frame {
+  border-radius: 20px;
+  overflow: hidden;
+  height: 500px;
+  position: relative;
+}
+.about-img-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.about-img-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(6,6,14,0.65) 100%);
+  pointer-events: none;
+}
+
+/* ── Builders section ──────────────────────────────────── */
+.builders-section { background: var(--surface); }
+.builders-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+.builders-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 16px;
+}
+.builders-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.builders-img {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.builders-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.builders-img:hover img { transform: scale(1.03); }
+.builders-img--tall  { height: 460px; }
+.builders-img--short { height: 216px; }
+
+/* ── CTA background image ──────────────────────────────── */
+.cta-section { position: relative; overflow: hidden; }
+.cta-bg-img {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 380px;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.cta-bg-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+@media (max-width: 960px) {
+  .builders-layout { grid-template-columns: 1fr; }
+  .builders-img--tall  { height: 320px; }
+  .builders-img--short { height: 180px; }
+  .about-img-frame { height: 340px; }
+}
+
 .hero-canvas-bg #ksi-world-canvas {
   position: absolute;
   inset: 0;
