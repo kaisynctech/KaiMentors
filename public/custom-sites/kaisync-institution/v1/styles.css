@@ -290,17 +290,13 @@ p { margin: 0; line-height: 1.6; }
 
 .hero-visual { position: relative; display: flex; align-items: center; justify-content: center; min-height: 360px; }
 .hero-logo-ring {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  border: 1px solid rgba(91,45,191,0.35);
-  box-shadow: 0 0 80px rgba(0,196,216,0.15), inset 0 0 60px rgba(91,45,191,0.08);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  filter: drop-shadow(0 0 48px rgba(0,196,216,0.35)) drop-shadow(0 0 24px rgba(91,45,191,0.45));
 }
-.hero-logo-ring img { width: 60%; height: 60%; }
+.hero-logo-ring img { width: 440px; max-width: 100%; height: auto; object-fit: contain; }
 
 .hero-chip {
   position: absolute;
