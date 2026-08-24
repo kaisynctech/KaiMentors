@@ -116,6 +116,10 @@
 
     let W, H, dpr, particles = [], nodePulse = [], traveler = null, travelTimer = 0;
     let raf = null;
+    /* Origin pulse — Johannesburg node (index 9) */
+    const ORIGIN_NODE = 9;
+    let originRings = [];
+    let originTimer = 0;
 
     function resize() {
       dpr = window.devicePixelRatio || 1;
@@ -202,6 +206,24 @@
         ctx.arc(px, py, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = col + '0.9)';
         ctx.fill();
+      }
+
+      /* ── Origin pulse rings (Johannesburg) ── */
+      if (!reduced) {
+        originTimer++;
+        if (originTimer > 90) { originRings.push({ r: 0, alpha: 0.6 }); originTimer = 0; }
+        const ox = cx(NODES[ORIGIN_NODE][0]);
+        const oy = cy(NODES[ORIGIN_NODE][1]);
+        originRings = originRings.filter(function(ring) { return ring.alpha > 0.01; });
+        for (var ri = 0; ri < originRings.length; ri++) {
+          originRings[ri].r += 0.55;
+          originRings[ri].alpha *= 0.975;
+          ctx.beginPath();
+          ctx.arc(ox, oy, originRings[ri].r, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(0,196,216,' + originRings[ri].alpha + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
       }
 
       /* traveling particle */

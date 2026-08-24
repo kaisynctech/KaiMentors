@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KaiSync Institution | Learn AI. Build Products. Change Your Future.</title>
-<meta name="description" content="South Africa's premier AI education platform. Learn to build websites, apps, SaaS products, automations, and AI agents using the world's most powerful tools.">
+<meta name="description" content="The global AI academy. Learn to build websites, apps, SaaS products, automations, and AI agents using the world's most powerful tools.">
 <link href="styles.css" rel="stylesheet">
 </head>
 <body>
@@ -63,8 +63,8 @@
 
   <div class="hero-inner">
     <div class="hero-copy reveal">
-      <p class="kicker">South Africa's AI Academy</p>
-      <h1>Learn AI.<br>Build Products.<br><span class="grad">Change Your Future.</span></h1>
+      <div class="hero-live-badge"><span class="hero-live-dot"></span>Global AI Academy</div>
+      <h1>Learn AI.<br>Build <span id="ksi-morph-word">Products</span>.<br><span class="grad">Change Your Future.</span></h1>
       <p class="lead">
         From websites and apps to automation, AI agents and SaaS products —
         learn to build with the world's most powerful AI tools.
@@ -73,6 +73,13 @@
       <div class="btn-row">
         <a class="btn primary" href="signup.html">Enrol Now</a>
         <a class="btn ghost" href="pricing.html">View Plans</a>
+      </div>
+      <div class="hero-stats">
+        <span><b>12</b> AI Tools</span>
+        <span class="hero-stats-sep">·</span>
+        <span><b>3</b> Plans</span>
+        <span class="hero-stats-sep">·</span>
+        <span><b>Live</b> Mentorship</span>
       </div>
       <p class="hero-note">Flexible monthly plans from <b>R250/month</b> · Cancel anytime</p>
     </div>
@@ -252,7 +259,7 @@
         <a class="btn ghost" href="signup.html">Enrol — Pro →</a>
       </div>
     </div>
-    <p class="pricing-note">All plans are monthly and cancel anytime. Prices in South African Rand (ZAR). International students welcome.</p>
+    <p class="pricing-note">All plans are monthly and cancel anytime. Prices in ZAR. International students welcome.</p>
   </div>
 </section>
 
@@ -318,5 +325,23 @@
 
 <script src="app.js"></script>
 <script src="hero-world.js"></script>
+<script>
+(function(){
+  var words=['Products','Businesses','Websites','Agents','Your Future'];
+  var i=0;
+  var el=document.getElementById('ksi-morph-word');
+  if(!el)return;
+  setInterval(function(){
+    i=(i+1)%words.length;
+    el.style.opacity='0';
+    el.style.transform='translateY(6px)';
+    setTimeout(function(){
+      el.textContent=words[i];
+      el.style.opacity='1';
+      el.style.transform='translateY(0)';
+    },280);
+  },2500);
+})();
+</script>
 </body>
 </html>
