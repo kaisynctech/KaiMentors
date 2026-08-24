@@ -266,7 +266,10 @@ p { margin: 0; line-height: 1.6; }
 
 .hero-canvas-bg {
   position: absolute;
-  inset: 0;
+  left: 48%;
+  right: 0;
+  top: 0;
+  bottom: 0;
   z-index: 0;
   overflow: hidden;
 }
@@ -373,6 +376,7 @@ p { margin: 0; line-height: 1.6; }
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 48px 16px;
 }
 .hero-logo-overlay {
   position: relative;
@@ -385,8 +389,8 @@ p { margin: 0; line-height: 1.6; }
 }
 .hero-logo-overlay img {
   width: 100%;
-  max-width: 420px;
-  max-height: 52vh;
+  max-width: 340px;
+  max-height: 44vh;
   height: auto;
   object-fit: contain;
 }
@@ -409,10 +413,10 @@ p { margin: 0; line-height: 1.6; }
   white-space: nowrap;
   animation: float 3.6s ease-in-out infinite;
 }
-.hero-chip--1 { top: -8%;  left: -12%; animation-delay: 0s; }
-.hero-chip--2 { top: 0%;   right: -14%; animation-delay: 0.6s; }
-.hero-chip--3 { bottom: 2%; left: -16%; animation-delay: 1.2s; }
-.hero-chip--4 { bottom: -6%; right: -10%; animation-delay: 1.8s; }
+.hero-chip--1 { top: 10%;    left: 5%;  animation-delay: 0s; }
+.hero-chip--2 { top: 10%;    right: 5%; animation-delay: 0.6s; }
+.hero-chip--3 { bottom: 12%; left: 5%;  animation-delay: 1.2s; }
+.hero-chip--4 { bottom: 12%; right: 5%; animation-delay: 1.8s; }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
