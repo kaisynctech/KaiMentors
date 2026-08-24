@@ -496,8 +496,8 @@ p { margin: 0; line-height: 1.6; }
 }
 .hero-logo-overlay img {
   width: 100%;
-  max-width: 340px;
-  max-height: 44vh;
+  max-width: 220px;
+  max-height: 28vh;
   height: auto;
   object-fit: contain;
 }
