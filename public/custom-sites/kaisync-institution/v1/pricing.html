@@ -6,6 +6,8 @@
 <title>Pricing | KaiSync Institution</title>
 <meta name="description" content="Simple monthly pricing for KaiSync Institution — Basic R250, Intermediate R400, Pro R700. Cancel anytime. International students welcome.">
 <link href="styles.css" rel="stylesheet">
+<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
+<link href="styles-additions.css" rel="stylesheet">
 </head>
 <body>
 
@@ -24,6 +26,7 @@
     <a href="pricing.html" aria-current="page">Pricing</a>
     <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
     <a class="nav-login" href="login.html">Login</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
   </nav>
 </header>
 
@@ -170,6 +173,17 @@
 
 <link href="styles-additions.css" rel="stylesheet">
 <script src="app.js"></script>
+<script>(function(){
+  var btn=document.getElementById("theme-toggle");
+  var t=localStorage.getItem("ksi-theme")||"dark";
+  if(btn){btn.textContent=t==="dark"?"🌙":"☀️";
+  btn.addEventListener("click",function(){
+    var n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+    document.documentElement.setAttribute("data-theme",n);
+    btn.textContent=n==="dark"?"🌙":"☀️";
+    localStorage.setItem("ksi-theme",n);
+  });}
+})()</script>
 <script>
 /* Countdown — rolling 7-day window from first visit */
 (function(){
