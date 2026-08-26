@@ -135,6 +135,7 @@ p { margin: 0; line-height: 1.6; }
 .reveal.delay-1 { transition-delay: 0.1s; }
 .reveal.delay-2 { transition-delay: 0.2s; }
 .reveal.delay-3 { transition-delay: 0.3s; }
+.reveal.delay-4 { transition-delay: 0.4s; }
 
 /* ---------- Cards ---------- */
 .card {
@@ -523,10 +524,10 @@ p { margin: 0; line-height: 1.6; }
   white-space: nowrap;
   animation: float 3.6s ease-in-out infinite;
 }
-.hero-chip--1 { top: 6%;    left: 4%;   animation-delay: 0s; }
-.hero-chip--2 { top: 38%;   right: 2%;  animation-delay: 0.6s; }
-.hero-chip--3 { bottom: 32%; left: 6%;  animation-delay: 1.2s; }
-.hero-chip--4 { bottom: 6%; right: 4%;  animation-delay: 1.8s; }
+.hero-chip--1 { top: 18%;    left: 52%;  animation-delay: 0s; }
+.hero-chip--2 { top: 12%;    right: 3%;  animation-delay: 0.6s; }
+.hero-chip--3 { bottom: 22%; left: 54%;  animation-delay: 1.2s; }
+.hero-chip--4 { bottom: 10%; right: 4%;  animation-delay: 1.8s; }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
