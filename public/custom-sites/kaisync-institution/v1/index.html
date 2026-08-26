@@ -6,6 +6,7 @@
 <title>KaiSync Institution | Learn AI. Build Products. Change Your Future.</title>
 <meta name="description" content="The global AI academy. Learn to build websites, apps, SaaS products, automations, and AI agents using the world's most powerful tools.">
 <link href="styles.css" rel="stylesheet">
+<link href="styles-additions.css" rel="stylesheet">
 </head>
 <body>
 
@@ -92,7 +93,7 @@
           <img src="assets/student-3.jpg" alt="KaiSync student">
           <img src="assets/student-2.jpg" alt="KaiSync student">
         </div>
-        <span>Join <b>500+</b> builders already learning</span>
+        <span>Join <b><span class="live-count">500</span>+</b> builders already learning <span class="live-pulse"></span></span>
       </div>
       <p class="hero-note">Flexible monthly plans from <b>R250/month</b> · Cancel anytime</p>
     </div>
@@ -113,6 +114,31 @@
     <span>AI Agents</span><span>Automation</span><span>Web Apps</span><span>Mobile Apps</span>
     <span>SaaS Products</span><span>APIs</span><span>Databases</span><span>Animations</span>
     <span>Business Classes</span><span>Python</span><span>Prompt Engineering</span><span>AI Mentorship</span>
+  </div>
+</div>
+
+<!-- Stats band -->
+<div class="stats-band">
+  <div class="stats-band-inner">
+    <div class="stat-item reveal">
+      <span class="stat-num" data-count="500">0</span><span class="stat-suffix">+</span>
+      <span class="stat-label">Builders enrolled</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal delay-1">
+      <span class="stat-num" data-count="12">0</span>
+      <span class="stat-label">AI tools taught</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal delay-2">
+      <span class="stat-num" data-count="96">0</span><span class="stat-suffix">%</span>
+      <span class="stat-label">Complete their first project</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item reveal delay-3">
+      <span class="stat-num" data-count="3">0</span>
+      <span class="stat-label">Flexible plans</span>
+    </div>
   </div>
 </div>
 
@@ -314,6 +340,165 @@
   </div>
 </div>
 
+<!-- Learning journey section -->
+<section class="section journey-section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">How it works</p>
+      <h2>From zero to shipping in three steps.</h2>
+    </div>
+    <div class="journey-steps">
+      <div class="journey-step reveal">
+        <div class="journey-num">01</div>
+        <h3>Pick your plan</h3>
+        <p>Choose Basic, Intermediate, or Pro based on where you are. You can upgrade any time.</p>
+      </div>
+      <div class="journey-arrow reveal delay-1">→</div>
+      <div class="journey-step reveal delay-1">
+        <div class="journey-num">02</div>
+        <h3>Learn by building</h3>
+        <p>Follow structured courses, join live classes, and get mentor feedback on real projects.</p>
+      </div>
+      <div class="journey-arrow reveal delay-2">→</div>
+      <div class="journey-step reveal delay-2">
+        <div class="journey-num">03</div>
+        <h3>Launch your product</h3>
+        <p>Ship something real — a website, app, SaaS, or AI agent. Then keep going.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:40px;">
+      <a class="btn primary" href="signup.html">Start Your Journey</a>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials section -->
+<section class="section testimonials-section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">Student voices</p>
+      <h2>Built by people just like you.</h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"I went from knowing nothing about code to launching my first SaaS in 6 weeks. The mentorship is what made the difference."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">TM</div>
+          <div>
+            <div class="testimonial-name">Thabo M.</div>
+            <div class="testimonial-role">Launched a booking SaaS · Basic → Pro</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal delay-1">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"The AI tools curriculum is exactly what the market needs. I automated my entire freelance workflow and tripled my income."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">AN</div>
+          <div>
+            <div class="testimonial-name">Amara N.</div>
+            <div class="testimonial-role">Freelance automation consultant · Intermediate</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal delay-2">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">"Best investment I've made. I built and shipped a mobile app in 8 weeks. Real projects, real skills — not just theory."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">KD</div>
+          <div>
+            <div class="testimonial-name">Kofi D.</div>
+            <div class="testimonial-role">Published a mobile app · Pro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Portfolio showcase section -->
+<section class="section portfolio-section" style="background: var(--surface);">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">Student work</p>
+      <h2>Real products, built by our students.</h2>
+      <p class="lead">These aren't mockups — they're live products built during KaiSync courses.</p>
+    </div>
+    <div class="portfolio-grid">
+      <div class="portfolio-card reveal">
+        <div class="portfolio-thumb portfolio-thumb--1"></div>
+        <div class="portfolio-info">
+          <span class="portfolio-tag">SaaS</span>
+          <h4>Booking platform</h4>
+          <p>A full appointment booking SaaS with payments, built in 6 weeks.</p>
+        </div>
+      </div>
+      <div class="portfolio-card reveal delay-1">
+        <div class="portfolio-thumb portfolio-thumb--2"></div>
+        <div class="portfolio-info">
+          <span class="portfolio-tag">Mobile App</span>
+          <h4>Fitness tracker app</h4>
+          <p>Cross-platform mobile app with AI workout suggestions, live on the app store.</p>
+        </div>
+      </div>
+      <div class="portfolio-card reveal delay-2">
+        <div class="portfolio-thumb portfolio-thumb--3"></div>
+        <div class="portfolio-info">
+          <span class="portfolio-tag">Automation</span>
+          <h4>Lead gen agent</h4>
+          <p>AI agent that finds, qualifies, and emails leads automatically every morning.</p>
+        </div>
+      </div>
+      <div class="portfolio-card reveal">
+        <div class="portfolio-thumb portfolio-thumb--4"></div>
+        <div class="portfolio-info">
+          <span class="portfolio-tag">Web Product</span>
+          <h4>E-commerce store</h4>
+          <p>AI-generated product descriptions, automated inventory, built with Lovable.</p>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:12px;font-size:0.85rem;color:var(--muted);">Your project could be here. <a href="signup.html" style="color:var(--cyan);">Start building →</a></p>
+  </div>
+</section>
+
+<!-- FAQ section -->
+<section class="section faq-section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">Questions</p>
+      <h2>Everything you need to know.</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Do I need coding experience to join?</button>
+        <div class="faq-a"><p>No experience needed. We start from the absolute basics and progress at your pace. Many of our most successful students had zero coding background when they joined.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">How much time do I need per week?</button>
+        <div class="faq-a"><p>Most students spend 5–10 hours per week. Courses are self-paced on Basic, with live sessions twice a week on Intermediate and Pro. You can learn in the evenings and weekends.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">What if I can't afford the monthly plan?</button>
+        <div class="faq-a"><p>Our Basic plan starts at R250/month — less than a tank of petrol. We also offer occasional community bursaries. Reach out to us on WhatsApp and we'll find a way to make it work.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Can I cancel anytime?</button>
+        <div class="faq-a"><p>Yes — all plans are month-to-month with no contracts. Cancel from your dashboard any time and you keep access until the end of your billing period.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">What's the difference between the plans?</button>
+        <div class="faq-a"><p>Basic gives you all course content self-paced. Intermediate adds live classes and group sessions. Pro adds one-on-one mentorship bookings, priority support, and early access to new content. You can upgrade at any time.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Is this available globally?</button>
+        <div class="faq-a"><p>Yes — KaiSync Institution is open to students worldwide. All content is delivered online. Prices are listed in ZAR but international card payments are accepted.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section cta-section">
   <div class="cta-bg-img" aria-hidden="true">
     <img src="assets/student-2.jpg" alt="">
@@ -363,6 +548,15 @@
   </div>
 </footer>
 
+<!-- Sticky CTA bar -->
+<div class="sticky-cta" id="sticky-cta" aria-hidden="true">
+  <div class="sticky-cta-inner">
+    <span class="sticky-cta-text">Ready to build with AI?</span>
+    <a class="btn primary" href="signup.html">Enrol Now</a>
+    <a class="btn ghost" href="pricing.html">View Plans</a>
+  </div>
+</div>
+
 <script src="app.js"></script>
 <!-- hero-world.js removed; replaced with static world map image -->
 <script>
@@ -381,6 +575,76 @@
       el.style.transform='translateY(0)';
     },280);
   },2500);
+})();
+</script>
+
+<script>
+/* ── Count-up animations ── */
+(function(){
+  function countUp(el, target, duration) {
+    var start = 0, step = target / (duration / 16);
+    var timer = setInterval(function(){
+      start += step;
+      if (start >= target) { start = target; clearInterval(timer); }
+      el.textContent = Math.floor(start).toLocaleString();
+    }, 16);
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      var target = parseInt(el.dataset.count, 10);
+      countUp(el, target, 1200);
+      io.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(function(el){ io.observe(el); });
+})();
+
+/* ── Sticky CTA bar ── */
+(function(){
+  var bar = document.getElementById('sticky-cta');
+  if (!bar) return;
+  var hero = document.querySelector('.hero');
+  function onScroll(){
+    var heroBottom = hero ? hero.getBoundingClientRect().bottom : 400;
+    if (heroBottom < 0) {
+      bar.classList.add('sticky-cta--visible');
+      bar.removeAttribute('aria-hidden');
+    } else {
+      bar.classList.remove('sticky-cta--visible');
+      bar.setAttribute('aria-hidden', 'true');
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
+
+/* ── FAQ accordion ── */
+(function(){
+  document.querySelectorAll('.faq-q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.parentElement;
+      var open = item.classList.contains('faq-item--open');
+      document.querySelectorAll('.faq-item--open').forEach(function(i){ i.classList.remove('faq-item--open'); i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });
+      if (!open) { item.classList.add('faq-item--open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+})();
+
+/* ── Live learner ticker ── */
+(function(){
+  var el = document.querySelector('.live-count');
+  if (!el) return;
+  var base = 500;
+  setInterval(function(){
+    var bump = Math.floor(Math.random() * 3);
+    if (bump > 0) {
+      base += bump;
+      el.textContent = base.toLocaleString();
+      el.classList.add('live-count--flash');
+      setTimeout(function(){ el.classList.remove('live-count--flash'); }, 600);
+    }
+  }, 8000);
 })();
 </script>
 </body>
