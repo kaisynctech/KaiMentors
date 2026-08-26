@@ -524,9 +524,9 @@ p { margin: 0; line-height: 1.6; }
   white-space: nowrap;
   animation: float 3.6s ease-in-out infinite;
 }
-.hero-chip--1 { top: 18%;    left: 52%;  animation-delay: 0s; }
-.hero-chip--2 { top: 12%;    right: 3%;  animation-delay: 0.6s; }
-.hero-chip--3 { bottom: 22%; left: 54%;  animation-delay: 1.2s; }
+.hero-chip--1 { top: 22%;    left: 53%;  animation-delay: 0s; }
+.hero-chip--2 { top: 22%;    right: 4%;  animation-delay: 0.6s; }
+.hero-chip--3 { bottom: 20%; left: 53%;  animation-delay: 1.2s; }
 .hero-chip--4 { bottom: 10%; right: 4%;  animation-delay: 1.8s; }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
