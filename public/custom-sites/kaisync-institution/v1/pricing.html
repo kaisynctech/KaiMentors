@@ -35,6 +35,21 @@
   </div>
 </section>
 
+<!-- Countdown timer -->
+<div class="countdown-bar">
+  <span class="countdown-label">🔥 Current pricing ends in</span>
+  <div class="countdown-clock">
+    <div class="countdown-unit"><span id="cd-days">00</span><small>days</small></div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit"><span id="cd-hours">00</span><small>hrs</small></div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit"><span id="cd-mins">00</span><small>min</small></div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit"><span id="cd-secs">00</span><small>sec</small></div>
+  </div>
+  <a class="btn primary" href="signup.html" style="font-size:0.82rem;padding:7px 16px;">Lock in this price</a>
+</div>
+
 <section class="section">
   <div class="wrap">
     <div class="pricing-grid">
@@ -153,6 +168,32 @@
   </div>
 </footer>
 
+<link href="styles-additions.css" rel="stylesheet">
 <script src="app.js"></script>
+<script>
+/* Countdown — rolling 7-day window from first visit */
+(function(){
+  var key = 'ksi-cd-end';
+  var end = parseInt(localStorage.getItem(key)||'0',10);
+  if (!end || end < Date.now()) {
+    end = Date.now() + 7*24*60*60*1000;
+    localStorage.setItem(key, end);
+  }
+  function tick(){
+    var diff = end - Date.now();
+    if (diff < 0) diff = 0;
+    var d = Math.floor(diff/86400000);
+    var h = Math.floor((diff%86400000)/3600000);
+    var m = Math.floor((diff%3600000)/60000);
+    var s = Math.floor((diff%60000)/1000);
+    function pad(n){ return n < 10 ? '0'+n : n; }
+    document.getElementById('cd-days').textContent = pad(d);
+    document.getElementById('cd-hours').textContent = pad(h);
+    document.getElementById('cd-mins').textContent = pad(m);
+    document.getElementById('cd-secs').textContent = pad(s);
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>

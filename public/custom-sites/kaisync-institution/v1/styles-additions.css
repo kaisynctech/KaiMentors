@@ -69,6 +69,66 @@
 .faq-item--open .faq-a { max-height: 200px; }
 .faq-a p { padding: 0 0 20px; color: var(--muted); line-height: 1.7; font-size: 0.92rem; }
 
+/* ── Quiz strip ── */
+.quiz-strip { background: linear-gradient(90deg, rgba(139,92,246,0.12), rgba(0,196,216,0.10)); border-top: 1px solid rgba(139,92,246,0.2); border-bottom: 1px solid rgba(0,196,216,0.15); }
+.quiz-strip-inner { max-width: 900px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.quiz-strip span { color: rgba(255,255,255,0.8); font-size: 0.95rem; }
+
+/* ── Modal overlay ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay[hidden] { display: none; }
+.modal-box { background: #0F0F18; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 36px 32px; max-width: 520px; width: 100%; position: relative; max-height: 90vh; overflow-y: auto; }
+.modal-box--quiz { max-width: 480px; }
+.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: color 0.2s; }
+.modal-close:hover { color: #fff; }
+.modal-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); background: rgba(0,196,216,0.1); padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+.modal-box h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 12px; }
+.modal-box p { color: rgba(255,255,255,0.7); font-size: 0.92rem; line-height: 1.6; margin-bottom: 16px; }
+.modal-outcomes { list-style: none; padding: 0; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+.modal-outcomes li { font-size: 0.88rem; color: rgba(255,255,255,0.85); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.modal-meta { font-size: 0.82rem; color: var(--muted); padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+
+/* ── Quiz styles ── */
+.quiz-progress { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 24px; }
+.quiz-progress-bar { height: 4px; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 2px; transition: width 0.4s ease; }
+.quiz-question { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+.quiz-opts { display: flex; flex-direction: column; gap: 10px; }
+.quiz-opt { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.85); font-size: 0.9rem; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+.quiz-opt:hover { background: rgba(0,196,216,0.08); border-color: rgba(0,196,216,0.4); }
+.quiz-result { text-align: center; padding: 8px 0; }
+.quiz-result-plan { font-size: 1rem; color: var(--muted); margin-bottom: 8px; }
+.quiz-result-plan strong { color: #fff; }
+.quiz-result-price { font-size: 2.5rem; font-weight: 900; color: var(--cyan); margin-bottom: 12px; }
+.quiz-result-note { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+/* ── Countdown bar ── */
+.countdown-bar { background: linear-gradient(90deg, rgba(139,92,246,0.15), rgba(0,196,216,0.10)); border-bottom: 1px solid rgba(0,196,216,0.2); padding: 16px 24px; display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; }
+.countdown-label { font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+.countdown-clock { display: flex; align-items: center; gap: 6px; }
+.countdown-unit { display: flex; flex-direction: column; align-items: center; }
+.countdown-unit span { font-size: 1.6rem; font-weight: 800; color: #fff; line-height: 1; min-width: 40px; text-align: center; }
+.countdown-unit small { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.countdown-sep { font-size: 1.4rem; font-weight: 700; color: var(--cyan); margin-bottom: 10px; }
+
+/* ── Theme toggle ── */
+.theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 1rem; color: inherit; transition: border-color 0.2s; margin-left: 4px; }
+.theme-toggle:hover { border-color: rgba(255,255,255,0.4); }
+
+/* ── Light mode ── */
+[data-theme="light"] { --bg: #f5f5f7; --surface: #fff; --surface-2: #f0f0f5; --text: #111; --muted: #666; }
+[data-theme="light"] body { background: var(--bg); color: var(--text); }
+[data-theme="light"] .ksi-header, [data-theme="light"] .ksi-header.is-scrolled { background: rgba(245,245,247,0.96); border-bottom-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .card, [data-theme="light"] .plan, [data-theme="light"] .testimonial-card, [data-theme="light"] .portfolio-card { background: #fff; border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .hero-bg { background: #f5f5f7; }
+[data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3, [data-theme="light"] h4 { color: #111; }
+[data-theme="light"] .lead, [data-theme="light"] p { color: #444; }
+[data-theme="light"] .modal-box { background: #fff; color: #111; }
+[data-theme="light"] .modal-box p { color: #555; }
+[data-theme="light"] .faq-a p { color: #555; }
+[data-theme="light"] .ticker { background: #eee; }
+[data-theme="light"] .sticky-cta { background: rgba(245,245,247,0.97); border-top-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .sticky-cta-text { color: #333; }
+
 /* ── Responsive additions ── */
 @media (max-width: 768px) {
   .stats-band-inner { flex-wrap: wrap; }

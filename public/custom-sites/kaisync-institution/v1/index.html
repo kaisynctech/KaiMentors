@@ -25,6 +25,7 @@
     <a href="pricing.html">Pricing</a>
     <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
     <a class="nav-login" href="login.html">Login</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
   </nav>
 </header>
 
@@ -114,6 +115,14 @@
     <span>AI Agents</span><span>Automation</span><span>Web Apps</span><span>Mobile Apps</span>
     <span>SaaS Products</span><span>APIs</span><span>Databases</span><span>Animations</span>
     <span>Business Classes</span><span>Python</span><span>Prompt Engineering</span><span>AI Mentorship</span>
+  </div>
+</div>
+
+<!-- Quiz CTA strip -->
+<div class="quiz-strip">
+  <div class="quiz-strip-inner">
+    <span>Not sure which plan is right for you?</span>
+    <button class="btn primary" id="open-quiz">Take the 30-second quiz →</button>
   </div>
 </div>
 
@@ -548,6 +557,32 @@
   </div>
 </footer>
 
+<!-- Course preview modal -->
+<div class="modal-overlay" id="course-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    <div class="modal-tag" id="modal-tag"></div>
+    <h2 id="modal-title"></h2>
+    <p id="modal-desc"></p>
+    <ul class="modal-outcomes" id="modal-outcomes"></ul>
+    <div class="modal-meta" id="modal-meta"></div>
+    <a class="btn primary" href="signup.html" style="margin-top:8px;">Enrol Now →</a>
+  </div>
+</div>
+
+<!-- AI quiz modal -->
+<div class="modal-overlay" id="quiz-modal" role="dialog" aria-modal="true" aria-labelledby="quiz-title" hidden>
+  <div class="modal-box modal-box--quiz">
+    <button class="modal-close" id="quiz-close" aria-label="Close">✕</button>
+    <div id="quiz-inner">
+      <p class="eyebrow" style="margin-bottom:8px;">Quick quiz</p>
+      <h2 id="quiz-title">Which plan is right for you?</h2>
+      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:24px;">Answer 4 questions — takes 30 seconds.</p>
+      <div id="quiz-steps"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Sticky CTA bar -->
 <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
   <div class="sticky-cta-inner">
@@ -617,6 +652,92 @@
     }
   }
   window.addEventListener('scroll', onScroll, { passive: true });
+})();
+
+/* ── Dark / light mode toggle ── */
+(function(){
+  var btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  var saved = localStorage.getItem('ksi-theme') || 'dark';
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    btn.textContent = t === 'dark' ? '🌙' : '☀️';
+    localStorage.setItem('ksi-theme', t);
+  }
+  applyTheme(saved);
+  btn.addEventListener('click', function(){
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+})();
+
+/* ── Course preview modal ── */
+(function(){
+  var COURSES = {
+    'Websites with AI': { tag: 'Web', desc: 'Design and ship beautiful, fast websites using AI-assisted tools like Lovable, Cursor, and Designer.io. No prior experience needed.', outcomes: ['Build 3 live websites', 'Master Lovable & Cursor AI', 'Deploy to production', 'SEO fundamentals with AI'], meta: '⏱ 6 weeks · 🎯 Beginner-friendly · 📱 Self-paced' },
+    'Mobile Apps': { tag: 'Mobile', desc: 'Build cross-platform mobile apps from scratch using AI tools. Go from idea to app-store ready without a CS degree.', outcomes: ['Ship an Android & iOS app', 'Use AI to generate UI & logic', 'Publish to app stores', 'Monetisation strategies'], meta: '⏱ 8 weeks · 🎯 Intermediate · 📱 Self-paced + live sessions' },
+    'SaaS Products': { tag: 'SaaS', desc: 'Learn to structure, build, and launch subscription software products that people actually pay for.', outcomes: ['Build a working SaaS MVP', 'Set up payments & subscriptions', 'User authentication & dashboards', 'Launch and get first customers'], meta: '⏱ 10 weeks · 🎯 Intermediate · 🎥 Live classes included' },
+    'AI Agents': { tag: 'Agents', desc: 'Design autonomous AI agents that reason, plan and take real-world actions — one of the hottest skills in the market right now.', outcomes: ['Build 5 working AI agents', 'Multi-agent workflows', 'Connect agents to real tools & APIs', 'Deploy and monetise agents'], meta: '⏱ 6 weeks · 🎯 Intermediate · 🎥 Pro plan included' },
+    'Automations': { tag: 'Automation', desc: 'Chain AI tools and triggers together to automate repetitive tasks and build income-generating workflows.', outcomes: ['10+ automation templates', 'Connect APIs, emails, databases', 'Build lead gen & sales automations', 'Sell automations as a service'], meta: '⏱ 4 weeks · 🎯 Beginner-friendly · 📱 Self-paced' },
+  };
+  var overlay = document.getElementById('course-modal');
+  var closeBtn = document.getElementById('modal-close');
+  if (!overlay) return;
+  function openModal(title) {
+    var d = COURSES[title]; if (!d) return;
+    document.getElementById('modal-tag').textContent = d.tag;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = d.desc;
+    var ul = document.getElementById('modal-outcomes');
+    ul.innerHTML = d.outcomes.map(function(o){ return '<li>✓ ' + o + '</li>'; }).join('');
+    document.getElementById('modal-meta').textContent = d.meta;
+    overlay.hidden = false; document.body.style.overflow = 'hidden';
+  }
+  function closeModal() { overlay.hidden = true; document.body.style.overflow = ''; }
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+  document.querySelectorAll('.card h3').forEach(function(h){
+    h.parentElement.style.cursor = 'pointer';
+    h.parentElement.addEventListener('click', function(){ openModal(h.textContent.trim()); });
+  });
+})();
+
+/* ── AI quiz ── */
+(function(){
+  var openBtn = document.getElementById('open-quiz');
+  var overlay = document.getElementById('quiz-modal');
+  var closeBtn = document.getElementById('quiz-close');
+  if (!openBtn || !overlay) return;
+  var QUESTIONS = [
+    { q: 'What describes you best?', opts: ['I\'m completely new to tech', 'I know the basics, want to go deeper', 'I\'m technical and want to build seriously'] },
+    { q: 'How much time can you commit per week?', opts: ['1–3 hours (evenings only)', '4–8 hours (part-time)', '10+ hours (I\'m serious)'] },
+    { q: 'What do you want to build first?', opts: ['A website or portfolio', 'A mobile app or SaaS', 'AI agents or automations'] },
+    { q: 'What\'s your main goal?', opts: ['Learn skills for employment', 'Launch a side income', 'Build a full product or startup'] },
+  ];
+  var answers = [];
+  var current = 0;
+  function render() {
+    var container = document.getElementById('quiz-steps');
+    if (current >= QUESTIONS.length) {
+      var score = answers.reduce(function(s,a){ return s+a; }, 0);
+      var plan = score <= 3 ? 'Basic' : score <= 6 ? 'Intermediate' : 'Pro';
+      var price = plan === 'Basic' ? 'R250' : plan === 'Intermediate' ? 'R400' : 'R700';
+      container.innerHTML = '<div class="quiz-result"><div class="quiz-result-plan">We recommend: <strong>' + plan + '</strong></div><div class="quiz-result-price">' + price + '/month</div><p class="quiz-result-note">Based on your answers, ' + plan + ' is the best fit to get started. You can always upgrade as you grow.</p><a class="btn primary" href="signup.html" style="margin-top:16px;">Start ' + plan + ' →</a><button class="btn ghost" id="quiz-restart" style="margin-top:8px;margin-left:8px;">Retake quiz</button></div>';
+      document.getElementById('quiz-restart').addEventListener('click', function(){ answers=[]; current=0; render(); });
+      return;
+    }
+    var q = QUESTIONS[current];
+    container.innerHTML = '<div class="quiz-progress"><div class="quiz-progress-bar" style="width:' + ((current/QUESTIONS.length)*100) + '%"></div></div><p class="quiz-question">' + q.q + '</p><div class="quiz-opts">' + q.opts.map(function(o,i){ return '<button class="quiz-opt" data-i="'+i+'">'+o+'</button>'; }).join('') + '</div>';
+    container.querySelectorAll('.quiz-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){ answers.push(parseInt(btn.dataset.i)); current++; render(); });
+    });
+  }
+  function openQuiz(){ overlay.hidden=false; document.body.style.overflow='hidden'; answers=[]; current=0; render(); }
+  function closeQuiz(){ overlay.hidden=true; document.body.style.overflow=''; }
+  openBtn.addEventListener('click', openQuiz);
+  closeBtn.addEventListener('click', closeQuiz);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeQuiz(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuiz(); });
 })();
 
 /* ── FAQ accordion ── */
