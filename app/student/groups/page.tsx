@@ -1,7 +1,8 @@
-import { Users } from "lucide-react";
+import { BookOpen, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { StudentShell } from "@/components/student-shell";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -70,7 +71,7 @@ export default async function StudentGroupsPage({
   const { data: memberships } = await supabase
     .from("student_group_members")
     .select(
-      "id,group_id,student_groups(id,name,description,color,is_active)",
+      "id,group_id,student_groups(id,name,description,color,is_active,system_key)",
     )
     .eq("trader_id", app.trader_id)
     .eq("application_id", app.id);
@@ -83,7 +84,59 @@ export default async function StudentGroupsPage({
       return g;
     })
     .filter(Boolean)
-    .filter((g) => g?.is_active);
+    // Exclude the auto-created 'all_students' system group and any other
+    // system_key-tagged group -- these are internal broadcast/access-control
+    // constructs, not groups the student was intentionally placed in.
+    .filter((g) => g?.is_active && g?.system_key == null);
+
+  const groupIds = groups.map((g) => g!.id);
+
+  // Member counts and linked courses both need to read rows belonging to
+  // OTHER students / to a mentor-only table. RLS deliberately does not allow
+  // that for the student's own session client:
+  //   - "students read own group membership" on student_group_members only
+  //     matches rows whose application.student_user_id = auth.uid(), so a
+  //     session-scoped count query would always return 1, never the true
+  //     group size.
+  //   - content_access_grants has no student-facing SELECT policy at all
+  //     (only "tenant members manage content grants", gated on
+  //     is_trader_member) -- a session-scoped query there returns zero rows
+  //     unconditionally, not just until MB-122 populates grants.
+  // The admin client is safe here because both queries are scoped to
+  // groupIds already proven (via the RLS-protected membership query above)
+  // to belong to this student -- no group_id the student doesn't belong to
+  // is ever queryable this way, and only counts/course titles are returned,
+  // never other members' identities.
+  const admin = createAdminClient();
+
+  const countMap = new Map<string, number>();
+  if (groupIds.length > 0 && admin) {
+    const { data: counts } = await admin
+      .from("student_group_members")
+      .select("group_id")
+      .in("group_id", groupIds)
+      .eq("trader_id", app.trader_id);
+    counts?.forEach((row) => {
+      countMap.set(row.group_id, (countMap.get(row.group_id) ?? 0) + 1);
+    });
+  }
+
+  const courseMap = new Map<string, { id: string; title: string }[]>();
+  if (groupIds.length > 0 && admin) {
+    const { data: grants } = await admin
+      .from("content_access_grants")
+      .select("group_id, entity_id, courses!inner(id,title)")
+      .eq("trader_id", app.trader_id)
+      .eq("entity_type", "course")
+      .in("group_id", groupIds);
+    grants?.forEach((g) => {
+      if (!g.group_id) return;
+      const course = Array.isArray(g.courses) ? g.courses[0] : g.courses;
+      if (!course) return;
+      const existing = courseMap.get(g.group_id) ?? [];
+      courseMap.set(g.group_id, [...existing, { id: course.id, title: course.title }]);
+    });
+  }
 
   return (
     <Shell>
@@ -95,23 +148,45 @@ export default async function StudentGroupsPage({
 
         {groups.length > 0 ? (
           <div className={styles.grid}>
-            {groups.map((group) => (
-              <div className={styles.card} key={group!.id}>
-                <div className={styles.cardTop}>
-                  <span
-                    className={styles.dot}
-                    style={{ background: group!.color ?? "#7ab648" }}
-                  />
-                  <h2 className={styles.cardTitle}>{group!.name}</h2>
+            {groups.map((group) => {
+              const count = countMap.get(group!.id) ?? 0;
+              const courses = courseMap.get(group!.id) ?? [];
+              return (
+                <div className={styles.card} key={group!.id}>
+                  <div className={styles.cardTop}>
+                    <span
+                      className={styles.dot}
+                      style={{ background: group!.color ?? "#7ab648" }}
+                    />
+                    <h2 className={styles.cardTitle}>{group!.name}</h2>
+                  </div>
+                  <p className={styles.memberCount}>
+                    {count} member{count !== 1 ? "s" : ""}
+                  </p>
+                  {group!.description ? (
+                    <p className={styles.cardDesc}>{group!.description}</p>
+                  ) : null}
+                  {courses.length > 0 ? (
+                    <div className={styles.coursesBlock}>
+                      <p className={styles.coursesHeading}>
+                        <BookOpen size={13} />
+                        Courses in this group
+                      </p>
+                      <ul className={styles.coursesList}>
+                        {courses.map((c) => (
+                          <li key={c.id}>
+                            <a href={`${base}/courses/${c.id}${suffix}`}>{c.title}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  <p className={styles.cardMeta}>
+                    Member
+                  </p>
                 </div>
-                {group!.description ? (
-                  <p className={styles.cardDesc}>{group!.description}</p>
-                ) : null}
-                <p className={styles.cardMeta}>
-                  Member
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className={styles.emptyState}>
