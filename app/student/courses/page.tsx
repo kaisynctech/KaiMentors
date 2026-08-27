@@ -1,4 +1,4 @@
-import { BookOpen, CheckCircle2, PlayCircle } from "lucide-react";
+import { Award, BookOpen, CheckCircle2, PlayCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -70,7 +70,7 @@ export default async function StudentCoursesPage({
     );
   }
 
-  const [{ data: courseRows }, { data: progressRows }] = await Promise.all([
+  const [{ data: courseRows }, { data: progressRows }, { data: certificateRows }] = await Promise.all([
     supabase
       .from("courses")
       .select(
@@ -86,7 +86,16 @@ export default async function StudentCoursesPage({
       )
       .eq("trader_id", application.trader_id)
       .eq("student_user_id", user.id),
+    supabase
+      .from("student_certificates")
+      .select("course_id, public_token")
+      .eq("student_user_id", user.id)
+      .eq("trader_id", application.trader_id),
   ]);
+
+  const certificateMap = new Map<string, string>(
+    (certificateRows ?? []).map((c) => [c.course_id, c.public_token]),
+  );
 
   const admin = createAdminClient();
 
@@ -235,46 +244,64 @@ export default async function StudentCoursesPage({
           </div>
           {courses.length > 0 ? (
             <div className={styles.grid}>
-              {courses.map((course) => (
-                <Link
-                  className={styles.courseCard}
-                  href={`${base}/courses/${course.id}${suffix}`}
-                  key={course.id}
-                >
-                  <div className={styles.cardThumbnail}>
-                    {course.thumbnailUrl ? (
-                      <Image
-                        alt=""
-                        fill
-                        sizes="(max-width: 600px) 100vw, 360px"
-                        src={course.thumbnailUrl}
-                        unoptimized
-                      />
-                    ) : (
-                      <BookOpen size={24} />
-                    )}
-                  </div>
-                  <div className={styles.cardBody}>
-                    <p className={styles.cardTitle}>{course.title}</p>
-                    <p className={styles.cardMeta}>
-                      {course.lessonCount} required lesson
-                      {course.lessonCount === 1 ? "" : "s"}
-                    </p>
-                    <div className={styles.cardProgress}>
-                      <span style={{ width: `${course.percent}%` }} />
-                    </div>
-                    <p className={styles.cardProgressLabel}>
-                      {course.percent}%
-                    </p>
-                    {course.complete ? (
-                      <span className={styles.completedBadge}>
-                        <CheckCircle2 size={10} />
-                        Completed
-                      </span>
+              {courses.map((course) => {
+                const certificateToken = certificateMap.get(course.id);
+                return (
+                  <div className={styles.courseCard} key={course.id}>
+                    <Link
+                      className={styles.courseCardLink}
+                      href={`${base}/courses/${course.id}${suffix}`}
+                    >
+                      <div className={styles.cardThumbnail}>
+                        {course.thumbnailUrl ? (
+                          <Image
+                            alt=""
+                            fill
+                            sizes="(max-width: 600px) 100vw, 360px"
+                            src={course.thumbnailUrl}
+                            unoptimized
+                          />
+                        ) : (
+                          <BookOpen size={24} />
+                        )}
+                      </div>
+                      <div className={styles.cardBody}>
+                        <p className={styles.cardTitle}>{course.title}</p>
+                        <p className={styles.cardMeta}>
+                          {course.lessonCount} required lesson
+                          {course.lessonCount === 1 ? "" : "s"}
+                        </p>
+                        <div className={styles.cardProgress}>
+                          <span style={{ width: `${course.percent}%` }} />
+                        </div>
+                        <p className={styles.cardProgressLabel}>
+                          {course.percent}%
+                        </p>
+                        {course.complete ? (
+                          <span className={styles.completedBadge}>
+                            <CheckCircle2 size={10} />
+                            Completed
+                          </span>
+                        ) : null}
+                      </div>
+                    </Link>
+                    {course.complete && certificateToken ? (
+                      <>
+                        <span className={styles.certificateBadge}>
+                          <Award size={10} />
+                          Certificate earned
+                        </span>
+                        <Link
+                          className={styles.certificateLink}
+                          href={`/certificates/${certificateToken}`}
+                        >
+                          View certificate →
+                        </Link>
+                      </>
                     ) : null}
                   </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className={styles.empty}>
@@ -301,41 +328,59 @@ export default async function StudentCoursesPage({
               </h2>
             </div>
             <div className={styles.grid}>
-              {completed.map((course) => (
-                <Link
-                  className={styles.courseCard}
-                  href={`${base}/courses/${course.id}${suffix}`}
-                  key={course.id}
-                >
-                  <div className={styles.cardThumbnail}>
-                    {course.thumbnailUrl ? (
-                      <Image
-                        alt=""
-                        fill
-                        sizes="(max-width: 600px) 100vw, 360px"
-                        src={course.thumbnailUrl}
-                        unoptimized
-                      />
-                    ) : (
-                      <BookOpen size={24} />
-                    )}
+              {completed.map((course) => {
+                const certificateToken = certificateMap.get(course.id);
+                return (
+                  <div className={styles.courseCard} key={course.id}>
+                    <Link
+                      className={styles.courseCardLink}
+                      href={`${base}/courses/${course.id}${suffix}`}
+                    >
+                      <div className={styles.cardThumbnail}>
+                        {course.thumbnailUrl ? (
+                          <Image
+                            alt=""
+                            fill
+                            sizes="(max-width: 600px) 100vw, 360px"
+                            src={course.thumbnailUrl}
+                            unoptimized
+                          />
+                        ) : (
+                          <BookOpen size={24} />
+                        )}
+                      </div>
+                      <div className={styles.cardBody}>
+                        <p className={styles.cardTitle}>{course.title}</p>
+                        <p className={styles.cardMeta}>
+                          {course.lessonCount} required lesson
+                          {course.lessonCount === 1 ? "" : "s"}
+                        </p>
+                        <div className={styles.cardProgress}>
+                          <span style={{ width: "100%" }} />
+                        </div>
+                        <span className={styles.completedBadge}>
+                          <CheckCircle2 size={10} />
+                          Completed
+                        </span>
+                      </div>
+                    </Link>
+                    {certificateToken ? (
+                      <>
+                        <span className={styles.certificateBadge}>
+                          <Award size={10} />
+                          Certificate earned
+                        </span>
+                        <Link
+                          className={styles.certificateLink}
+                          href={`/certificates/${certificateToken}`}
+                        >
+                          View certificate →
+                        </Link>
+                      </>
+                    ) : null}
                   </div>
-                  <div className={styles.cardBody}>
-                    <p className={styles.cardTitle}>{course.title}</p>
-                    <p className={styles.cardMeta}>
-                      {course.lessonCount} required lesson
-                      {course.lessonCount === 1 ? "" : "s"}
-                    </p>
-                    <div className={styles.cardProgress}>
-                      <span style={{ width: "100%" }} />
-                    </div>
-                    <span className={styles.completedBadge}>
-                      <CheckCircle2 size={10} />
-                      Completed
-                    </span>
-                  </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           </section>
         ) : null}

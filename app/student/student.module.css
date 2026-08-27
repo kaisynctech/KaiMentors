@@ -55,7 +55,7 @@
 /* Stat cards */
 .statsRow {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 28px;
 }
@@ -387,7 +387,6 @@
 @media (max-width: 600px) {
   .dashboard { padding: 24px 18px 50px; }
   .statsRow { grid-template-columns: 1fr 1fr; }
-  .statsRow .statCard:last-child { grid-column: 1 / -1; }
   .continueCard { flex-direction: column; align-items: flex-start; }
   .continueThumbnail { width: 100%; height: 120px; }
   .quickActions { gap: 0.5rem; }

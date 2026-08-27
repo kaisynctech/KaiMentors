@@ -39,6 +39,7 @@ export function ProtectedLessonContent({
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(completed);
   const [courseComplete, setCourseComplete] = useState(false);
+  const [certificateToken, setCertificateToken] = useState<string | null>(null);
   const lastWrite = useRef(0);
   const autoCompleted = useRef<Set<string>>(new Set());
 
@@ -64,10 +65,20 @@ export function ProtectedLessonContent({
     const now = Date.now();
     if (!isCompleted && now - lastWrite.current < 15000) return;
     lastWrite.current = now;
-    await fetch("/api/course-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lessonId, positionSeconds: Math.max(0, Math.floor(position)), completed: isCompleted }) });
+    const response = await fetch("/api/course-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lessonId, positionSeconds: Math.max(0, Math.floor(position)), completed: isCompleted }) });
     if (isCompleted) {
       setDone(true);
       if (courseWillBeComplete) setCourseComplete(true);
+      // MB-123: certificateToken is the authoritative "course is complete"
+      // signal from the server -- courseWillBeComplete above is only a
+      // client-side optimistic pre-check computed before this request (and
+      // doesn't account for the zero-required-lessons edge case), so also
+      // trust whatever the API actually reports.
+      const payload = await response.json().catch(() => null);
+      if (payload?.certificateToken) {
+        setCertificateToken(payload.certificateToken);
+        setCourseComplete(true);
+      }
     }
   }
 
@@ -111,8 +122,13 @@ export function ProtectedLessonContent({
     {courseComplete && courseId && (
       <div className={styles.courseCompleteOverlay}>
         <PartyPopper size={28} className={styles.courseCompleteIcon} />
-        <h2>Course complete!</h2>
+        <h2>{certificateToken ? "🎉 Course complete! You've earned your certificate." : "Course complete!"}</h2>
         <p>You&apos;ve finished all required lessons. Well done.</p>
+        {certificateToken ? (
+          <a className={styles.courseCompleteLink} href={`/certificates/${certificateToken}`}>
+            View certificate
+          </a>
+        ) : null}
         <a className={styles.courseCompleteLink} href={`/student/courses/${courseId}`}>
           View your progress
         </a>

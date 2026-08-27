@@ -1,0 +1,24 @@
+.printBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: #111315;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.printBtn:hover {
+  background: #2a2f33;
+}
+
+@media print {
+  .printBtn {
+    display: none;
+  }
+}

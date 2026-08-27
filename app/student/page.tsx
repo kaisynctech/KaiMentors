@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Award,
   BookOpen,
   CalendarCheck,
   CheckCircle2,
@@ -96,6 +97,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     published_at: string | null;
   }> = [];
   let courseCount = 0;
+  let certificateCount = 0;
   let nextSession: {
     id: string;
     starts_at: string;
@@ -114,6 +116,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       coursesResult,
       sessionResult,
       signalResult,
+      certificatesResult,
     ] = await Promise.all([
         supabase
           .from("lesson_progress")
@@ -159,6 +162,11 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           .limit(1)
           .maybeSingle(),
         loadTodaySignal(supabase, application.trader_id),
+        supabase
+          .from("student_certificates")
+          .select("id", { count: "exact", head: true })
+          .eq("trader_id", application.trader_id)
+          .eq("student_user_id", user.id),
       ]);
 
     lessonProgress = (progressResult.data ?? []) as unknown as typeof lessonProgress;
@@ -180,6 +188,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       session_type: { name: string; duration_minutes: number } | null;
     } | null;
     todaySignal = signalResult;
+    certificateCount = certificatesResult.count ?? 0;
   }
 
   const continueLearning = lessonProgress.find(
@@ -323,6 +332,17 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 <p className={styles.statValue}>{announcements.length}</p>
                 <p className={styles.statLabel}>Announcements</p>
               </div>
+              <Link
+                className={styles.statCard}
+                href={`${basePath}/courses${querySuffix}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <p className={styles.statValue}>
+                  <Award size={16} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                  {certificateCount}
+                </p>
+                <p className={styles.statLabel}>Certificates</p>
+              </Link>
             </div>
 
             {/* Quick actions */}

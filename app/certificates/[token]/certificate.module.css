@@ -1,0 +1,94 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: #f4f6f7;
+}
+
+.certificate {
+  max-width: 720px;
+  width: 100%;
+  padding: 64px 56px;
+  background: white;
+  border: 3px solid #7ab648;
+  border-radius: 4px;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.portalName {
+  margin: 0 0 32px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0 0 28px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #697178;
+}
+
+.lead {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #596168;
+}
+
+.studentName {
+  margin: 0 0 24px;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111315;
+}
+
+.courseTitle {
+  margin: 0 0 32px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111315;
+}
+
+.issuedDate {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #596168;
+}
+
+.verifyUrl {
+  margin: 0;
+  font-size: 11px;
+  color: #9aa0a5;
+  word-break: break-all;
+}
+
+@media print {
+  .page {
+    padding: 0;
+    background: white;
+  }
+  .certificate {
+    border-width: 2px;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .certificate {
+    padding: 40px 24px;
+  }
+  .studentName {
+    font-size: 28px;
+  }
+  .courseTitle {
+    font-size: 19px;
+  }
+}
