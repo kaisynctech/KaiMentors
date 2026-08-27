@@ -26,6 +26,7 @@ export type StudentSessionContext = {
     broker_verified: boolean;
     verification_screenshot_path: string | null;
   };
+  fullName: string | null;
   portal: {
     portal_name: string;
     slug: string;
@@ -49,7 +50,7 @@ export async function loadStudentSessionContext(
   let appQuery = supabase
     .from("student_applications")
     .select(
-      "id,trader_id,status,status_reason,portal_id,broker_verified,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path,primary_color,access_model,require_broker_verification_for_modules,allow_full_access_without_verification)",
+      "id,trader_id,status,status_reason,portal_id,broker_verified,verification_screenshot_path,full_name,portal:portals!inner(portal_name,slug,logo_path,primary_color,access_model,require_broker_verification_for_modules,allow_full_access_without_verification)",
     )
     .eq("student_user_id", userId);
 
@@ -128,6 +129,7 @@ export async function loadStudentSessionContext(
       verification_screenshot_path:
         application.verification_screenshot_path as string | null,
     },
+    fullName: (application.full_name as string | null) ?? null,
     portal: {
       portal_name: portal.portal_name as string,
       slug: portal.slug as string,

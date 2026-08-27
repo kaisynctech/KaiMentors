@@ -30,7 +30,7 @@ export default async function StudentLiveClassesPage({
 
   const { application: app, portal, hasModuleAccess } = ctx;
   const academyName = portal.portal_name;
-  const displayName = user.email?.split("@")[0] ?? "Student";
+  const displayName = ctx.fullName?.trim() || user.email?.split("@")[0] || "Student";
 
   function Shell({ children }: { children: React.ReactNode }) {
     return (
