@@ -315,6 +315,103 @@
   color: #343a3f;
 }
 
+.pickerLabel {
+  font-size: 11px;
+  font-weight: 750;
+  color: #343a3f;
+}
+
+.scopeField {
+  display: grid;
+  gap: 8px;
+}
+
+.scopeOptions {
+  display: grid;
+  gap: 8px;
+}
+
+.scopeOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.scopeOption strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111315;
+}
+
+.scopeOption p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #697178;
+}
+
+.scopeOptionSelected {
+  border-color: #111315;
+  background: #f7f8f8;
+}
+
+.scopeRadio {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 2px solid #b7bcc0;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.scopeOptionSelected .scopeRadio {
+  border-color: #111315;
+  background: radial-gradient(circle, #111315 0 40%, transparent 42%);
+}
+
+.groupChoices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #eef0f1;
+  border-radius: 10px;
+  background: #fafbfb;
+}
+
+.groupChoiceItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #343a3f;
+}
+
+.groupChoiceItem input {
+  width: auto;
+  min-height: auto;
+}
+
+.groupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.noGroups {
+  grid-column: 1/-1;
+  margin: 0;
+  color: #9aa0a5;
+  font-size: 11px;
+}
+
 .required {
   color: #d93025;
 }

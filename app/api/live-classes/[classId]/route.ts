@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { syncGroupGrants } from "@/lib/content-access-grants";
 
 const paramsSchema = z.object({ classId: z.string().uuid() });
 
@@ -17,6 +18,13 @@ const patchSchema = z.object({
   roomStatus: z.enum(["scheduled", "live", "ended"]).optional(),
   recordingEnabled: z.boolean().optional(),
   recordingUrl: z.string().url().nullable().optional(),
+  // MB-124: undefined = scope untouched. Present (even []) = authoritative,
+  // recompute access_scope and fully replace this class's group grants.
+  // Note: contrary to the MB-124 brief's claim that this route "already
+  // handles access_scope," it did not -- verified by reading the file
+  // before writing this; neither the schema nor the mentor-dashboard query
+  // selected or wrote access_scope at all prior to this change.
+  groupIds: z.array(z.string().uuid()).optional(),
 });
 
 async function resolveContext(context: { params: Promise<{ classId: string }> }) {
@@ -36,7 +44,7 @@ async function resolveContext(context: { params: Promise<{ classId: string }> })
   if (!membership) return null;
   const params = paramsSchema.safeParse(await context.params);
   if (!params.success) return null;
-  return { supabase, tid: membership.trader_id, classId: params.data.classId };
+  return { supabase, tid: membership.trader_id, classId: params.data.classId, userId: user.id };
 }
 
 export async function PATCH(
@@ -68,6 +76,9 @@ export async function PATCH(
   if (d.roomStatus !== undefined) patch.room_status = d.roomStatus;
   if (d.recordingEnabled !== undefined) patch.recording_enabled = d.recordingEnabled;
   if (d.recordingUrl !== undefined) patch.recording_url = d.recordingUrl;
+  if (d.groupIds !== undefined) {
+    patch.access_scope = d.groupIds.length > 0 ? "restricted" : "all_verified";
+  }
 
   const { error } = await ctx.supabase
     .from("live_classes")
@@ -76,6 +87,16 @@ export async function PATCH(
     .eq("trader_id", ctx.tid);
 
   if (error) return NextResponse.json({ error: "Could not update class." }, { status: 500 });
+
+  if (d.groupIds !== undefined) {
+    await syncGroupGrants(ctx.supabase, {
+      traderId: ctx.tid,
+      entityType: "live_class",
+      entityId: ctx.classId,
+      groupIds: d.groupIds,
+      grantedBy: ctx.userId,
+    });
+  }
 
   return NextResponse.json({ updated: true });
 }

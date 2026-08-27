@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveMentorWorkspace } from "@/lib/entitlements";
+import { syncGroupGrants } from "@/lib/content-access-grants";
 
 const updateSchema = z.object({
   title: z.string().trim().min(2).max(160).optional(),
   body: z.string().trim().min(1).max(10000).optional(),
   status: z.enum(["draft", "published"]).optional(),
   isPinned: z.boolean().optional(),
+  // Undefined = scope untouched (e.g. a bare publish/pin toggle). Present
+  // (even as an empty array) = authoritative: recompute access_scope and
+  // fully replace this announcement's group grants.
+  groupIds: z.array(z.string().uuid()).optional(),
 });
 
 export async function PATCH(
@@ -35,13 +40,16 @@ export async function PATCH(
       updates.published_at = new Date().toISOString();
     }
   }
+  if (parsed.data.groupIds !== undefined) {
+    updates.access_scope = parsed.data.groupIds.length > 0 ? "restricted" : "all_verified";
+  }
 
   const { data, error } = await workspace.supabase
     .from("announcements")
     .update(updates)
     .eq("id", id)
     .eq("trader_id", workspace.traderId)
-    .select("id,title,body,status,is_pinned,published_at,created_at,updated_at")
+    .select("id,title,body,status,is_pinned,access_scope,published_at,created_at,updated_at")
     .maybeSingle();
 
   if (error || !data) {
@@ -51,7 +59,22 @@ export async function PATCH(
     );
   }
 
-  return NextResponse.json({ announcement: data });
+  if (parsed.data.groupIds !== undefined) {
+    await syncGroupGrants(workspace.supabase, {
+      traderId: workspace.traderId,
+      entityType: "announcement",
+      entityId: id,
+      groupIds: parsed.data.groupIds,
+      grantedBy: workspace.user.id,
+    });
+  }
+
+  return NextResponse.json({
+    announcement: {
+      ...data,
+      ...(parsed.data.groupIds !== undefined ? { groupIds: parsed.data.groupIds } : {}),
+    },
+  });
 }
 
 export async function DELETE(

@@ -29,12 +29,15 @@ export default async function TraderDashboard() {
     body: string;
     status: "draft" | "published";
     is_pinned: boolean;
+    access_scope: "all_verified" | "restricted";
     published_at: string | null;
     updated_at: string;
+    groupIds: string[];
   }> = [];
+  let groups: Array<{ id: string; name: string; color: string }> = [];
 
   if (supabase && traderId) {
-    const [students, verified, pending, courses, applications, announcementRows] = await Promise.all([
+    const [students, verified, pending, courses, applications, announcementRows, groupRows, grantRows] = await Promise.all([
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).eq("status", "verified"),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).in("status", ["pending", "processing", "manual_review", "needs_more_information"]),
@@ -42,10 +45,24 @@ export default async function TraderDashboard() {
       supabase.from("student_applications").select("id,status,submitted_at,profile:profiles!student_user_id(full_name,email)").eq("trader_id", traderId).order("submitted_at", { ascending: false }).limit(5),
       supabase
         .from("announcements")
-        .select("id,title,body,status,is_pinned,published_at,updated_at")
+        .select("id,title,body,status,is_pinned,access_scope,published_at,updated_at")
         .eq("trader_id", traderId)
         .order("is_pinned", { ascending: false })
         .order("updated_at", { ascending: false }),
+      // MB-124: active groups for the access-scope selector, excluding the
+      // auto-created 'all_students' system group (same filter as MB-121).
+      supabase
+        .from("student_groups")
+        .select("id,name,color")
+        .eq("trader_id", traderId)
+        .eq("is_active", true)
+        .is("system_key", null)
+        .order("name"),
+      supabase
+        .from("content_access_grants")
+        .select("entity_id, group_id")
+        .eq("trader_id", traderId)
+        .eq("entity_type", "announcement"),
     ]);
 
     stats = {
@@ -60,7 +77,18 @@ export default async function TraderDashboard() {
         ? application.profile[0] ?? null
         : application.profile,
     })) as typeof recent;
-    announcements = (announcementRows.data ?? []) as typeof announcements;
+
+    const grantsByAnnouncement = new Map<string, string[]>();
+    (grantRows.data ?? []).forEach((g) => {
+      if (!g.group_id) return;
+      const existing = grantsByAnnouncement.get(g.entity_id) ?? [];
+      grantsByAnnouncement.set(g.entity_id, [...existing, g.group_id]);
+    });
+    announcements = (announcementRows.data ?? []).map((row) => ({
+      ...row,
+      groupIds: grantsByAnnouncement.get(row.id) ?? [],
+    })) as typeof announcements;
+    groups = groupRows.data ?? [];
   }
 
   return (
@@ -129,7 +157,7 @@ export default async function TraderDashboard() {
         </article>
       </section>
 
-      <DashboardAnnouncementsPanel initialAnnouncements={announcements} />
+      <DashboardAnnouncementsPanel groups={groups} initialAnnouncements={announcements} />
     </DashboardShell>
   );
 }

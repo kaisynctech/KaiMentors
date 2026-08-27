@@ -22,10 +22,19 @@ interface LiveClass {
   room_status: RoomStatus;
   recording_enabled: boolean;
   recording_url: string | null;
+  access_scope?: "all_verified" | "restricted";
+  groupIds?: string[];
+}
+
+interface GroupOption {
+  id: string;
+  name: string;
+  color: string;
 }
 
 interface Props {
   classes: LiveClass[];
+  groups?: GroupOption[];
 }
 
 const PROVIDER_LABELS: Record<Provider, string> = {
@@ -79,7 +88,7 @@ function combineStartAndEndTime(startsAtIso: string, endTimeVal: string) {
   return base.toISOString();
 }
 
-export function LiveClassManager({ classes: initial }: Props) {
+export function LiveClassManager({ classes: initial, groups = [] }: Props) {
   const router = useRouter();
   const [classes, setClasses] = useState<LiveClass[]>(initial);
   const [selected, setSelected] = useState<LiveClass | null>(null);
@@ -96,6 +105,8 @@ export function LiveClassManager({ classes: initial }: Props) {
   const [endsAtTime, setEndsAtTime] = useState("");
   const [recordingEnabled, setRecordingEnabled] = useState(false);
   const [publishedToggle, setPublishedToggle] = useState(false);
+  const [scopeMode, setScopeMode] = useState<"all_verified" | "restricted">("all_verified");
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
 
   // async state
   const [saving, setSaving] = useState(false);
@@ -123,6 +134,8 @@ export function LiveClassManager({ classes: initial }: Props) {
     setEndsAtTime("");
     setRecordingEnabled(false);
     setPublishedToggle(false);
+    setScopeMode("all_verified");
+    setSelectedGroupIds([]);
     setError(null);
   }
 
@@ -139,8 +152,16 @@ export function LiveClassManager({ classes: initial }: Props) {
     setEndsAtTime(cls.ends_at ? toLocalTimeValue(cls.ends_at) : "");
     setRecordingEnabled(cls.recording_enabled);
     setPublishedToggle(cls.status === "published");
+    setScopeMode(cls.access_scope === "restricted" ? "restricted" : "all_verified");
+    setSelectedGroupIds(cls.groupIds ?? []);
     setError(null);
     setRecordingUrlDraft(cls.recording_url ?? "");
+  }
+
+  function toggleGroup(groupId: string) {
+    setSelectedGroupIds((current) =>
+      current.includes(groupId) ? current.filter((id) => id !== groupId) : [...current, groupId],
+    );
   }
 
   function closePanel() {
@@ -159,6 +180,8 @@ export function LiveClassManager({ classes: initial }: Props) {
     const startsAtIso = localDatetimeToISO(startsAt);
     const endsAtIso = endsAtTime ? combineStartAndEndTime(startsAtIso, endsAtTime) : null;
 
+    const groupIds = scopeMode === "restricted" ? selectedGroupIds : [];
+
     setSaving(true);
     try {
       if (creating) {
@@ -175,6 +198,7 @@ export function LiveClassManager({ classes: initial }: Props) {
             startsAt: startsAtIso,
             endsAt: endsAtIso,
             recordingEnabled,
+            groupIds,
           }),
         });
         const json = await res.json();
@@ -193,6 +217,8 @@ export function LiveClassManager({ classes: initial }: Props) {
           room_status: "scheduled",
           recording_enabled: recordingEnabled,
           recording_url: null,
+          access_scope: groupIds.length > 0 ? "restricted" : "all_verified",
+          groupIds,
         };
         setClasses((prev) => [newCls, ...prev].sort((a, b) => b.starts_at.localeCompare(a.starts_at)));
         setCreating(false);
@@ -209,6 +235,7 @@ export function LiveClassManager({ classes: initial }: Props) {
           endsAt: endsAtIso,
           status: publishedToggle ? "published" : "draft",
           recordingEnabled,
+          groupIds,
         };
         const res = await fetch(`/api/live-classes/${selected.id}`, {
           method: "PATCH",
@@ -229,6 +256,8 @@ export function LiveClassManager({ classes: initial }: Props) {
           ends_at: endsAtIso,
           status: publishedToggle ? "published" : "draft",
           recording_enabled: recordingEnabled,
+          access_scope: groupIds.length > 0 ? "restricted" : "all_verified",
+          groupIds,
         };
         setClasses((prev) =>
           prev.map((c) => (c.id === selected.id ? updated : c)).sort((a, b) => b.starts_at.localeCompare(a.starts_at)),
@@ -486,6 +515,58 @@ export function LiveClassManager({ classes: initial }: Props) {
                     value={endsAtTime}
                   />
                 </label>
+              </div>
+
+              {/* Access scope */}
+              <div className={styles.scopeField}>
+                <span className={styles.pickerLabel}>Who can see this class?</span>
+                <div className={styles.scopeOptions}>
+                  <div
+                    aria-checked={scopeMode === "all_verified"}
+                    className={`${styles.scopeOption} ${scopeMode === "all_verified" ? styles.scopeOptionSelected : ""}`}
+                    onClick={() => setScopeMode("all_verified")}
+                    role="radio"
+                    tabIndex={0}
+                  >
+                    <div className={styles.scopeRadio} />
+                    <div>
+                      <strong>All students</strong>
+                      <p>Every enrolled student with access</p>
+                    </div>
+                  </div>
+                  <div
+                    aria-checked={scopeMode === "restricted"}
+                    className={`${styles.scopeOption} ${scopeMode === "restricted" ? styles.scopeOptionSelected : ""}`}
+                    onClick={() => setScopeMode("restricted")}
+                    role="radio"
+                    tabIndex={0}
+                  >
+                    <div className={styles.scopeRadio} />
+                    <div>
+                      <strong>Specific groups</strong>
+                      <p>Only students in selected groups</p>
+                    </div>
+                  </div>
+                </div>
+                {scopeMode === "restricted" ? (
+                  <div className={styles.groupChoices}>
+                    {groups.length === 0 ? (
+                      <p className={styles.noGroups}>No active groups yet.</p>
+                    ) : (
+                      groups.map((g) => (
+                        <label className={styles.groupChoiceItem} key={g.id}>
+                          <input
+                            checked={selectedGroupIds.includes(g.id)}
+                            onChange={() => toggleGroup(g.id)}
+                            type="checkbox"
+                          />
+                          <span className={styles.groupDot} style={{ background: g.color }} />
+                          {g.name}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               {/* Status toggle (edit only) */}

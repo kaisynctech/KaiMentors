@@ -11,16 +11,26 @@ interface AnnouncementRow {
   body: string;
   status: "draft" | "published";
   is_pinned: boolean;
+  access_scope?: "all_verified" | "restricted";
   published_at: string | null;
   updated_at: string;
+  groupIds?: string[];
+}
+
+interface GroupOption {
+  id: string;
+  name: string;
+  color: string;
 }
 
 interface Props {
   initialAnnouncements: AnnouncementRow[];
+  groups?: GroupOption[];
 }
 
 export function DashboardAnnouncementsPanel({
   initialAnnouncements,
+  groups = [],
 }: Props) {
   const router = useRouter();
   const [rows, setRows] = useState(initialAnnouncements);
@@ -29,17 +39,29 @@ export function DashboardAnnouncementsPanel({
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [scopeMode, setScopeMode] = useState<"all_verified" | "restricted">("all_verified");
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
 
   function openCreate() {
     setEditingId(null);
     setError("");
+    setScopeMode("all_verified");
+    setSelectedGroupIds([]);
     setModalOpen(true);
   }
 
   function openEdit(row: AnnouncementRow) {
     setEditingId(row.id);
     setError("");
+    setScopeMode(row.access_scope === "restricted" ? "restricted" : "all_verified");
+    setSelectedGroupIds(row.groupIds ?? []);
     setModalOpen(true);
+  }
+
+  function toggleGroup(groupId: string) {
+    setSelectedGroupIds((current) =>
+      current.includes(groupId) ? current.filter((id) => id !== groupId) : [...current, groupId],
+    );
   }
 
   async function saveAnnouncement(event: FormEvent<HTMLFormElement>) {
@@ -47,11 +69,13 @@ export function DashboardAnnouncementsPanel({
     setSaving(true);
     setError("");
     const formData = new FormData(event.currentTarget);
+    const groupIds = scopeMode === "restricted" ? selectedGroupIds : [];
     const payload = {
       title: String(formData.get("title") ?? ""),
       body: String(formData.get("body") ?? ""),
       publish: formData.get("publish") === "on",
       isPinned: formData.get("isPinned") === "on",
+      groupIds,
     };
 
     const response = await fetch(
@@ -66,6 +90,7 @@ export function DashboardAnnouncementsPanel({
                 body: payload.body,
                 status: payload.publish ? "published" : "draft",
                 isPinned: payload.isPinned,
+                groupIds,
               }
             : payload,
         ),
@@ -293,6 +318,58 @@ export function DashboardAnnouncementsPanel({
               />
               Pin to top
             </label>
+
+            <div className={styles.scopeField}>
+              <span>Who can see this announcement?</span>
+              <div className={styles.scopeOptions}>
+                <div
+                  aria-checked={scopeMode === "all_verified"}
+                  className={`${styles.scopeOption} ${scopeMode === "all_verified" ? styles.scopeOptionSelected : ""}`}
+                  onClick={() => setScopeMode("all_verified")}
+                  role="radio"
+                  tabIndex={0}
+                >
+                  <div className={styles.scopeRadio} />
+                  <div>
+                    <strong>All students</strong>
+                    <p>Every enrolled student with access</p>
+                  </div>
+                </div>
+                <div
+                  aria-checked={scopeMode === "restricted"}
+                  className={`${styles.scopeOption} ${scopeMode === "restricted" ? styles.scopeOptionSelected : ""}`}
+                  onClick={() => setScopeMode("restricted")}
+                  role="radio"
+                  tabIndex={0}
+                >
+                  <div className={styles.scopeRadio} />
+                  <div>
+                    <strong>Specific groups</strong>
+                    <p>Only students in selected groups</p>
+                  </div>
+                </div>
+              </div>
+              {scopeMode === "restricted" ? (
+                <div className={styles.groupChoices}>
+                  {groups.length === 0 ? (
+                    <p className={styles.noGroups}>No active groups yet.</p>
+                  ) : (
+                    groups.map((g) => (
+                      <label className={styles.groupChoiceItem} key={g.id}>
+                        <input
+                          checked={selectedGroupIds.includes(g.id)}
+                          onChange={() => toggleGroup(g.id)}
+                          type="checkbox"
+                        />
+                        <span className={styles.groupDot} style={{ background: g.color }} />
+                        {g.name}
+                      </label>
+                    ))
+                  )}
+                </div>
+              ) : null}
+            </div>
+
             {error ? <p className={styles.error}>{error}</p> : null}
             <div className={styles.modalActions}>
               <button disabled={saving} type="submit">

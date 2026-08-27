@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveMentorWorkspace } from "@/lib/entitlements";
 import { getMentorWorkspace } from "@/lib/workspace";
+import { syncGroupGrants } from "@/lib/content-access-grants";
 
 const createSchema = z.object({
   title: z.string().trim().min(2).max(160),
   body: z.string().trim().min(1).max(10000),
   publish: z.boolean().optional(),
   isPinned: z.boolean().optional(),
+  groupIds: z.array(z.string().uuid()).optional(),
 });
 
 export async function GET() {
@@ -18,7 +20,7 @@ export async function GET() {
 
   const { data, error } = await workspace.supabase
     .from("announcements")
-    .select("id,title,body,status,is_pinned,published_at,created_at,updated_at")
+    .select("id,title,body,status,is_pinned,access_scope,published_at,created_at,updated_at")
     .eq("trader_id", workspace.traderId)
     .order("is_pinned", { ascending: false })
     .order("updated_at", { ascending: false });
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
   }
 
   const publish = parsed.data.publish ?? false;
+  const groupIds = parsed.data.groupIds ?? [];
   const { data, error } = await workspace.supabase
     .from("announcements")
     .insert({
@@ -55,10 +58,11 @@ export async function POST(request: Request) {
       body: parsed.data.body,
       status: publish ? "published" : "draft",
       is_pinned: parsed.data.isPinned ?? false,
+      access_scope: groupIds.length > 0 ? "restricted" : "all_verified",
       published_at: publish ? new Date().toISOString() : null,
       created_by: workspace.user.id,
     })
-    .select("id,title,body,status,is_pinned,published_at,created_at,updated_at")
+    .select("id,title,body,status,is_pinned,access_scope,published_at,created_at,updated_at")
     .single();
 
   if (error || !data) {
@@ -68,5 +72,15 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ announcement: data }, { status: 201 });
+  if (groupIds.length > 0) {
+    await syncGroupGrants(workspace.supabase, {
+      traderId: workspace.traderId,
+      entityType: "announcement",
+      entityId: data.id,
+      groupIds,
+      grantedBy: workspace.user.id,
+    });
+  }
+
+  return NextResponse.json({ announcement: { ...data, groupIds } }, { status: 201 });
 }
