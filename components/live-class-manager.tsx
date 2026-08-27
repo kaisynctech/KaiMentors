@@ -337,6 +337,12 @@ export function LiveClassManager({ classes: initial }: Props) {
                     <span className={`${styles.statusBadge} ${cls.status === "published" ? styles.statusPublished : styles.statusDraft}`}>
                       {cls.status === "published" ? "Published" : "Draft"}
                     </span>
+                    {cls.room_status === "ended" && cls.recording_url && (
+                      <span className={styles.recordingBadge}>
+                        <span className={styles.recordingDot} />
+                        Recording added
+                      </span>
+                    )}
                   </div>
                   <p className={styles.classTitle}>{cls.title}</p>
                   <p className={styles.classDate}>{formatDateTime(cls.starts_at, cls.ends_at)}</p>

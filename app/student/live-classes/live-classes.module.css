@@ -105,6 +105,26 @@
   min-height: 44px;
 }
 
+.watchReplayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted, #596168);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.watchReplayBtn:hover {
+  background: #f4f6f7;
+}
+
 .pastBadge {
   display: inline-flex;
   align-items: center;

@@ -1,4 +1,4 @@
-import { CalendarClock, ExternalLink, Video } from "lucide-react";
+import { CalendarClock, ExternalLink, PlayCircle, Video } from "lucide-react";
 import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { StudentShell } from "@/components/student-shell";
@@ -78,7 +78,7 @@ export default async function StudentLiveClassesPage({
       .limit(20),
     supabase
       .from("live_classes")
-      .select("id,title,description,provider,starts_at,ends_at")
+      .select("id,title,description,provider,starts_at,ends_at,recording_url")
       .eq("trader_id", app.trader_id)
       .eq("status", "published")
       .lt("starts_at", now)
@@ -185,6 +185,18 @@ export default async function StudentLiveClassesPage({
                     </p>
                     {cls.description ? (
                       <p className={styles.cardDesc}>{cls.description}</p>
+                    ) : null}
+                    {cls.recording_url ? (
+                      <a
+                        className={styles.watchReplayBtn}
+                        href={cls.recording_url}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <PlayCircle size={13} />
+                        Watch replay
+                        <ExternalLink size={11} />
+                      </a>
                     ) : null}
                   </div>
                   <span className={styles.pastBadge}>Past</span>
