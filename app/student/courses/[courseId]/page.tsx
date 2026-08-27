@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
+import { SignOutButton } from "@/components/sign-out-button";
 import { formatDuration } from "@/lib/courses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -133,6 +134,18 @@ export default async function StudentCoursePage({
 
   const base = academy.basePath;
   const suffix = academy.querySuffix;
+  // Matches the working pattern in components/student-shell-client.tsx — `${base}/login`
+  // (as a naive shorthand) does not resolve to a real route on either domain type: there
+  // is no /student/login page, and on custom domains getAcademyEntryHref's "login"
+  // destination is just "/login" (not "/academy/login"). Custom domains override
+  // returnTo server-side regardless (see app/auth/signout/route.ts), but the platform
+  // path needs this to actually be correct.
+  const signOutReturnTo =
+    base === "/academy"
+      ? "/login"
+      : academy.portalSlug
+        ? `/portal/${academy.portalSlug}`
+        : "/login";
 
   return (
     <main className={styles.page}>
@@ -144,7 +157,7 @@ export default async function StudentCoursePage({
         <div className={styles.navActions}>
           <Link href={`${base}/courses${suffix}`}>My learning</Link>
           <Link href={`${base}/messages${suffix}`}>Messages</Link>
-          <Link href="/auth/signout">Sign out</Link>
+          <SignOutButton returnTo={signOutReturnTo}>Sign out</SignOutButton>
         </div>
       </nav>
 

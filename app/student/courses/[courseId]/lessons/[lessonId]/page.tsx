@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
 import { LessonSidebar } from "@/components/lesson-sidebar";
 import { ProtectedLessonContent } from "@/components/protected-lesson-content";
+import { SignOutButton } from "@/components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
@@ -153,6 +154,13 @@ export default async function LessonPage({
   const base = academy.basePath;
   const suffix = academy.querySuffix;
   const course = Array.isArray(lesson.course) ? lesson.course[0] : lesson.course;
+  // See app/student/courses/[courseId]/page.tsx for why this isn't just `${base}/login`.
+  const signOutReturnTo =
+    base === "/academy"
+      ? "/login"
+      : academy.portalSlug
+        ? `/portal/${academy.portalSlug}`
+        : "/login";
 
   const progress = (allProgress ?? []).find((p) => p.lesson_id === lessonId) ?? null;
 
@@ -240,7 +248,7 @@ export default async function LessonPage({
           label={portal.portal_name}
         />
         <div className={styles.navActions}>
-          <Link href="/auth/signout">Sign out</Link>
+          <SignOutButton returnTo={signOutReturnTo}>Sign out</SignOutButton>
         </div>
       </nav>
 

@@ -9,6 +9,13 @@ import {
   type PortalAccessPolicy,
 } from "@/lib/student-access";
 
+export type ActiveStudentSubscription = {
+  id: string;
+  plan_id: string;
+  status: string;
+  current_period_end: string | null;
+};
+
 export type StudentSessionContext = {
   application: {
     id: string;
@@ -24,12 +31,14 @@ export type StudentSessionContext = {
     slug: string;
     logo_path: string | null;
     primary_color: string | null;
+    access_model: "verification" | "subscription";
   };
   policy: PortalAccessPolicy;
   hasModuleAccess: boolean;
   showBrokerVerification: boolean;
   hasActiveBrokers: boolean;
   isBrokerVerified: boolean;
+  activeSubscription: ActiveStudentSubscription | null;
 };
 
 export async function loadStudentSessionContext(
@@ -40,7 +49,7 @@ export async function loadStudentSessionContext(
   let appQuery = supabase
     .from("student_applications")
     .select(
-      "id,trader_id,status,status_reason,portal_id,broker_verified,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path,primary_color,require_broker_verification_for_modules,allow_full_access_without_verification)",
+      "id,trader_id,status,status_reason,portal_id,broker_verified,verification_screenshot_path,portal:portals!inner(portal_name,slug,logo_path,primary_color,access_model,require_broker_verification_for_modules,allow_full_access_without_verification)",
     )
     .eq("student_user_id", userId);
 
@@ -62,19 +71,51 @@ export async function loadStudentSessionContext(
     : application.portal;
   if (!portal) return null;
 
+  const accessModel = (portal.access_model as "verification" | "subscription") ?? "verification";
   const policy = parsePortalAccessPolicy(portal);
   const accessApplication = {
     status: application.status as string,
     brokerVerified: application.broker_verified as boolean,
   };
 
-  const { count: brokerCount } = await supabase
-    .from("trader_broker_accounts")
-    .select("id", { count: "exact", head: true })
-    .eq("trader_id", application.trader_id)
-    .eq("is_active", true);
+  let hasActiveBrokers = false;
+  let showBrokerVerification = false;
+  let activeSubscription: ActiveStudentSubscription | null = null;
 
-  const hasActiveBrokers = (brokerCount ?? 0) > 0;
+  if (accessModel === "subscription") {
+    // Skip the broker-verification check entirely for subscription portals — there is no
+    // broker to verify against. Query the most recent subscription row that is currently
+    // granting access: 'active' (fresh payment), 'cancelled' or 'payment_failed' but still
+    // inside its paid-for period (grace period — see has_student_module_access() in the
+    // MB-118 migration for the equivalent RLS-level check and why 'cancelled'/
+    // 'payment_failed' are included here).
+    const { data: subscriptionRow } = await supabase
+      .from("student_subscriptions")
+      .select("id,plan_id,status,current_period_end")
+      .eq("student_user_id", userId)
+      .eq("portal_id", application.portal_id)
+      .in("status", ["active", "cancelled", "payment_failed"])
+      .not("current_period_end", "is", null)
+      .gt("current_period_end", new Date().toISOString())
+      .order("current_period_end", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    activeSubscription = subscriptionRow as ActiveStudentSubscription | null;
+  } else {
+    const { count: brokerCount } = await supabase
+      .from("trader_broker_accounts")
+      .select("id", { count: "exact", head: true })
+      .eq("trader_id", application.trader_id)
+      .eq("is_active", true);
+
+    hasActiveBrokers = (brokerCount ?? 0) > 0;
+    showBrokerVerification = shouldShowBrokerVerificationUI(
+      policy,
+      hasActiveBrokers,
+      accessApplication,
+    );
+  }
 
   return {
     application: {
@@ -92,17 +133,20 @@ export async function loadStudentSessionContext(
       slug: portal.slug as string,
       logo_path: portal.logo_path as string | null,
       primary_color: portal.primary_color as string | null,
+      access_model: accessModel,
     },
     policy,
-    hasModuleAccess: hasStudentModuleAccess(accessApplication, policy),
-    showBrokerVerification: shouldShowBrokerVerificationUI(
-      policy,
-      hasActiveBrokers,
+    hasModuleAccess: hasStudentModuleAccess(
       accessApplication,
+      policy,
+      accessModel,
+      !!activeSubscription,
     ),
+    showBrokerVerification,
     hasActiveBrokers,
     isBrokerVerified:
       application.broker_verified === true ||
       application.status === "verified",
+    activeSubscription,
   };
 }

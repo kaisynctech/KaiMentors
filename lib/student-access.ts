@@ -23,8 +23,15 @@ export function parsePortalAccessPolicy(portal: {
 export function hasStudentModuleAccess(
   application: StudentApplicationAccess,
   policy: PortalAccessPolicy,
+  accessModel: "verification" | "subscription" = "verification",
+  activeSubscription = false,
 ): boolean {
   if (application.status === "rejected") return false;
+  // Subscription portals (e.g. KSI) skip broker verification entirely — access is
+  // governed solely by whether the student has a currently-valid subscription row.
+  // See has_student_module_access() in supabase/migrations/20260827120000_mb118_*.sql
+  // for the equivalent RLS-level check.
+  if (accessModel === "subscription") return activeSubscription;
   if (policy.allowFullAccessWithoutVerification) return true;
   if (policy.requireBrokerVerificationForModules) {
     return (

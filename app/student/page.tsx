@@ -15,7 +15,9 @@ import { redirect } from "next/navigation";
 import { PwaInstallCard } from "@/components/pwa-install-card";
 import { SignalAlertsPrompt } from "@/components/signal-alerts-prompt";
 import { BrokerGuideCard } from "@/components/broker-guide-card";
+import { MySubscriptionCard } from "@/components/my-subscription-card";
 import { StudentShell } from "@/components/student-shell";
+import { SubscriptionPaywall } from "@/components/subscription-paywall";
 import { VerifyAccountForm } from "@/components/verify-account-form";
 import { loadTodaySignal } from "@/lib/community-server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
@@ -28,13 +30,15 @@ import styles from "./student.module.css";
 export const dynamic = "force-dynamic";
 
 interface StudentPageProps {
-  searchParams?: Promise<{ portal?: string }>;
+  searchParams?: Promise<{ portal?: string; subscribed?: string; cancelled?: string }>;
 }
 
 export default async function StudentPage({ searchParams }: StudentPageProps) {
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
   const { basePath, querySuffix, joinAcademyPath } = academy;
+  const justSubscribed = query?.subscribed === "1";
+  const justCancelledCheckout = query?.cancelled === "1";
 
   const supabase = await createClient();
   if (!supabase) redirect(`${basePath}/login${querySuffix}`);
@@ -53,10 +57,12 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     hasModuleAccess,
     showBrokerVerification,
     policy,
+    activeSubscription,
   } = ctx;
   const academyName = portal.portal_name;
   const displayName = user.email?.split("@")[0] ?? "Student";
   const status = application.status;
+  const isSubscriptionPortal = portal.access_model === "subscription";
 
   // Fetch broker guides via SECURITY DEFINER RPC — now returns all active connections
   const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
@@ -268,16 +274,34 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           <h1>Dashboard</h1>
         </div>
 
-        {/* Status card */}
-        <div className={styles.statusCard}>
-          <div className={`${styles.statusIcon} ${statusDisplay.iconClass}`}>
-            {statusDisplay.icon}
+        {/* Status card — verification portals only; subscription portals show the
+            paywall or the My Subscription card instead (see below). */}
+        {!isSubscriptionPortal ? (
+          <div className={styles.statusCard}>
+            <div className={`${styles.statusIcon} ${statusDisplay.iconClass}`}>
+              {statusDisplay.icon}
+            </div>
+            <div>
+              <p className={styles.statusTitle}>{statusDisplay.title}</p>
+              <p className={styles.statusBody}>{statusDisplay.body}</p>
+            </div>
           </div>
-          <div>
-            <p className={styles.statusTitle}>{statusDisplay.title}</p>
-            <p className={styles.statusBody}>{statusDisplay.body}</p>
-          </div>
-        </div>
+        ) : null}
+
+        {isSubscriptionPortal && hasModuleAccess && activeSubscription ? (
+          <MySubscriptionCard
+            currentPeriodEnd={activeSubscription.current_period_end}
+            planId={activeSubscription.plan_id}
+          />
+        ) : null}
+
+        {isSubscriptionPortal && !hasModuleAccess ? (
+          <SubscriptionPaywall
+            justCancelled={justCancelledCheckout}
+            justSubscribed={justSubscribed}
+            portalSlug={portal.slug}
+          />
+        ) : null}
 
         {/* Verified dashboard sections */}
         {hasModuleAccess ? (
@@ -561,15 +585,18 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           </>
         ) : null}
 
-        {/* Broker guide — always visible */}
-        <BrokerGuideCard
-          applicationStatus={status}
-          currentScreenshotPath={application.verification_screenshot_path ?? null}
-          guides={brokerGuides}
-          portalId={application.portal_id}
-          studentUserId={user.id}
-          traderId={application.trader_id}
-        />
+        {/* Broker guide — always visible, verification portals only. Subscription
+            portals have no broker to verify against. */}
+        {!isSubscriptionPortal ? (
+          <BrokerGuideCard
+            applicationStatus={status}
+            currentScreenshotPath={application.verification_screenshot_path ?? null}
+            guides={brokerGuides}
+            portalId={application.portal_id}
+            studentUserId={user.id}
+            traderId={application.trader_id}
+          />
+        ) : null}
       </div>
     </StudentShell>
   );
