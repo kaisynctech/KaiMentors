@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Projects | KaiSync Institution</title>
+<meta name="description" content="Browse real projects built by KaiSync Institution students — web apps, AI agents, automations and more.">
+<link href="styles.css" rel="stylesheet">
+<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
+<link href="styles-additions.css" rel="stylesheet">
+<style>
+/* ── Projects page styles ── */
+.projects-hero { padding: 7rem 0 3rem; text-align: center; }
+.projects-hero h1 { margin-bottom: 0.5rem; }
+.projects-hero .lead { max-width: 540px; margin: 0 auto 1.5rem; }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem; }
+.filter-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--text, #fff);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn:hover { border-color: var(--cyan, #00C4D8); color: var(--cyan, #00C4D8); }
+.filter-btn.active { background: var(--cyan, #00C4D8); border-color: var(--cyan, #00C4D8); color: #000; font-weight: 600; }
+
+/* Grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Project card */
+.project-card {
+  background: var(--surface, #0E1630);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.project-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); border-color: rgba(0,196,216,0.35); }
+
+.project-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+  background: linear-gradient(135deg, rgba(0,196,216,0.15), rgba(109,40,217,0.15));
+}
+.project-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, rgba(0,196,216,0.12), rgba(109,40,217,0.12));
+}
+
+.project-body { padding: 1.1rem 1.25rem 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+.project-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.project-cat { font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(0,196,216,0.12); color: var(--cyan, #00C4D8); border: 1px solid rgba(0,196,216,0.2); }
+.project-featured { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.project-title { font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: var(--text, #fff); margin: 0; }
+.project-student { font-size: 0.82rem; color: var(--muted, #8899AA); }
+.project-desc { font-size: 0.86rem; color: var(--muted, #8899AA); line-height: 1.5; flex: 1; margin: 0; }
+.project-tools { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.project-tool { font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; background: var(--surface-2, #151F3A); color: var(--muted, #8899AA); border: 1px solid rgba(255,255,255,0.06); }
+.project-links { display: flex; gap: 0.75rem; margin-top: auto; }
+.project-link-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: var(--text, #fff);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: block;
+}
+.project-link-btn.primary { background: var(--cyan, #00C4D8); border-color: var(--cyan, #00C4D8); color: #000; }
+.project-link-btn:hover:not(.primary) { border-color: rgba(255,255,255,0.35); }
+
+/* Empty state */
+.projects-empty { text-align: center; padding: 4rem 1rem; color: var(--muted, #8899AA); }
+.projects-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+/* Count */
+.projects-count { text-align: center; color: var(--muted, #8899AA); font-size: 0.88rem; margin-bottom: 1.25rem; }
+
+/* Loading skeleton */
+.skeleton { background: linear-gradient(90deg, var(--surface, #0E1630) 25%, rgba(255,255,255,0.04) 50%, var(--surface, #0E1630) 75%); background-size: 200%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Light mode overrides */
+[data-theme="light"] .filter-btn { border-color: rgba(13,13,43,0.18); color: #2D2D50; }
+[data-theme="light"] .filter-btn:hover { border-color: #0097B2; color: #0097B2; }
+[data-theme="light"] .filter-btn.active { background: #0097B2; border-color: #0097B2; color: #fff; }
+[data-theme="light"] .project-card { background: #fff; border-color: rgba(13,13,43,0.08); }
+[data-theme="light"] .project-card:hover { box-shadow: 0 8px 24px rgba(13,13,43,0.12); border-color: rgba(0,151,178,0.35); }
+[data-theme="light"] .project-title { color: #0D0D2B; }
+[data-theme="light"] .project-student, [data-theme="light"] .project-desc { color: #5A5A80; }
+[data-theme="light"] .project-tool { background: #F0F1FB; color: #5A5A80; border-color: rgba(13,13,43,0.06); }
+[data-theme="light"] .project-cat { background: rgba(0,151,178,0.08); color: #0097B2; border-color: rgba(0,151,178,0.2); }
+[data-theme="light"] .project-thumb-placeholder { background: linear-gradient(135deg, rgba(0,151,178,0.1), rgba(109,40,217,0.1)); }
+[data-theme="light"] .project-link-btn { border-color: rgba(13,13,43,0.15); color: #0D0D2B; }
+[data-theme="light"] .project-link-btn.primary { color: #fff; }
+</style>
+</head>
+<body>
+
+<header class="ksi-header" data-header>
+  <a class="brand" href="index.html" aria-label="KaiSync Institution home">
+    <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96">
+    <span class="brand-name">KaiSync Institution</span>
+  </a>
+  <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="ksi-nav" data-nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="courses.html">Courses</a>
+    <a href="tools.html">AI Tools</a>
+    <a href="projects.html" aria-current="page">Projects</a>
+    <a href="pricing.html">Pricing</a>
+    <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
+    <a class="nav-login" href="login.html">Login</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+  </nav>
+</header>
+
+<section class="projects-hero">
+  <div class="wrap reveal">
+    <p class="eyebrow">Built by our students</p>
+    <h1>Real projects. Real builders.</h1>
+    <p class="lead">Every project here was built by a KaiSync Institution student — using AI, code, and creativity to solve real problems.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="wrap">
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="web-app">Web App</button>
+      <button class="filter-btn" data-cat="ai-agent">AI Agent</button>
+      <button class="filter-btn" data-cat="automation">Automation</button>
+      <button class="filter-btn" data-cat="mobile-app">Mobile App</button>
+      <button class="filter-btn" data-cat="other">Other</button>
+    </div>
+
+    <p class="projects-count" id="projects-count"></p>
+
+    <!-- Projects grid -->
+    <div class="projects-grid" id="projects-grid">
+      <!-- Loading skeletons -->
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section cta-section">
+  <div class="cta reveal">
+    <p class="eyebrow" style="justify-content:center;">Your turn</p>
+    <h2>Build something that matters.</h2>
+    <p>Join KaiSync Institution and start creating real projects you can be proud of.</p>
+    <div class="btn-row" style="justify-content:center;">
+      <a class="btn primary" href="signup.html">Enrol Now</a>
+      <a class="btn ghost" href="courses.html">See the courses</a>
+    </div>
+  </div>
+</section>
+
+<footer class="ksi-footer">
+  <div class="ksi-footer-wrap">
+    <div class="ksi-footer-brand">
+      <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96">
+      <p>Learn AI. Build Products. Change Your Future.</p>
+    </div>
+    <div class="ksi-footer-cols">
+      <div>
+        <h4>Platform</h4>
+        <a href="about.html">About</a>
+        <a href="courses.html">Courses</a>
+        <a href="tools.html">AI Tools</a>
+        <a href="projects.html">Projects</a>
+        <a href="pricing.html">Pricing</a>
+      </div>
+      <div>
+        <h4>Enrol</h4>
+        <a href="signup.html">Get started</a>
+        <a href="login.html">Student login</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#" data-footer-whatsapp>WhatsApp</a>
+        <a href="#" data-footer-instagram>Instagram</a>
+        <a href="#" data-footer-tiktok>TikTok</a>
+        <a href="#" data-footer-discord>Discord</a>
+      </div>
+    </div>
+  </div>
+  <div class="ksi-footer-bar">
+    <span>© 2026 KaiSync Institution. All rights reserved.</span>
+    <span>AI education for the next generation of builders.</span>
+  </div>
+</footer>
+
+<link href="styles-additions.css" rel="stylesheet">
+<script src="app.js"></script>
+
+<script>
+/* ── Theme toggle ── */
+(function(){
+  var btn = document.getElementById("theme-toggle");
+  var t = localStorage.getItem("ksi-theme") || "dark";
+  if (btn) { btn.textContent = t === "dark" ? "🌙" : "☀️"; }
+  if (btn) btn.addEventListener("click", function(){
+    var n = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", n);
+    btn.textContent = n === "dark" ? "🌙" : "☀️";
+    localStorage.setItem("ksi-theme", n);
+  });
+})();
+
+/* ── Projects: fetch from Supabase & render ── */
+(function(){
+  var SUPABASE_URL = "https://jsbpfhfmumjbrnymhtvq.supabase.co";
+  var ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYnBmaGZtdW1qYnJueW1odHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjUwMDAsImV4cCI6MjA5Njc0MTAwMH0.L6rBxfBhK5YoHrYOV0M5UA2-hf_WK1sCYnXG9p5XlNM";
+  var CATEGORY_LABELS = { "web-app": "Web App", "ai-agent": "AI Agent", "automation": "Automation", "mobile-app": "Mobile App", "other": "Other" };
+  var CATEGORY_ICONS = { "web-app": "🌐", "ai-agent": "🤖", "automation": "⚡", "mobile-app": "📱", "other": "🛠️" };
+
+  var allProjects = [];
+  var activeFilter = "all";
+
+  function catLabel(v) { return CATEGORY_LABELS[v] || v; }
+  function catIcon(v) { return CATEGORY_ICONS[v] || "🛠️"; }
+
+  function renderProjects(projects) {
+    var grid = document.getElementById("projects-grid");
+    var count = document.getElementById("projects-count");
+    if (!projects.length) {
+      grid.innerHTML = '<div class="projects-empty"><div class="empty-icon">🚧</div><p>No projects in this category yet — check back soon!</p></div>';
+      count.textContent = "";
+      return;
+    }
+    count.textContent = projects.length + " project" + (projects.length !== 1 ? "s" : "");
+    grid.innerHTML = projects.map(function(p) {
+      var thumb = p.thumbnail_url
+        ? '<img class="project-thumb" src="' + p.thumbnail_url + '" alt="' + esc(p.title) + '" loading="lazy">'
+        : '<div class="project-thumb-placeholder">' + catIcon(p.category) + '</div>';
+      var tools = (p.tools || []).map(function(t){ return '<span class="project-tool">' + esc(t) + '</span>'; }).join("");
+      var links = "";
+      if (p.live_url) links += '<a class="project-link-btn primary" href="' + esc(p.live_url) + '" target="_blank" rel="noopener">View project ↗</a>';
+      if (p.github_url) links += '<a class="project-link-btn" href="' + esc(p.github_url) + '" target="_blank" rel="noopener">GitHub ↗</a>';
+      return [
+        '<div class="project-card reveal">',
+          thumb,
+          '<div class="project-body">',
+            '<div class="project-meta">',
+              '<span class="project-cat">' + catLabel(p.category) + '</span>',
+              (p.featured ? '<span class="project-featured">⭐ Featured</span>' : ""),
+            '</div>',
+            '<h3 class="project-title">' + esc(p.title) + '</h3>',
+            '<div class="project-student">by ' + esc(p.student_name) + '</div>',
+            (p.description ? '<p class="project-desc">' + esc(p.description) + '</p>' : ""),
+            (tools ? '<div class="project-tools">' + tools + '</div>' : ""),
+            (links ? '<div class="project-links">' + links + '</div>' : ""),
+          '</div>',
+        '</div>'
+      ].join("");
+    }).join("");
+  }
+
+  function applyFilter() {
+    var filtered = activeFilter === "all" ? allProjects : allProjects.filter(function(p){ return p.category === activeFilter; });
+    // Featured first, then by date
+    filtered = filtered.slice().sort(function(a,b){ return (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || new Date(b.created_at) - new Date(a.created_at); });
+    renderProjects(filtered);
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  // Fetch
+  fetch(SUPABASE_URL + "/rest/v1/student_projects?published=eq.true&select=*&order=created_at.desc", {
+    headers: { "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    allProjects = data;
+    applyFilter();
+  })
+  .catch(function() {
+    document.getElementById("projects-grid").innerHTML = '<div class="projects-empty"><p>Could not load projects. Please try again later.</p></div>';
+  });
+
+  // Filter buttons
+  document.getElementById("filter-bar").addEventListener("click", function(e){
+    var btn = e.target.closest(".filter-btn");
+    if (!btn) return;
+    document.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    activeFilter = btn.dataset.cat;
+    applyFilter();
+  });
+})();
+</script>
+</body>
+</html>
