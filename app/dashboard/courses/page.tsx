@@ -54,7 +54,9 @@ export default async function CoursesPage({
   }
 
   // ── Courses tab (default) ──────────────────────────────────────────────────
-  const [{ data: courseData }, { data: progressData }] = await Promise.all([
+  // MB-125: one aggregate RPC round-trip replaces a full lesson_progress
+  // table scan + in-memory counting (was O(all_progress_rows) per load).
+  const [{ data: courseData }, { data: learnerStatsRaw }] = await Promise.all([
     supabase
       .from("courses")
       .select(
@@ -63,13 +65,11 @@ export default async function CoursesPage({
       .eq("trader_id", traderId)
       .order("sort_order")
       .order("created_at", { ascending: false }),
-    supabase
-      .from("lesson_progress")
-      .select("course_id,student_user_id")
-      .eq("trader_id", traderId),
+    supabase.rpc("get_trader_learner_stats", { target_trader_id: traderId }),
   ]);
 
-  const allProgress = progressData ?? [];
+  const learnerStats = learnerStatsRaw as { total_learners: number; by_course: Record<string, number> } | null;
+  const learnerCountMap = new Map(Object.entries(learnerStats?.by_course ?? {}));
 
   const courses = await Promise.all(
     (courseData ?? []).map(async (course) => {
@@ -86,8 +86,7 @@ export default async function CoursesPage({
       const lessonRows           = Array.isArray(course.lessons) ? course.lessons : [];
       const lessonCount          = lessonRows.length;
       const publishedLessonCount = lessonRows.filter((l) => l.status === "published").length;
-      const courseProgress       = allProgress.filter((p) => p.course_id === course.id);
-      const activeLearnerCount   = new Set(courseProgress.map((p) => p.student_user_id)).size;
+      const activeLearnerCount   = learnerCountMap.get(course.id) ?? 0;
       return {
         id: course.id,
         title: course.title,
@@ -104,7 +103,7 @@ export default async function CoursesPage({
   );
 
   const totalLessons   = courses.reduce((sum, c) => sum + c.lessonCount, 0);
-  const activeLearners = new Set(allProgress.map((p) => p.student_user_id)).size;
+  const activeLearners = learnerStats?.total_learners ?? 0;
   const stats = {
     totalCourses:  courses.length,
     published:     courses.filter((c) => c.status === "published").length,

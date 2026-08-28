@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MentorCommunity } from "@/components/mentor-community";
 import { getMentorWorkspace } from "@/lib/workspace";
+import { signedUrls } from "@/lib/signed-urls";
 import type { ComponentProps } from "react";
 
 export const dynamic = "force-dynamic";
@@ -36,34 +37,39 @@ export default async function DashboardCommunityPage() {
   ]);
 
   const admin = createAdminClient();
-  async function signedUrl(path: string | null): Promise<string | null> {
-    if (!path || !admin) return null;
-    const { data } = await admin.storage.from("academy-media").createSignedUrl(path, 3600);
-    return data?.signedUrl ?? null;
-  }
 
   const rawAlbums = albumsResult.data ?? [];
   const rawItems = itemsResult.data ?? [];
   const rawPosts = postsResult.data ?? [];
+
+  // MB-125: one bulk createSignedUrls call replaces what was previously a
+  // serial `for` loop awaiting one createSignedUrl per gallery item (plus
+  // separate serial calls for album covers and trade-post images) --
+  // N+M+K sequential storage round-trips collapsed into one.
+  const urlMap = admin
+    ? await signedUrls(admin, "academy-media", [
+        ...rawAlbums.map((a) => a.cover_path),
+        ...rawItems.map((i) => i.file_path),
+        ...rawPosts.map((p) => p.image_path),
+      ])
+    : new Map<string, string | null>();
 
   const itemCountByAlbum: Record<string, number> = {};
   for (const item of rawItems) {
     itemCountByAlbum[item.album_id] = (itemCountByAlbum[item.album_id] ?? 0) + 1;
   }
 
-  const albums = await Promise.all(
-    rawAlbums.map(async (a) => ({
-      id: a.id,
-      title: a.title,
-      description: a.description,
-      coverUrl: await signedUrl(a.cover_path),
-      itemCount: itemCountByAlbum[a.id] ?? 0,
-    })),
-  );
+  const albums = rawAlbums.map((a) => ({
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    coverUrl: a.cover_path ? (urlMap.get(a.cover_path) ?? null) : null,
+    itemCount: itemCountByAlbum[a.id] ?? 0,
+  }));
 
   const itemsByAlbum: Record<string, GalleryItem[]> = {};
   for (const item of rawItems) {
-    const mediaUrl = item.file_path ? await signedUrl(item.file_path) : null;
+    const mediaUrl = item.file_path ? (urlMap.get(item.file_path) ?? null) : null;
     if (!itemsByAlbum[item.album_id]) itemsByAlbum[item.album_id] = [];
     itemsByAlbum[item.album_id].push({
       id: item.id,
@@ -74,14 +80,12 @@ export default async function DashboardCommunityPage() {
     });
   }
 
-  const tradePosts = await Promise.all(
-    rawPosts.map(async (post) => ({
-      id: post.id,
-      body: post.body,
-      imageUrl: post.image_path ? await signedUrl(post.image_path) : null,
-      createdAt: post.created_at,
-    })),
-  );
+  const tradePosts = rawPosts.map((post) => ({
+    id: post.id,
+    body: post.body,
+    imageUrl: post.image_path ? (urlMap.get(post.image_path) ?? null) : null,
+    createdAt: post.created_at,
+  }));
 
   return (
     <DashboardShell
