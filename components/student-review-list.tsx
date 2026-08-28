@@ -45,6 +45,7 @@ interface StudentReviewListProps {
     pageSize: number;
   };
   totalCount: number;
+  isFallback?: boolean;
 }
 
 interface ReviewDialogState {
@@ -102,6 +103,7 @@ export function StudentReviewList({
   counts,
   filters,
   totalCount,
+  isFallback = false,
 }: StudentReviewListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -320,6 +322,14 @@ export function StudentReviewList({
         </div>
         <span className={styles.resultCount}>{totalCount} results</span>
       </div>
+
+      {isFallback ? (
+        <div className={styles.fallbackBanner} role="alert">
+          ⚠ Search is running in limited mode — a database migration is
+          pending. Name and email search may not return all results.
+          Contact support if this persists.
+        </div>
+      ) : null}
 
       <nav aria-label="Student status" className={styles.tabs}>
         {tabs.map((tab) => (

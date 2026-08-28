@@ -21,6 +21,18 @@
   letter-spacing: -0.025em;
 }
 
+.fallbackBanner {
+  margin: 0 24px 16px;
+  padding: 12px 16px;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 .directoryHeader > div > p:last-child,
 .drawerHeader > div > p:last-child {
   margin: 6px 0 0;

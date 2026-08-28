@@ -138,13 +138,15 @@ export default async function StudentsPage({
 
   let queue = (queueResult.data ?? []) as QueueRecord[];
   let queueCount = Number(queue[0]?.total_count ?? 0);
+  let isFallback = false;
 
   // Keep the page usable before the local migration is applied remotely.
   if (queueResult.error) {
+    isFallback = true;
     let fallback = supabase
       .from("student_applications")
       .select(
-        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,screenshot_path,broker_verified,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
+        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,screenshot_path,broker_verified,full_name,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
         { count: "exact" },
       )
       .eq("trader_id", traderId);
@@ -155,8 +157,28 @@ export default async function StudentsPage({
     }
     if (brokerId) fallback = fallback.eq("connection.broker_id", brokerId);
     if (search) {
+      // full_name is a direct column on student_applications (added in
+      // 202606250031) so it can go straight into the .or() string. email
+      // lives on the joined profiles table, which PostgREST's .or() can't
+      // reference -- resolved via a separate pre-query instead. profiles
+      // has no trader_id column (confirmed via information_schema before
+      // writing this), so the pre-query is unscoped by trader; the outer
+      // .eq("trader_id", traderId) on the main fallback query discards any
+      // other-trader matches this pulls in. Capped at 200 rows, well within
+      // PostgREST's .in() limits.
+      const { data: emailMatches } = await supabase
+        .from("profiles")
+        .select("id")
+        .ilike("email", `%${search}%`)
+        .limit(200);
+      const emailMatchIds = (emailMatches ?? []).map((p) => p.id);
+
       fallback = fallback.or(
-        `phone_number.ilike.%${search}%,trading_account_number.ilike.%${search}%,platform_account_number.ilike.%${search}%`,
+        `full_name.ilike.%${search}%,phone_number.ilike.%${search}%,trading_account_number.ilike.%${search}%,platform_account_number.ilike.%${search}%${
+          emailMatchIds.length > 0
+            ? `,student_user_id.in.(${emailMatchIds.join(",")})`
+            : ""
+        }`,
       );
     }
 
@@ -189,7 +211,9 @@ export default async function StudentsPage({
         trading_account_number: application.trading_account_number,
         platform_account_number: application.platform_account_number,
         screenshot_path: application.screenshot_path,
-        student_name: profile?.full_name ?? "Student",
+        // Mirrors the RPC's COALESCE(application.full_name, profile.full_name)
+        // for parity between the two paths, now that full_name is selected.
+        student_name: application.full_name ?? profile?.full_name ?? "Student",
         student_email: profile?.email ?? null,
         profile_phone: profile?.phone ?? null,
         broker_id: connection?.broker_id ?? null,
@@ -294,6 +318,7 @@ export default async function StudentsPage({
           search,
           tab,
         }}
+        isFallback={isFallback}
         totalCount={queueCount}
       />
     </DashboardShell>
