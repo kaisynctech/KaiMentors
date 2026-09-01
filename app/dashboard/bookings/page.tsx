@@ -1,11 +1,21 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { BookingSessionTypeManager } from "@/components/booking-session-type-manager";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function BookingsPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "bookings",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, role, timezone, user, portal } = workspace;
 
   const today = new Date().toISOString().slice(0, 10);

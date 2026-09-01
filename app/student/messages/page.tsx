@@ -5,7 +5,8 @@ import { StudentShell } from "@/components/student-shell";
 import { loadConversationWorkspace, loadTodaySignal, loadWorkspaceMentors } from "@/lib/community-server";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./messages.module.css";
 
 export const dynamic = "force-dynamic";
@@ -22,11 +23,20 @@ export default async function StudentMessagesPage({
   const { basePath, querySuffix: suffix, joinAcademyPath } = academyContext;
 
   const supabase = await createClient();
-  if (!supabase) redirect(`${basePath}/login${suffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academyContext));
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${basePath}/login${suffix}`);
+  if (!user) redirect(getStudentLoginHref(academyContext));
+  if (
+    !isPortalFeatureEnabled(
+      academyContext.studentPortalFeatures,
+      "messages",
+      academyContext.accessModel,
+    )
+  ) {
+    redirect(`${academyContext.basePath}${academyContext.querySuffix}`);
+  }
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academyContext);
   if (!ctx) redirect(joinAcademyPath);

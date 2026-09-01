@@ -5,7 +5,8 @@ import { StudentShell } from "@/components/student-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./groups.module.css";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +21,20 @@ export default async function StudentGroupsPage({
   const { basePath: base, querySuffix: suffix, joinAcademyPath } = academy;
 
   const supabase = await createClient();
-  if (!supabase) redirect(`${base}/login${suffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academy));
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${base}/login${suffix}`);
+  if (!user) redirect(getStudentLoginHref(academy));
+  if (
+    !isPortalFeatureEnabled(
+      academy.studentPortalFeatures,
+      "groups",
+      academy.accessModel,
+    )
+  ) {
+    redirect(`${academy.basePath}${academy.querySuffix}`);
+  }
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(joinAcademyPath);

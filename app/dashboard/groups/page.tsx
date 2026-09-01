@@ -5,11 +5,21 @@ import type {
   CommunityStudent,
   StudentGroupSummary,
 } from "@/lib/community";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function StudentGroupsPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "groups",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, portal } = workspace;
 
   const [{ data: groupRows }, { data: applicationRows }] = await Promise.all([

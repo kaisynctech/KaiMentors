@@ -7,6 +7,7 @@ import { TeamManager }            from "@/components/team-manager";
 import { BrokerAccountsManager }  from "@/components/broker-accounts-manager";
 import { PortalBrandingForm }     from "@/components/portal-branding-form";
 import { StudentAccessSettings }  from "@/components/student-access-settings";
+import { PortalFeaturesSettings } from "@/components/portal-features-settings";
 import { MentorBillingPanel }     from "@/components/mentor-billing-panel";
 import type { VerificationMethod } from "@/lib/database.types";
 import { getSubscriptionSummary } from "@/lib/entitlements";
@@ -239,6 +240,10 @@ export default async function WorkspaceSettingsPage({
         <SettingsTabs activeTab="student-access" />
         <StudentAccessSettings
           initial={parsePortalAccessPolicy(portalPolicy ?? {})}
+        />
+        <PortalFeaturesSettings
+          accessModel={workspace.accessModel}
+          initial={workspace.studentPortalFeatures}
         />
       </DashboardShell>
     );

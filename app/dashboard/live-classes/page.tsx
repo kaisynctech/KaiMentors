@@ -1,11 +1,21 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { LiveClassManager } from "@/components/live-class-manager";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function LiveClassesPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "live_classes",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, portal } = workspace;
 
   const [{ data: classes }, { data: groupRows }, { data: grantRows }] = await Promise.all([

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
+import { honourStudentNext, isSafeInternalPath } from "@/lib/academy-routes";
+import { resolvePlatformLoginDestination } from "@/lib/student-destination";
 import styles from "./auth-form.module.css";
 
 // ── Submit button ────────────────────────────────────────────────────────────
@@ -22,21 +24,18 @@ function SubmitButton({ label }: { label: string }) {
 
 // ── Login form ───────────────────────────────────────────────────────────────
 export function LoginForm({
-  studentDestination = "/student",
-  mentorDestination = "/dashboard",
   next,
   allowedRole,
   academyTraderId,
   academyContext,
   submitLabel = "Sign in to workspace",
 }: {
-  studentDestination?: string;
-  mentorDestination?: string;
   next?: string;
   allowedRole?: "student";
   academyTraderId?: string;
   academyContext?: {
     traderId: string;
+    portalSlug: string;
     studentDestination: string;
     mentorDestination: string;
     customDomain?: boolean;
@@ -50,6 +49,7 @@ export function LoginForm({
 
     try {
       const supabase = createClient();
+      const safeNext = isSafeInternalPath(next) ? next : undefined;
       const { data, error: signInError } =
         await supabase.auth.signInWithPassword({
           email: String(formData.get("email")).trim(),
@@ -115,7 +115,13 @@ export function LoginForm({
           .eq("trader_id", academyContext.traderId)
           .maybeSingle();
         if (application) {
-          window.location.href = academyContext.studentDestination;
+          const customDomain = academyContext.customDomain === true;
+          window.location.href =
+            honourStudentNext(
+              safeNext,
+              academyContext.portalSlug,
+              customDomain,
+            ) ?? academyContext.studentDestination;
           return;
         }
 
@@ -144,16 +150,12 @@ export function LoginForm({
         }
       }
 
-      // If an explicit next was provided (e.g. from a goto chain), follow it.
-      // Otherwise fall back to role defaults.
-      const destination =
-        next ??
-        (profile?.role === "super_admin"
-          ? "/admin"
-          : profile?.role === "student"
-            ? studentDestination
-            : mentorDestination);
-      window.location.href = destination;
+      window.location.href = await resolvePlatformLoginDestination({
+        supabase,
+        userId: data.user.id,
+        role: profile?.role,
+        next: safeNext,
+      });
     } catch (err) {
       console.error("[LoginForm] signIn error:", err);
       const isTimeout =

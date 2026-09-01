@@ -1,5 +1,6 @@
 import "server-only";
 import { isAcademyActive, isSuperAdminUser } from "@/lib/entitlements";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,6 +15,15 @@ export async function requireCourseUser() {
 export async function requireMentorCourseContext(options?: { allowInactive?: boolean }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) return { ok: false, error: "Mentor workspace not found.", status: 403 } as const;
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "courses",
+      workspace.accessModel,
+    )
+  ) {
+    return { ok: false, error: "Courses are turned off for this academy.", status: 403 } as const;
+  }
 
   if (!options?.allowInactive) {
     const bypass = await isSuperAdminUser();

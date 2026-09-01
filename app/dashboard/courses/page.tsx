@@ -3,6 +3,7 @@ import { CourseManager }       from "@/components/course-manager";
 import { CourseMediaLibrary }  from "@/components/course-media-library";
 import { CoursesTabs }         from "@/components/courses-tabs";
 import { DashboardShell }      from "@/components/dashboard-shell";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace }  from "@/lib/workspace";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,15 @@ export default async function CoursesPage({
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "courses",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, portal } = workspace;
 
   const tab = (await searchParams)?.tab === "media" ? "media" : "courses";

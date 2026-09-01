@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MessagesWorkspace } from "@/components/messages-workspace";
 import { loadConversationWorkspace } from "@/lib/community-server";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function MentorMessagesPage({
@@ -11,6 +12,15 @@ export default async function MentorMessagesPage({
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "messages",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, user, portal } = workspace;
 
   const { conversations, students } = await loadConversationWorkspace(

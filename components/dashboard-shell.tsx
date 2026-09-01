@@ -24,7 +24,9 @@ import {
 import { BrandMark } from "@/components/brand-mark";
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
+import { usePortalFeatures } from "@/components/portal-features-context";
 import { PwaRegistrar } from "@/components/pwa-registrar";
+import { MENTOR_NAV_FEATURE_BY_HREF } from "@/lib/portal-features";
 import styles from "./dashboard-shell.module.css";
 
 interface DashboardShellProps {
@@ -75,7 +77,15 @@ export function DashboardShell({
   portalName,
   portalSlug,
 }: DashboardShellProps) {
-  const navigation = mode === "admin" ? adminNavigation : traderNavigation;
+  const { features } = usePortalFeatures();
+  const navigation = (
+    mode === "admin"
+      ? adminNavigation
+      : traderNavigation.filter(([, href]) => {
+          const featureKey = MENTOR_NAV_FEATURE_BY_HREF[href];
+          return !featureKey || features[featureKey] === true;
+        })
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
   const signOutReturnTo =
     mode === "admin"

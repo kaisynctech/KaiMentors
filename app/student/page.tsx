@@ -23,9 +23,10 @@ import { VerifyAccountForm } from "@/components/verify-account-form";
 import { loadTodaySignal } from "@/lib/community-server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./student.module.css";
 
 export const dynamic = "force-dynamic";
@@ -42,12 +43,12 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   const justCancelledCheckout = query?.cancelled === "1";
 
   const supabase = await createClient();
-  if (!supabase) redirect(`${basePath}/login${querySuffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academy));
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${basePath}/login${querySuffix}`);
+  if (!user) redirect(getStudentLoginHref(academy));
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(joinAcademyPath);
@@ -64,6 +65,13 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   const displayName = ctx.fullName?.trim() || user.email?.split("@")[0] || "Student";
   const status = application.status;
   const isSubscriptionPortal = portal.access_model === "subscription";
+  const featuresOn = {
+    courses: isPortalFeatureEnabled(academy.studentPortalFeatures, "courses", academy.accessModel),
+    bookings: isPortalFeatureEnabled(academy.studentPortalFeatures, "bookings", academy.accessModel),
+    liveClasses: isPortalFeatureEnabled(academy.studentPortalFeatures, "live_classes", academy.accessModel),
+    messages: isPortalFeatureEnabled(academy.studentPortalFeatures, "messages", academy.accessModel),
+    broker: isPortalFeatureEnabled(academy.studentPortalFeatures, "broker", academy.accessModel),
+  };
 
   // Fetch broker guides via SECURITY DEFINER RPC — now returns all active connections
   const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
@@ -316,37 +324,47 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
         {hasModuleAccess ? (
           <>
             <PwaInstallCard academyName={academyName} />
-            <SignalAlertsPrompt traderId={application.trader_id} />
+            {featuresOn.messages ? (
+              <SignalAlertsPrompt traderId={application.trader_id} />
+            ) : null}
 
             {/* Stat cards */}
             <div className={styles.statsRow}>
-              <div className={styles.statCard}>
-                <p className={styles.statValue}>{courseCount}</p>
-                <p className={styles.statLabel}>Courses available</p>
-              </div>
-              <div className={styles.statCard}>
-                <p className={styles.statValue}>{lessonsCompleted}</p>
-                <p className={styles.statLabel}>Lessons completed</p>
-              </div>
+              {featuresOn.courses ? (
+                <div className={styles.statCard}>
+                  <p className={styles.statValue}>{courseCount}</p>
+                  <p className={styles.statLabel}>Courses available</p>
+                </div>
+              ) : null}
+              {featuresOn.courses ? (
+                <div className={styles.statCard}>
+                  <p className={styles.statValue}>{lessonsCompleted}</p>
+                  <p className={styles.statLabel}>Lessons completed</p>
+                </div>
+              ) : null}
               <div className={styles.statCard}>
                 <p className={styles.statValue}>{announcements.length}</p>
                 <p className={styles.statLabel}>Announcements</p>
               </div>
-              <Link
-                className={styles.statCard}
-                href={`${basePath}/courses${querySuffix}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <p className={styles.statValue}>
-                  <Award size={16} style={{ verticalAlign: "-2px", marginRight: 4 }} />
-                  {certificateCount}
-                </p>
-                <p className={styles.statLabel}>Certificates</p>
-              </Link>
+              {featuresOn.courses ? (
+                <Link
+                  className={styles.statCard}
+                  href={`${basePath}/courses${querySuffix}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <p className={styles.statValue}>
+                    <Award size={16} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                    {certificateCount}
+                  </p>
+                  <p className={styles.statLabel}>Certificates</p>
+                </Link>
+              ) : null}
             </div>
 
             {/* Quick actions */}
+            {featuresOn.bookings || featuresOn.messages || featuresOn.liveClasses ? (
             <div className={styles.quickActions}>
+              {featuresOn.bookings ? (
               <Link
                 className={styles.quickAction}
                 href={`${basePath}/bookings${querySuffix}`}
@@ -354,6 +372,8 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 <CalendarCheck size={20} />
                 <span>Book a session</span>
               </Link>
+              ) : null}
+              {featuresOn.messages ? (
               <Link
                 className={styles.quickAction}
                 href={`${basePath}/messages${querySuffix}`}
@@ -361,6 +381,8 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 <MessageSquare size={20} />
                 <span>Messages</span>
               </Link>
+              ) : null}
+              {featuresOn.liveClasses ? (
               <Link
                 className={styles.quickAction}
                 href={`${basePath}/live-classes${querySuffix}`}
@@ -368,10 +390,12 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 <Video size={20} />
                 <span>Live classes</span>
               </Link>
+              ) : null}
             </div>
+            ) : null}
 
             {/* Continue learning */}
-            {continueLearning ? (
+            {featuresOn.courses && continueLearning ? (
               <section className={styles.section}>
                 <div className={styles.sectionHead}>
                   <h2>Continue learning</h2>
@@ -422,7 +446,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
             ) : null}
 
             {/* Upcoming session */}
-            {nextSession ? (
+            {featuresOn.bookings && nextSession ? (
               <section className={styles.section}>
                 <div className={styles.sectionHead}>
                   <h2>Upcoming session</h2>
@@ -474,7 +498,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
             ) : null}
 
             {/* Next live class */}
-            {nextLiveClass ? (
+            {featuresOn.liveClasses && nextLiveClass ? (
               <section className={styles.section}>
                 <div className={styles.sectionHead}>
                   <h2>Next live class</h2>
@@ -526,7 +550,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
               </section>
             ) : null}
 
-            {todaySignal ? (
+            {featuresOn.messages && todaySignal ? (
               <section className={styles.section}>
                 <div className={styles.sectionHead}>
                   <h2>Signal for today</h2>
@@ -586,7 +610,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           </>
         ) : null}
 
-        {showBrokerVerification && status !== "rejected" ? (
+        {featuresOn.broker && showBrokerVerification && status !== "rejected" ? (
           <>
             {isOpenWithOptionalBrokerVerify(policy) ? (
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "0.75rem" }}>
@@ -600,14 +624,14 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                 verification_method: g.verification_method,
               }))}
               portalId={application.portal_id}
-              querySuffix={querySuffix}
+              studentHome={`${basePath}${querySuffix}`}
             />
           </>
         ) : null}
 
-        {/* Broker guide — always visible, verification portals only. Subscription
-            portals have no broker to verify against. */}
-        {!isSubscriptionPortal ? (
+        {/* Broker guide — verification portals only, and only when the broker
+            module is enabled for this academy. */}
+        {featuresOn.broker && !isSubscriptionPortal ? (
           <BrokerGuideCard
             applicationStatus={status}
             currentScreenshotPath={application.verification_screenshot_path ?? null}

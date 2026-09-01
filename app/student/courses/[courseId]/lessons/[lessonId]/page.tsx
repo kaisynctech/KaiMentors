@@ -7,7 +7,8 @@ import { ProtectedLessonContent } from "@/components/protected-lesson-content";
 import { SignOutButton } from "@/components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./lesson.module.css";
 
 export default async function LessonPage({
@@ -21,11 +22,20 @@ export default async function LessonPage({
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
   const supabase = await createClient();
-  if (!supabase) redirect(`${academy.basePath}/login${academy.querySuffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academy));
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${academy.basePath}/login${academy.querySuffix}`);
+  if (!user) redirect(getStudentLoginHref(academy));
+  if (
+    !isPortalFeatureEnabled(
+      academy.studentPortalFeatures,
+      "courses",
+      academy.accessModel,
+    )
+  ) {
+    redirect(`${academy.basePath}${academy.querySuffix}`);
+  }
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(academy.joinAcademyPath);

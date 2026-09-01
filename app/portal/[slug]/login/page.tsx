@@ -6,6 +6,7 @@ import { portalTitle } from "@/lib/metadata";
 
 interface PortalLoginPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ next?: string }>;
 }
 
 export async function generateMetadata({
@@ -19,9 +20,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function PortalLoginPage({ params }: PortalLoginPageProps) {
+export default async function PortalLoginPage({
+  params,
+  searchParams,
+}: PortalLoginPageProps) {
   const { slug } = await params;
+  const { next } = await searchParams;
   const data = await loadAcademyEntryBySlug(slug);
   if (!data) notFound();
-  return <AcademyLoginPage data={data} />;
+  return <AcademyLoginPage data={data} next={next} />;
 }

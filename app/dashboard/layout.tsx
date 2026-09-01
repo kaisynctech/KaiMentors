@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { DashboardSubscriptionGate } from "@/components/dashboard-subscription-gate";
+import { PortalFeaturesProvider } from "@/components/portal-features-context";
 import {
   getSubscriptionSummary,
   isAcademyActive,
@@ -32,10 +33,15 @@ export default async function DashboardLayout({
   const isActive = superAdmin || active;
 
   return (
-    <Suspense fallback={<>{children}</>}>
-      <DashboardSubscriptionGate isActive={isActive} summary={summary}>
-        {children}
-      </DashboardSubscriptionGate>
-    </Suspense>
+    <PortalFeaturesProvider
+      accessModel={workspace.accessModel}
+      stored={workspace.studentPortalFeatures}
+    >
+      <Suspense fallback={<>{children}</>}>
+        <DashboardSubscriptionGate isActive={isActive} summary={summary}>
+          {children}
+        </DashboardSubscriptionGate>
+      </Suspense>
+    </PortalFeaturesProvider>
   );
 }

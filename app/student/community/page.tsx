@@ -6,7 +6,8 @@ import { CommunityView } from "@/components/community-view";
 import type { GalleryAlbum, GalleryItem, TradePost } from "@/components/community-view";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./community.module.css";
 
 export const dynamic = "force-dynamic";
@@ -21,11 +22,20 @@ export default async function StudentCommunityPage({
   const { basePath, querySuffix, joinAcademyPath } = academy;
 
   const supabase = await createClient();
-  if (!supabase) redirect(`${basePath}/login${querySuffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academy));
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${basePath}/login${querySuffix}`);
+  if (!user) redirect(getStudentLoginHref(academy));
+  if (
+    !isPortalFeatureEnabled(
+      academy.studentPortalFeatures,
+      "community",
+      academy.accessModel,
+    )
+  ) {
+    redirect(`${academy.basePath}${academy.querySuffix}`);
+  }
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(joinAcademyPath);

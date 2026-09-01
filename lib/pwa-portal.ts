@@ -1,5 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
+import { studentHomeHref } from "@/lib/academy-routes";
 import { isPlatformHostname, normalizeRequestHostname } from "@/lib/domains/hostnames";
 import { resolveWebsiteDomain } from "@/lib/domains/resolution";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -87,7 +88,7 @@ export async function getPwaPortalBranding(
     portalName: portal?.portal_name ?? "Academy",
     portalSlug,
     primaryColor: portal?.primary_color ?? "#111315",
-    startUrl: `/student${query}`,
+    startUrl: portalSlug ? studentHomeHref(portalSlug, false) : "/",
     iconQuery: query,
     isCustomDomain: false,
   };

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "@/components/login-form";
+import { isSafeInternalPath } from "@/lib/academy-routes";
+import { resolvePlatformLoginDestination } from "@/lib/student-destination";
 import { createClient } from "@/lib/supabase/server";
 import styles from "../auth.module.css";
 
@@ -13,8 +15,7 @@ export default async function LoginPage({
 }) {
   const { next } = await searchParams;
   // Only honour next if it is a safe relative path (prevents open-redirect).
-  const safeNext =
-    next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  const safeNext = isSafeInternalPath(next) ? next : null;
 
   const supabase = await createClient();
   if (supabase) {
@@ -25,14 +26,13 @@ export default async function LoginPage({
         .select("role")
         .eq("id", data.user.id)
         .maybeSingle();
-      // If a safe next param is present, always follow it (e.g. goto chain from
-      // custom domain login). Otherwise fall back to the role default.
-      const dest =
-        safeNext ??
-        (profile?.role === "super_admin" ? "/admin" :
-         profile?.role === "trader" ? "/dashboard" :
-         profile?.role === "student" ? "/student" : null);
-      if (dest) redirect(dest);
+      const dest = await resolvePlatformLoginDestination({
+        supabase,
+        userId: data.user.id,
+        role: profile?.role,
+        next: safeNext,
+      });
+      if (dest && dest !== "/login") redirect(dest);
     }
   }
 

@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { MentorCommunity } from "@/components/mentor-community";
-import { getMentorWorkspace } from "@/lib/workspace";
 import { signedUrls } from "@/lib/signed-urls";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getMentorWorkspace } from "@/lib/workspace";
 import type { ComponentProps } from "react";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,15 @@ type GalleryItem = ComponentProps<typeof MentorCommunity>["itemsByAlbum"][string
 export default async function DashboardCommunityPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "community",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, portal } = workspace;
 
   const [albumsResult, itemsResult, postsResult] = await Promise.all([

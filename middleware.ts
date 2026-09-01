@@ -1,9 +1,46 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  isFakeStudentLoginPath,
+  isPortalSlug,
+  isSafeInternalPath,
+  studentHomeHref,
+} from "@/lib/academy-routes";
+import {
   isPlatformHostname,
   normalizeRequestHostname,
 } from "@/lib/domains/hostnames";
+import { lookupLatestStudentPortalSlug } from "@/lib/student-destination";
+
+function unauthenticatedLoginUrl(
+  request: NextRequest,
+  path: string,
+  customDomain: boolean,
+) {
+  const loginUrl = request.nextUrl.clone();
+  const portalSlug = request.nextUrl.searchParams.get("portal");
+  const safeSlug = isPortalSlug(portalSlug) ? portalSlug : null;
+
+  loginUrl.search = "";
+  if (!customDomain && path.startsWith("/student") && safeSlug) {
+    loginUrl.pathname = `/portal/${safeSlug}/login`;
+  } else {
+    loginUrl.pathname = "/login";
+  }
+
+  let nextTarget = `${path}${request.nextUrl.search}`;
+  if (isFakeStudentLoginPath(path)) {
+    nextTarget = customDomain
+      ? "/academy"
+      : safeSlug
+        ? `/student?portal=${safeSlug}`
+        : "/";
+  }
+  if (isSafeInternalPath(nextTarget)) {
+    loginUrl.searchParams.set("next", nextTarget);
+  }
+  return loginUrl;
+}
 
 function customDomainDestination(request: NextRequest, hostname: string) {
   const path = request.nextUrl.pathname;
@@ -67,6 +104,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(destination);
   }
 
+  if (customDomain && isFakeStudentLoginPath(path)) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/login";
+    destination.search = "";
+    return NextResponse.redirect(destination);
+  }
+
+  if (!customDomain && isFakeStudentLoginPath(path)) {
+    const portalSlug = request.nextUrl.searchParams.get("portal");
+    const destination = request.nextUrl.clone();
+    destination.search = "";
+    if (isPortalSlug(portalSlug)) {
+      destination.pathname = `/portal/${portalSlug}/login`;
+      destination.searchParams.set("next", `/student?portal=${portalSlug}`);
+    } else {
+      destination.pathname = "/login";
+    }
+    return NextResponse.redirect(destination);
+  }
+
   const makeResponse = () => {
     if (
       customDomain &&
@@ -121,10 +178,10 @@ export async function middleware(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("next", path);
-    return copyCookies(response, NextResponse.redirect(loginUrl));
+    return copyCookies(
+      response,
+      NextResponse.redirect(unauthenticatedLoginUrl(request, path, customDomain)),
+    );
   }
 
   const { data: profile } = await supabase
@@ -149,12 +206,15 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    const destination =
-      profile?.role === "student"
-        ? customDomain
-          ? "/academy"
-          : "/student"
-        : "/login";
+    let destination = "/login";
+    if (profile?.role === "student") {
+      if (customDomain) {
+        destination = "/academy";
+      } else {
+        const slug = await lookupLatestStudentPortalSlug(supabase, data.user.id);
+        destination = slug ? studentHomeHref(slug, false) : "/";
+      }
+    }
     return copyCookies(
       response,
       NextResponse.redirect(new URL(destination, request.url)),
@@ -181,6 +241,20 @@ export async function middleware(request: NextRequest) {
       response,
       NextResponse.redirect(new URL(destination, platformUrl)),
     );
+  }
+
+  if (
+    !customDomain &&
+    logicalPath.startsWith("/student") &&
+    (profile?.role === "student" || profile?.role === "trader") &&
+    !isPortalSlug(request.nextUrl.searchParams.get("portal"))
+  ) {
+    const slug = await lookupLatestStudentPortalSlug(supabase, data.user.id);
+    if (slug) {
+      const dest = request.nextUrl.clone();
+      dest.searchParams.set("portal", slug);
+      return copyCookies(response, NextResponse.redirect(dest));
+    }
   }
 
   return response;

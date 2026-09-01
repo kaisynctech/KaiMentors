@@ -103,3 +103,5 @@ export async function getStudentAcademyContext(
 export async function getStudentBasePath() {
   return (await getStudentAcademyContext()).basePath;
 }
+
+export { getStudentLoginHref } from "@/lib/academy-routes";

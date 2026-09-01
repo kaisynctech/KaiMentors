@@ -6,6 +6,7 @@ import { portalTitle } from "@/lib/metadata";
 
 interface CustomDomainLoginPageProps {
   params: Promise<{ hostname: string }>;
+  searchParams: Promise<{ next?: string }>;
 }
 
 export async function generateMetadata({
@@ -19,13 +20,15 @@ export async function generateMetadata({
 
 export default async function CustomDomainLoginPage({
   params,
+  searchParams,
 }: CustomDomainLoginPageProps) {
   const { hostname } = await params;
+  const { next } = await searchParams;
   const data = await loadAcademyEntryByHostname(hostname);
   if (!data) notFound();
   if (data.shouldRedirect && data.canonicalHostname) {
     redirect(`https://${data.canonicalHostname}/login`);
   }
 
-  return <AcademyLoginPage customDomain data={data} />;
+  return <AcademyLoginPage customDomain data={data} next={next} />;
 }

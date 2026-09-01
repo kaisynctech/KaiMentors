@@ -3,6 +3,7 @@
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
+import { studentHomeHref } from "@/lib/academy-routes";
 import styles from "./student-registration-form.module.css";
 
 interface RegistrationFormProps {
@@ -32,9 +33,10 @@ export function StudentRegistrationForm({
   primaryColor,
   loginPath,
   academyName,
-  studentDestination = "/student",
+  studentDestination,
   accessModel = "verification",
 }: RegistrationFormProps) {
+  const destination = studentDestination ?? studentHomeHref(portalSlug);
   const isSubscription = accessModel === "subscription";
   const STEPS = isSubscription
     ? (["Profile", "About You", "Review"] as const)
@@ -114,7 +116,7 @@ export function StudentRegistrationForm({
         type: isExistingUser ? "email" : "signup",
       });
       if (error) throw new Error("The code is incorrect or has expired. Try again or request a new code.");
-      window.location.href = studentDestination;
+      window.location.href = destination;
     } catch (err) {
       setOtpError(err instanceof Error ? err.message : "Verification failed.");
     } finally {

@@ -1,6 +1,7 @@
 import { redirect }          from "next/navigation";
 import { DashboardShell }    from "@/components/dashboard-shell";
 import { MentorResources }   from "@/components/mentor-resources";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signedUrls } from "@/lib/signed-urls";
@@ -10,6 +11,15 @@ export const dynamic = "force-dynamic";
 export default async function ResourcesPage() {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "resources",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, traderId, displayName, portal } = workspace;
 
   const { data: rows } = await supabase

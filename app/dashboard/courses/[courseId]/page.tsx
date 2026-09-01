@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { CourseDetailManager } from "@/components/course-detail-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
 export default async function CourseDetailPage({
@@ -12,6 +13,15 @@ export default async function CourseDetailPage({
   const { courseId } = await params;
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
+  if (
+    !isPortalFeatureEnabled(
+      workspace.studentPortalFeatures,
+      "courses",
+      workspace.accessModel,
+    )
+  ) {
+    redirect("/dashboard");
+  }
   const { supabase, displayName, portal } = workspace;
   const tid = workspace.traderId;
 

@@ -8,7 +8,8 @@ import { formatDuration } from "@/lib/courses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
-import { getStudentAcademyContext } from "@/lib/student-routing";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./course-detail.module.css";
 
 const BLOCK_TYPE_PRIORITY = ["video", "pdf", "gallery", "image", "rich_text", "link"] as const;
@@ -40,11 +41,20 @@ export default async function StudentCoursePage({
   const query = await searchParams;
   const academy = await getStudentAcademyContext(query?.portal);
   const supabase = await createClient();
-  if (!supabase) redirect(`${academy.basePath}/login${academy.querySuffix}`);
+  if (!supabase) redirect(getStudentLoginHref(academy));
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`${academy.basePath}/login${academy.querySuffix}`);
+  if (!user) redirect(getStudentLoginHref(academy));
+  if (
+    !isPortalFeatureEnabled(
+      academy.studentPortalFeatures,
+      "courses",
+      academy.accessModel,
+    )
+  ) {
+    redirect(`${academy.basePath}${academy.querySuffix}`);
+  }
 
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(academy.joinAcademyPath);

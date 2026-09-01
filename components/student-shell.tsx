@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AcademyUnavailable } from "@/components/academy-unavailable";
 import { isAcademyActive } from "@/lib/entitlements";
+import { resolvePortalFeatures } from "@/lib/portal-features";
+import { getStudentAcademyContext } from "@/lib/student-routing";
 import { StudentShellClient } from "./student-shell-client";
 
 interface StudentShellProps {
@@ -40,6 +42,11 @@ export async function StudentShell({
   }
 
   const academyActive = traderId ? await isAcademyActive(traderId) : true;
+  const academy = await getStudentAcademyContext(portalSlug);
+  const portalFeatures = resolvePortalFeatures(
+    academy.studentPortalFeatures,
+    academy.accessModel,
+  );
 
   return (
     <StudentShellClient
@@ -48,6 +55,7 @@ export async function StudentShell({
       displayName={displayName}
       hasModuleAccess={hasModuleAccess}
       logoUrl={logoUrl}
+      portalFeatures={portalFeatures}
       portalSlug={portalSlug}
       primaryColor={primaryColor}
       querySuffix={querySuffix}

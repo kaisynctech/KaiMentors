@@ -1,24 +1,61 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 import { LoginForm } from "@/components/login-form";
 import type { AcademyEntryContext } from "@/lib/academy-entry";
-import { getAcademyEntryHref } from "@/lib/academy-routes";
+import {
+  getAcademyEntryHref,
+  honourStudentNext,
+  isSafeInternalPath,
+} from "@/lib/academy-routes";
 import { getPortalBrandingUrl } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/server";
 import styles from "./academy-entry.module.css";
 
-export function AcademyLoginPage({
+export async function AcademyLoginPage({
   customDomain = false,
   data,
+  next,
 }: {
   customDomain?: boolean;
   data: AcademyEntryContext;
+  next?: string | null;
 }) {
   const logo = getPortalBrandingUrl(data.portal.logo_path);
   const routeContext = { portalSlug: data.portal.slug, customDomain };
   const homeHref = getAcademyEntryHref(routeContext, "home");
   const joinHref = getAcademyEntryHref(routeContext, "join-academy");
   const studentDestination = getAcademyEntryHref(routeContext, "academy");
+  const safeNext = isSafeInternalPath(next) ? next : undefined;
+  const supabase = await createClient();
+  if (supabase) {
+    const { data: session } = await supabase.auth.getUser();
+    if (session.user) {
+      const { data: membership } = await supabase
+        .from("trader_members")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .eq("trader_id", data.portal.trader_id)
+        .maybeSingle();
+      if (membership) {
+        redirect("/dashboard");
+      }
+
+      const { data: application } = await supabase
+        .from("student_applications")
+        .select("id")
+        .eq("student_user_id", session.user.id)
+        .eq("trader_id", data.portal.trader_id)
+        .maybeSingle();
+      if (application) {
+        redirect(
+          honourStudentNext(safeNext, data.portal.slug, customDomain) ??
+            studentDestination,
+        );
+      }
+    }
+  }
   const platformOrigin = process.env.NEXT_PUBLIC_SITE_URL;
   const setupHref =
     customDomain && platformOrigin
@@ -84,10 +121,12 @@ export function AcademyLoginPage({
           <LoginForm
             academyContext={{
               traderId: data.portal.trader_id,
+              portalSlug: data.portal.slug,
               studentDestination,
               mentorDestination: mentorDashboardHref,
               customDomain,
             }}
+            next={safeNext}
             submitLabel="Sign In"
           />
           <p className={styles.footerNote}>

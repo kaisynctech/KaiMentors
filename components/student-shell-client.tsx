@@ -22,6 +22,7 @@ import {
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
 import { NotificationBell } from "@/components/notification-bell";
 import { PwaRegistrar } from "@/components/pwa-registrar";
+import type { PortalFeatureKey } from "@/lib/portal-features";
 import styles from "./student-shell.module.css";
 
 interface StudentShellClientProps {
@@ -34,6 +35,7 @@ interface StudentShellClientProps {
   traderId?: string;
   portalSlug?: string;
   primaryColor?: string;
+  portalFeatures: Record<PortalFeatureKey, boolean>;
   children: React.ReactNode;
 }
 
@@ -42,6 +44,7 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   locked: boolean;
+  featureKey?: PortalFeatureKey;
 }
 
 export function StudentShellClient({
@@ -54,12 +57,13 @@ export function StudentShellClient({
   traderId,
   portalSlug,
   primaryColor,
+  portalFeatures,
   children,
 }: StudentShellClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
 
-  const navItems: NavItem[] = [
+  const allNavItems: NavItem[] = [
     {
       href: `${basePath}${querySuffix}`,
       label: "Dashboard",
@@ -71,56 +75,68 @@ export function StudentShellClient({
       label: "My Courses",
       icon: BookOpen,
       locked: false,
+      featureKey: "courses",
     },
     {
       href: `${basePath}/live-classes${querySuffix}`,
       label: "Live Classes",
       icon: Video,
       locked: !hasModuleAccess,
+      featureKey: "live_classes",
     },
     {
       href: `${basePath}/bookings${querySuffix}`,
       label: "Book a session",
       icon: CalendarCheck,
       locked: !hasModuleAccess,
+      featureKey: "bookings",
     },
     {
       href: `${basePath}/bookings/sessions${querySuffix}`,
       label: "My sessions",
       icon: CalendarClock,
       locked: !hasModuleAccess,
+      featureKey: "bookings",
     },
     {
       href: `${basePath}/groups${querySuffix}`,
       label: "Groups",
       icon: Users,
       locked: !hasModuleAccess,
+      featureKey: "groups",
     },
     {
       href: `${basePath}/messages${querySuffix}`,
       label: "Messages",
       icon: MessageSquare,
       locked: !hasModuleAccess,
+      featureKey: "messages",
     },
     {
       href: `${basePath}/community${querySuffix}`,
       label: "Community",
       icon: Sparkles,
       locked: false,
+      featureKey: "community",
     },
     {
       href: `${basePath}/resources${querySuffix}`,
       label: "Resources",
       icon: BookOpen,
       locked: false,
+      featureKey: "resources",
     },
     {
       href: `${basePath}/broker${querySuffix}`,
       label: "Open Account",
       icon: Landmark,
       locked: false,
+      featureKey: "broker",
     },
   ];
+  const navItems = allNavItems.filter(
+    (item) => !item.featureKey || portalFeatures[item.featureKey],
+  );
 
   function isActive(href: string) {
     const hrefPath = href.split("?")[0];
@@ -136,7 +152,7 @@ export function StudentShellClient({
     basePath === "/academy"
       ? "/login"
       : portalSlug
-        ? `/portal/${portalSlug}`
+        ? `/portal/${portalSlug}/login`
         : "/login";
 
   function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {

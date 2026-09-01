@@ -14,10 +14,10 @@ interface VerifyBroker {
 interface VerifyAccountFormProps {
   portalId: string;
   brokers: VerifyBroker[];
-  querySuffix: string;
+  studentHome: string;
 }
 
-export function VerifyAccountForm({ portalId, brokers, querySuffix }: VerifyAccountFormProps) {
+export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAccountFormProps) {
   const [brokerConnectionId, setBrokerConnectionId] = useState(
     brokers.length === 1 ? brokers[0].id : "",
   );
@@ -51,7 +51,7 @@ export function VerifyAccountForm({ portalId, brokers, querySuffix }: VerifyAcco
       }
 
       if (payload.status === "verified") {
-        window.location.href = `/student${querySuffix}`;
+        window.location.href = studentHome;
         return;
       }
 
