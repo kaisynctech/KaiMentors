@@ -74,6 +74,7 @@ test("mentor save path and student nav both read the portal feature map", async 
   assert.match(api, /student_portal_features/);
   assert.match(api, /portal\.features_updated/);
   assert.match(settings, /PortalFeaturesSettings/);
+  assert.match(settings, /tab === "features"/);
   assert.match(panel, /\/api\/portal\/features/);
   assert.match(panel, /Students see the same modules/);
   assert.match(dashboardShell, /MENTOR_NAV_FEATURE_BY_HREF/);

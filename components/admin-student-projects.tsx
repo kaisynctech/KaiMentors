@@ -172,7 +172,7 @@ export function AdminStudentProjects({ projects }: { projects: Project[] }) {
       {/* Project rows */}
       {projects.length === 0 && !showForm && (
         <div className="card" style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>
-          No projects yet. Click "New project" to post the first one.
+          No projects yet. Click &ldquo;New project&rdquo; to post the first one.
         </div>
       )}
 

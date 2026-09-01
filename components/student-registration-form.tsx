@@ -31,7 +31,6 @@ const AI_LEVELS = [
 export function StudentRegistrationForm({
   portalSlug,
   primaryColor,
-  loginPath,
   academyName,
   studentDestination,
   accessModel = "verification",

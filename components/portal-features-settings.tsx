@@ -52,7 +52,7 @@ export function PortalFeaturesSettings({
   }
 
   return (
-    <section style={{ marginTop: "2rem" }}>
+    <section>
       <header style={{ marginBottom: "1.25rem" }}>
         <p className="eyebrow">Academy features</p>
         <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800 }}>

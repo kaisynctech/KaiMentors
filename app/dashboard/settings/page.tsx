@@ -21,8 +21,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SettingsTab = "account" | "team" | "brokers" | "branding" | "student-access" | "billing" | "audit-logs";
-const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "student-access", "billing", "audit-logs"]);
+type SettingsTab = "account" | "team" | "brokers" | "branding" | "student-access" | "features" | "billing" | "audit-logs";
+const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "student-access", "features", "billing", "audit-logs"]);
 
 export default async function WorkspaceSettingsPage({
   searchParams,
@@ -241,6 +241,23 @@ export default async function WorkspaceSettingsPage({
         <StudentAccessSettings
           initial={parsePortalAccessPolicy(portalPolicy ?? {})}
         />
+      </DashboardShell>
+    );
+  }
+
+  // ── Features tab ──────────────────────────────────────────────────────────
+  if (tab === "features") {
+    return (
+      <DashboardShell
+        activePath="/dashboard/settings"
+        description="Choose which academy modules appear for mentors and students."
+        title="Settings"
+        userLabel={displayName}
+        traderId={traderId}
+        portalName={portal.portal_name}
+        portalSlug={portal.slug}
+      >
+        <SettingsTabs activeTab="features" />
         <PortalFeaturesSettings
           accessModel={workspace.accessModel}
           initial={workspace.studentPortalFeatures}
