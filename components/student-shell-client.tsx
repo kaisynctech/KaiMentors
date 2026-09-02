@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   BookOpen,
   CalendarCheck,
+  FolderKanban,
   CalendarClock,
   Landmark,
   LayoutDashboard,
@@ -125,6 +126,13 @@ export function StudentShellClient({
       icon: BookOpen,
       locked: false,
       featureKey: "resources",
+    },
+    {
+      href: `${basePath}/projects${querySuffix}`,
+      label: "Projects",
+      icon: FolderKanban,
+      locked: false,
+      featureKey: "projects",
     },
     {
       href: `${basePath}/broker${querySuffix}`,

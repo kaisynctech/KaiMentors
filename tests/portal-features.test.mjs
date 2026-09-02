@@ -21,10 +21,12 @@ test("empty portal features keep core academy modules on", () => {
   assert.equal(verification.groups, true);
   assert.equal(verification.messages, true);
   assert.equal(verification.resources, true);
+  assert.equal(verification.projects, false);
   assert.equal(verification.broker, true);
 
   const subscription = resolvePortalFeatures({}, "subscription");
   assert.equal(subscription.courses, true);
+  assert.equal(subscription.projects, false);
   assert.equal(subscription.broker, false);
 });
 
@@ -38,6 +40,7 @@ test("explicit false hides the same module for mentor and student", () => {
   assert.equal(hrefs.has("/dashboard/community"), false);
   assert.equal(hrefs.has("/dashboard/bookings"), false);
   assert.equal(hrefs.has("/dashboard/courses"), true);
+  assert.equal(hrefs.has("/dashboard/projects"), false);
 });
 
 test("KaiTrades-style full map keeps every catalog module on", () => {
@@ -49,6 +52,7 @@ test("KaiTrades-style full map keeps every catalog module on", () => {
     groups: true,
     messages: true,
     resources: true,
+    projects: true,
     broker: true,
   };
   const resolved = resolvePortalFeatures(kaitrades, "verification");
@@ -65,10 +69,18 @@ test("mentor save path and student nav both read the portal feature map", async 
   const studentShell = await read("components", "student-shell-client.tsx");
   const studentCommunity = await read("app", "student", "community", "page.tsx");
   const mentorCommunity = await read("app", "dashboard", "community", "page.tsx");
+  const mentorProjects = await read("app", "dashboard", "projects", "page.tsx");
+  const studentProjects = await read("app", "student", "projects", "page.tsx");
+  const publicProjects = await read("app", "api", "public", "student-projects", "route.ts");
   const migration = await read(
     "supabase",
     "migrations",
     "20260901160000_kaitrades_portal_features.sql",
+  );
+  const projectsMigration = await read(
+    "supabase",
+    "migrations",
+    "20260901180000_student_projects_tenant_scope.sql",
   );
 
   assert.match(api, /student_portal_features/);
@@ -85,7 +97,15 @@ test("mentor save path and student nav both read the portal feature map", async 
   assert.match(studentCommunity, /"community"/);
   assert.match(mentorCommunity, /isPortalFeatureEnabled/);
   assert.match(mentorCommunity, /"community"/);
+  assert.match(dashboardShell, /\/dashboard\/projects/);
+  assert.match(studentShell, /featureKey: "projects"/);
+  assert.match(mentorProjects, /"projects"/);
+  assert.match(studentProjects, /"projects"/);
+  assert.match(publicProjects, /portal=.*kaisync-institution|isPortalSlug/);
   assert.match(migration, /slug = 'kaitrades'/);
   assert.match(migration, /'courses', true/);
   assert.match(migration, /'broker', true/);
+  assert.match(projectsMigration, /trader_id/);
+  assert.match(projectsMigration, /kaisync-institution/);
+  assert.match(projectsMigration, /kaitrades/);
 });

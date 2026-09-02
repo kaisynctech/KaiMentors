@@ -239,8 +239,6 @@
 
 /* ── Projects: fetch from Supabase & render ── */
 (function(){
-  var SUPABASE_URL = "https://jsbpfhfmumjbrnymhtvq.supabase.co";
-  var ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYnBmaGZtdW1qYnJueW1odHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjUwMDAsImV4cCI6MjA5Njc0MTAwMH0.L6rBxfBhK5YoHrYOV0M5UA2-hf_WK1sCYnXG9p5XlNM";
   var CATEGORY_LABELS = { "web-app": "Web App", "ai-agent": "AI Agent", "automation": "Automation", "mobile-app": "Mobile App", "other": "Other" };
   var CATEGORY_ICONS = { "web-app": "🌐", "ai-agent": "🤖", "automation": "⚡", "mobile-app": "📱", "other": "🛠️" };
 
@@ -296,9 +294,7 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
   // Fetch
-  fetch(SUPABASE_URL + "/rest/v1/student_projects?published=eq.true&select=*&order=created_at.desc", {
-    headers: { "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY }
-  })
+  fetch("/api/public/student-projects?portal=kaisync-institution")
   .then(function(r){ return r.json(); })
   .then(function(data) {
     allProjects = data;

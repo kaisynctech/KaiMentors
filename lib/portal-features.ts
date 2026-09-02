@@ -6,6 +6,7 @@ export const PORTAL_FEATURE_KEYS = [
   "groups",
   "messages",
   "resources",
+  "projects",
   "broker",
 ] as const;
 
@@ -87,6 +88,15 @@ export const PORTAL_FEATURE_CATALOG: readonly PortalFeatureDefinition[] = [
     studentNav: [{ hrefSuffix: "/resources", label: "Resources" }],
   },
   {
+    key: "projects",
+    label: "Projects",
+    description:
+      "Student project showcase on the mentor dashboard, student portal, and academy website.",
+    defaultEnabled: false,
+    mentorHref: "/dashboard/projects",
+    studentNav: [{ hrefSuffix: "/projects", label: "Projects" }],
+  },
+  {
     key: "broker",
     label: "Broker / Open account",
     description:
@@ -102,6 +112,7 @@ export const MENTOR_NAV_FEATURE_BY_HREF: Record<string, PortalFeatureKey> = {
   "/dashboard/community": "community",
   "/dashboard/courses": "courses",
   "/dashboard/resources": "resources",
+  "/dashboard/projects": "projects",
   "/dashboard/live-classes": "live_classes",
   "/dashboard/bookings": "bookings",
 };
