@@ -55,7 +55,7 @@ export default async function AcademyProgressPage({
   return (
     <DashboardShell
       activePath="/dashboard/progress"
-      description="See who is ahead, who is stuck, and who has not started — then message or book from here."
+      description="See who is ahead, who is stuck, and who has not started — then nudge, message, or book from here."
       title="Academy progress"
       userLabel={workspace.displayName}
       traderId={workspace.traderId}

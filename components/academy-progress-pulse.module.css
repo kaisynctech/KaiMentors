@@ -30,6 +30,35 @@
   margin-bottom: 0;
 }
 
+.digestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.digestActions button,
+.nudgeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  border: 1px solid #c5d4e4;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: #1d3a5c;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.digestActions button:disabled,
+.nudgeBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -121,6 +150,11 @@
 }
 
 .panelHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 14px 18px;
   border-bottom: 1px solid #eef0f1;
 }

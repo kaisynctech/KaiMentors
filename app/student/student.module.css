@@ -153,10 +153,17 @@
 .continueLessonTitle {
   font-size: 14px;
   font-weight: 650;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.leftOff {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
 }
 
 .progressBar {
@@ -164,7 +171,7 @@
   background: #e8eaeb;
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin: 4px 0 4px;
 }
 
 .progressFill {

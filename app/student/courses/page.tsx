@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { formatWatchPosition } from "@/lib/courses";
 import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
 import styles from "./courses.module.css";
 
@@ -182,6 +183,7 @@ export default async function StudentCoursesPage({
       .sort((a, b) =>
         (b.lastActivity ?? "").localeCompare(a.lastActivity ?? ""),
       )[0] ?? null;
+  const resumeAt = formatWatchPosition(continueCourse?.resume?.position_seconds);
 
   const completed = courses.filter((c) => c.complete);
 
@@ -234,13 +236,14 @@ export default async function StudentCoursesPage({
                   {continueCourse.percent}% ·{" "}
                   {continueCourse.lessonCount} required lesson
                   {continueCourse.lessonCount === 1 ? "" : "s"}
+                  {resumeAt ? ` · Left off at ${resumeAt}` : ""}
                 </p>
                 <Link
                   className={styles.resumeBtn}
                   href={`${base}/courses/${continueCourse.id}/lessons/${continueCourse.resume.lesson_id}${suffix}`}
                 >
                   <PlayCircle size={16} />
-                  Resume lesson
+                  {resumeAt ? `Resume from ${resumeAt}` : "Resume lesson"}
                 </Link>
               </div>
             </div>

@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 import {
+  buildNudgeDraft,
   buildPulseInsights,
+  buildNudgeTitle,
   classifyLearner,
   currentLessonTitle,
   studentHasCourseAccess,
 } from "../lib/academy-progress.ts";
+import { formatWatchPosition } from "../lib/courses.ts";
 
 const course = {
   id: "course-1",
@@ -129,4 +134,57 @@ test("digest names quiet students and unfinished access", () => {
   assert.match(lines[0], /8 students have not opened/);
   assert.match(lines[1], /gone quiet/);
   assert.match(lines[1], /Risk/);
+});
+
+test("nudge titles name the bucket, group, and course", () => {
+  assert.equal(
+    buildNudgeTitle({ bucket: "stuck", count: 12 }),
+    "Stuck · 12 students",
+  );
+  assert.equal(
+    buildNudgeTitle({
+      bucket: "not_started",
+      courseTitle: "Foundations",
+      groupName: "Gold",
+      count: 8,
+    }),
+    "Not started · Gold · Foundations",
+  );
+});
+
+test("nudge drafts stay specific to the coaching moment", () => {
+  assert.match(
+    buildNudgeDraft({ bucket: "stuck", courseTitle: "Foundations" }),
+    /quiet on “Foundations”/,
+  );
+  assert.match(
+    buildNudgeDraft({ bucket: "not_started" }),
+    /haven’t opened this yet/,
+  );
+});
+
+test("watch position is a clock time, not a duration phrase", () => {
+  assert.equal(formatWatchPosition(null), null);
+  assert.equal(formatWatchPosition(0), null);
+  assert.equal(formatWatchPosition(14), "0:14");
+  assert.equal(formatWatchPosition(860), "14:20");
+  assert.equal(formatWatchPosition(3723), "1:02:03");
+});
+
+test("pulse nudges through group conversations and students see leftover time", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const pulse = await readFile(
+    path.join(root, "components", "academy-progress-pulse.tsx"),
+    "utf8",
+  );
+  const home = await readFile(path.join(root, "app", "student", "page.tsx"), "utf8");
+  const learning = await readFile(
+    path.join(root, "app", "student", "courses", "page.tsx"),
+    "utf8",
+  );
+  assert.match(pulse, /type: "group"/);
+  assert.match(pulse, /allowStudentReplies: true/);
+  assert.match(pulse, /Nudge stuck/);
+  assert.match(home, /Left off at/);
+  assert.match(learning, /Resume from/);
 });

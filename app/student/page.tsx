@@ -24,6 +24,7 @@ import { loadTodaySignal } from "@/lib/community-server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { formatWatchPosition } from "@/lib/courses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
@@ -85,6 +86,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     lesson_id: string;
     is_started: boolean;
     is_completed: boolean;
+    position_seconds: number | null;
     last_activity_at: string | null;
     lesson: { title: string; module_id: string | null } | null;
     course: { title: string; cover_path: string | null } | null;
@@ -129,7 +131,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
         supabase
           .from("lesson_progress")
           .select(
-            "course_id,lesson_id,is_started,is_completed,last_activity_at,lesson:lessons(title,module_id),course:courses(title,cover_path)",
+            "course_id,lesson_id,is_started,is_completed,position_seconds,last_activity_at,lesson:lessons(title,module_id),course:courses(title,cover_path)",
           )
           .eq("trader_id", application.trader_id)
           .eq("student_user_id", user.id)
@@ -202,6 +204,7 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   const continueLearning = lessonProgress.find(
     (p) => p.is_started && !p.is_completed,
   ) ?? null;
+  const continueAt = formatWatchPosition(continueLearning?.position_seconds);
 
   const lessonsCompleted = lessonProgress.filter((p) => p.is_completed).length;
 
@@ -431,6 +434,9 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                       {(continueLearning.lesson as { title?: string } | null)?.title ??
                         "Continue learning"}
                     </p>
+                    {continueAt ? (
+                      <p className={styles.leftOff}>Left off at {continueAt}</p>
+                    ) : null}
                     <div className={styles.progressBar}>
                       <div
                         className={styles.progressFill}

@@ -8,9 +8,17 @@ import {
   CheckCircle2,
   MessageCircle,
   TrendingUp,
+  UsersRound,
 } from "lucide-react";
 import type { AcademyProgressPulse, PulseLearner } from "@/lib/academy-progress-server";
-import { PULSE_BUCKETS, type PulseBucket } from "@/lib/academy-progress";
+import {
+  PULSE_BUCKETS,
+  buildNudgeDraft,
+  buildNudgeTitle,
+  isNudgeBucket,
+  type NudgeBucket,
+  type PulseBucket,
+} from "@/lib/academy-progress";
 import { timeAgo } from "@/lib/courses";
 import styles from "./academy-progress-pulse.module.css";
 
@@ -55,6 +63,7 @@ export function AcademyProgressPulse({
 }) {
   const router = useRouter();
   const [messagingId, setMessagingId] = useState<string | null>(null);
+  const [nudging, setNudging] = useState<NudgeBucket | null>(null);
   const [error, setError] = useState("");
   const [localGroupId, setLocalGroupId] = useState("");
   const [localBucket, setLocalBucket] = useState<PulseBucket | "all">("all");
@@ -105,7 +114,7 @@ export function AcademyProgressPulse({
     router.push(hrefFor({ bucket: next }));
   }
 
-  async function messageStudent(learner: PulseLearner) {
+  async function messageStudent(learner: PulseLearner, draft?: string) {
     if (!messagesEnabled) return;
     setMessagingId(learner.applicationId);
     setError("");
@@ -123,10 +132,61 @@ export function AcademyProgressPulse({
       setError(payload?.error ?? "Could not open a conversation.");
       return;
     }
-    router.push(
-      `/dashboard/messages?conversation=${encodeURIComponent(payload.conversationId)}`,
-    );
+    const params = new URLSearchParams({
+      conversation: payload.conversationId,
+    });
+    if (draft) params.set("draft", draft);
+    router.push(`/dashboard/messages?${params.toString()}`);
   }
+
+  async function nudgeBucket(bucket: NudgeBucket) {
+    if (!messagesEnabled) return;
+    const targets = scopedLearners.filter((learner) => learner.bucket === bucket);
+    if (targets.length === 0) return;
+    const draft = buildNudgeDraft({
+      bucket,
+      courseTitle: pulse.selectedCourseTitle,
+    });
+    if (targets.length === 1) {
+      await messageStudent(targets[0], draft);
+      return;
+    }
+
+    setNudging(bucket);
+    setError("");
+    const groupName =
+      pulse.groups.find((group) => group.id === activeGroupId)?.name ?? null;
+    const response = await fetch("/api/messages/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "group",
+        title: buildNudgeTitle({
+          bucket,
+          courseTitle: pulse.selectedCourseTitle,
+          groupName,
+          count: targets.length,
+        }),
+        applicationIds: targets.map((learner) => learner.applicationId),
+        allowStudentReplies: true,
+      }),
+    });
+    const payload = await response.json().catch(() => null);
+    setNudging(null);
+    if (!response.ok || !payload?.conversationId) {
+      setError(payload?.error ?? "Could not open a group conversation.");
+      return;
+    }
+    const params = new URLSearchParams({
+      conversation: payload.conversationId,
+      draft,
+    });
+    router.push(`/dashboard/messages?${params.toString()}`);
+  }
+
+  const nudgeBucketActive = isNudgeBucket(activeBucket)
+    ? activeBucket
+    : null;
 
   return (
     <div className={styles.wrap}>
@@ -137,6 +197,34 @@ export function AcademyProgressPulse({
             {pulse.insights.map((line) => (
               <p key={line}>{line}</p>
             ))}
+            {messagesEnabled && (counts.stuck > 0 || counts.not_started > 0) ? (
+              <div className={styles.digestActions}>
+                {counts.stuck > 0 ? (
+                  <button
+                    disabled={nudging !== null || messagingId !== null}
+                    onClick={() => void nudgeBucket("stuck")}
+                    type="button"
+                  >
+                    <UsersRound size={14} />
+                    {nudging === "stuck"
+                      ? "Opening…"
+                      : `Nudge stuck (${counts.stuck})`}
+                  </button>
+                ) : null}
+                {counts.not_started > 0 ? (
+                  <button
+                    disabled={nudging !== null || messagingId !== null}
+                    onClick={() => void nudgeBucket("not_started")}
+                    type="button"
+                  >
+                    <UsersRound size={14} />
+                    {nudging === "not_started"
+                      ? "Opening…"
+                      : `Nudge not started (${counts.not_started})`}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -222,6 +310,21 @@ export function AcademyProgressPulse({
               {visible.length} student{visible.length === 1 ? "" : "s"}
             </small>
           </h2>
+          {nudgeBucketActive && visible.length > 0 && messagesEnabled ? (
+            <button
+              className={styles.nudgeBtn}
+              disabled={nudging !== null || messagingId !== null}
+              onClick={() => void nudgeBucket(nudgeBucketActive)}
+              type="button"
+            >
+              <UsersRound size={14} />
+              {nudging === activeBucket
+                ? "Opening…"
+                : visible.length === 1
+                  ? "Nudge"
+                  : "Nudge these students"}
+            </button>
+          ) : null}
         </header>
         {visible.length === 0 ? (
           <p className={styles.empty}>No students in this view.</p>

@@ -171,3 +171,38 @@ export function buildPulseInsights(args: {
 export function emptyBucketCounts(): Record<PulseBucket, number> {
   return { ahead: 0, on_track: 0, stuck: 0, not_started: 0 };
 }
+
+export const NUDGE_BUCKETS = ["stuck", "not_started"] as const;
+export type NudgeBucket = (typeof NUDGE_BUCKETS)[number];
+
+export function isNudgeBucket(value: string): value is NudgeBucket {
+  return (NUDGE_BUCKETS as readonly string[]).includes(value);
+}
+
+export function buildNudgeTitle(args: {
+  bucket: NudgeBucket;
+  courseTitle?: string | null;
+  groupName?: string | null;
+  count: number;
+}): string {
+  const who = args.bucket === "stuck" ? "Stuck" : "Not started";
+  const scope = [args.groupName, args.courseTitle].filter(Boolean);
+  const title = scope.length
+    ? `${who} · ${scope.join(" · ")}`
+    : `${who} · ${args.count} student${args.count === 1 ? "" : "s"}`;
+  return title.slice(0, 160);
+}
+
+export function buildNudgeDraft(args: {
+  bucket: NudgeBucket;
+  courseTitle?: string | null;
+}): string {
+  if (args.bucket === "stuck") {
+    return args.courseTitle
+      ? `Checking in — it looks like you went quiet on “${args.courseTitle}”. Reply here if you want help picking it back up.`
+      : "Checking in — it looks like you went quiet. Reply here if you want help picking it back up.";
+  }
+  return args.courseTitle
+    ? `You’ve got access to “${args.courseTitle}” and haven’t opened it yet. Start the first lesson when you’re ready, or reply if something is blocking you.`
+    : "You’ve got access and haven’t opened this yet. Start the first lesson when you’re ready, or reply if something is blocking you.";
+}

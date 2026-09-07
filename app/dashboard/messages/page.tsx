@@ -8,7 +8,7 @@ import { getMentorWorkspace } from "@/lib/workspace";
 export default async function MentorMessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ conversation?: string }>;
+  searchParams: Promise<{ conversation?: string; draft?: string }>;
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
@@ -43,6 +43,7 @@ export default async function MentorMessagesPage({
       <MessagesWorkspace
         conversations={conversations}
         initialConversationId={query.conversation}
+        initialDraft={query.draft}
         mode="mentor"
         students={students}
         traderId={traderId}

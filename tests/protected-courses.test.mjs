@@ -113,6 +113,8 @@ test("mentor and student course surfaces expose the required operating model", a
   assert.match(studentList, /My Learning/);
   assert.match(studentList, /Continue Watching/);
   assert.match(studentList, /Completed/);
+  assert.match(studentList, /formatWatchPosition/);
+  assert.match(studentList, /Left off at/);
 });
 
 test("production acceptance is acceptance-test scoped, repeatable, and secretless", async () => {

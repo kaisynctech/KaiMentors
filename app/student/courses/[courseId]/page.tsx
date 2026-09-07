@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
 import { SignOutButton } from "@/components/sign-out-button";
-import { formatDuration } from "@/lib/courses";
+import { formatDuration, formatWatchPosition } from "@/lib/courses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
@@ -279,6 +279,7 @@ export default async function StudentCoursePage({
                     isInProgress && lesson.duration_seconds && lessonProg?.position_seconds
                       ? Math.min(99, Math.round((lessonProg.position_seconds / lesson.duration_seconds) * 100))
                       : 0;
+                  const watchAt = formatWatchPosition(lessonProg?.position_seconds);
                   const primaryType = getPrimaryBlockType(
                     (lesson.blocks ?? []) as { block_type: string }[],
                   );
@@ -317,7 +318,8 @@ export default async function StudentCoursePage({
                       <div className={styles.lessonRight}>
                         {isResume ? (
                           <span className={styles.resumeLabel}>
-                            <PlayCircle size={13} /> Resume
+                            <PlayCircle size={13} />{" "}
+                            {watchAt ? `Resume · ${watchAt}` : "Resume"}
                           </span>
                         ) : null}
                         <span className={styles.duration}>

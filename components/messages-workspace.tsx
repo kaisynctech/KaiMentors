@@ -42,6 +42,7 @@ export function MessagesWorkspace({
   workspaceMentors = [],
   initialTodaySignal = null,
   allStudentsConversationId,
+  initialDraft,
 }: {
   conversations: ConversationSummary[];
   students: CommunityStudent[];
@@ -53,6 +54,7 @@ export function MessagesWorkspace({
   workspaceMentors?: WorkspaceMentor[];
   initialTodaySignal?: DailySignalSummary | null;
   allStudentsConversationId?: string;
+  initialDraft?: string;
 }) {
   const router = useRouter();
   const [conversationRows, setConversationRows] = useState(conversations);
@@ -683,6 +685,10 @@ export function MessagesWorkspace({
               >
                 <textarea
                   aria-label="Message"
+                  defaultValue={
+                    activeId === initialConversationId ? initialDraft : undefined
+                  }
+                  key={`${activeId}-${activeId === initialConversationId ? initialDraft ?? "" : ""}`}
                   maxLength={5000}
                   name="body"
                   placeholder="Write a message..."
