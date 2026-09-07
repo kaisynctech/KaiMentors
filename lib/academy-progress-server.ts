@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  applyGroupRelativeStuck,
   buildPulseInsights,
   classifyLearner,
   currentLessonTitle,
@@ -11,6 +12,7 @@ import {
   type PulseGrant,
   type PulseLessonRef,
   type PulseProgressRow,
+  type StuckReason,
 } from "@/lib/academy-progress";
 
 export type PulseLearner = {
@@ -24,6 +26,7 @@ export type PulseLearner = {
   lastActivityAt: string | null;
   currentLessonTitle: string | null;
   groupIds: string[];
+  stuckReason: StuckReason | null;
 };
 
 export type PulseLessonStat = {
@@ -145,7 +148,7 @@ export async function loadAcademyProgressPulse(
   }
 
   const now = Date.now();
-  const learners: PulseLearner[] = [];
+  let learners: PulseLearner[] = [];
 
   for (const application of applications) {
     const groupIds = membersByApplication.get(application.id) ?? [];
@@ -187,8 +190,11 @@ export async function loadAcademyProgressPulse(
       lastActivityAt: classified.lastActivityAt,
       currentLessonTitle: currentLessonTitle(scopedLessons, progress),
       groupIds,
+      stuckReason: classified.bucket === "stuck" ? "quiet" : null,
     });
   }
+
+  learners = applyGroupRelativeStuck(learners);
 
   const counts = emptyBucketCounts();
   for (const learner of learners) counts[learner.bucket] += 1;
@@ -246,6 +252,9 @@ export async function loadAcademyProgressPulse(
       counts,
       quietLessonTitle:
         stuckLesson && stuckLesson.quiet > 0 ? stuckLesson.title : null,
+      behindGroupCount: learners.filter(
+        (learner) => learner.stuckReason === "behind_group",
+      ).length,
     }),
     selectedCourseTitle,
   };

@@ -3,11 +3,13 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import {
+  applyGroupRelativeStuck,
   buildNudgeDraft,
   buildPulseInsights,
   buildNudgeTitle,
   classifyLearner,
   currentLessonTitle,
+  learnerIsBehindPeers,
   studentHasCourseAccess,
 } from "../lib/academy-progress.ts";
 import { formatWatchPosition } from "../lib/courses.ts";
@@ -136,6 +138,52 @@ test("digest names quiet students and unfinished access", () => {
   assert.match(lines[1], /Risk/);
 });
 
+test("digest names students behind their group", () => {
+  const lines = buildPulseInsights({
+    courseTitle: "Foundations",
+    counts: { ahead: 0, on_track: 1, stuck: 3, not_started: 0 },
+    quietLessonTitle: "Risk",
+    behindGroupCount: 3,
+  });
+  assert.match(lines[0], /behind their group/);
+  assert.match(lines[0], /Risk/);
+});
+
+test("a student still active can be stuck when the group has moved on", () => {
+  assert.equal(
+    learnerIsBehindPeers({ completed: 1, peerCompleted: [4, 4, 4] }),
+    true,
+  );
+  assert.equal(
+    learnerIsBehindPeers({ completed: 1, peerCompleted: [4] }),
+    false,
+  );
+  const learners = applyGroupRelativeStuck([
+    { applicationId: "a", bucket: "on_track", completed: 1, groupIds: ["gold"] },
+    { applicationId: "b", bucket: "ahead", completed: 4, groupIds: ["gold"] },
+    { applicationId: "c", bucket: "ahead", completed: 4, groupIds: ["gold"] },
+  ]);
+  assert.equal(learners[0]?.bucket, "stuck");
+  assert.equal(learners[0]?.stuckReason, "behind_group");
+  assert.equal(learners[1]?.bucket, "ahead");
+});
+
+test("quiet students stay stuck even if the group has not moved", () => {
+  const learners = applyGroupRelativeStuck([
+    {
+      applicationId: "a",
+      bucket: "stuck",
+      completed: 1,
+      groupIds: ["gold"],
+      stuckReason: "quiet",
+    },
+    { applicationId: "b", bucket: "on_track", completed: 1, groupIds: ["gold"] },
+    { applicationId: "c", bucket: "on_track", completed: 1, groupIds: ["gold"] },
+  ]);
+  assert.equal(learners[0]?.stuckReason, "quiet");
+  assert.equal(learners[1]?.bucket, "on_track");
+});
+
 test("nudge titles name the bucket, group, and course", () => {
   assert.equal(
     buildNudgeTitle({ bucket: "stuck", count: 12 }),
@@ -155,7 +203,7 @@ test("nudge titles name the bucket, group, and course", () => {
 test("nudge drafts stay specific to the coaching moment", () => {
   assert.match(
     buildNudgeDraft({ bucket: "stuck", courseTitle: "Foundations" }),
-    /quiet on “Foundations”/,
+    /stalled on “Foundations”/,
   );
   assert.match(
     buildNudgeDraft({ bucket: "not_started" }),
@@ -185,6 +233,7 @@ test("pulse nudges through group conversations and students see leftover time", 
   assert.match(pulse, /type: "group"/);
   assert.match(pulse, /allowStudentReplies: true/);
   assert.match(pulse, /Nudge stuck/);
+  assert.match(pulse, /panel=bookings&student=/);
   assert.match(home, /Left off at/);
   assert.match(learning, /Resume from/);
 });

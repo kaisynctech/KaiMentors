@@ -128,6 +128,77 @@ export function classifyLearner(args: {
   };
 }
 
+export const GROUP_LAG_MIN_PEERS = 2;
+
+export type StuckReason = "quiet" | "behind_group";
+
+export function medianCompleted(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)] ?? 0;
+}
+
+export function learnerIsBehindPeers(args: {
+  completed: number;
+  peerCompleted: number[];
+  minPeers?: number;
+}): boolean {
+  const minPeers = args.minPeers ?? GROUP_LAG_MIN_PEERS;
+  const ahead = args.peerCompleted.filter((value) => value > args.completed);
+  if (ahead.length < minPeers) return false;
+  return args.completed < medianCompleted(args.peerCompleted);
+}
+
+export function applyGroupRelativeStuck<
+  T extends {
+    applicationId: string;
+    bucket: PulseBucket;
+    completed: number;
+    groupIds: string[];
+    stuckReason?: StuckReason | null;
+  },
+>(learners: T[]): T[] {
+  const byGroup = new Map<string, T[]>();
+  for (const learner of learners) {
+    for (const groupId of learner.groupIds) {
+      const list = byGroup.get(groupId) ?? [];
+      list.push(learner);
+      byGroup.set(groupId, list);
+    }
+  }
+
+  return learners.map((learner) => {
+    if (learner.bucket !== "on_track") return learner;
+
+    const cohorts: T[][] = [];
+    if (learner.groupIds.length > 0) {
+      for (const groupId of learner.groupIds) {
+        const members = byGroup.get(groupId);
+        if (members && members.length >= GROUP_LAG_MIN_PEERS + 1) {
+          cohorts.push(members);
+        }
+      }
+    } else if (learners.length >= GROUP_LAG_MIN_PEERS + 1) {
+      cohorts.push(learners);
+    }
+
+    const behind = cohorts.some((cohort) =>
+      learnerIsBehindPeers({
+        completed: learner.completed,
+        peerCompleted: cohort
+          .filter((peer) => peer.applicationId !== learner.applicationId)
+          .map((peer) => peer.completed),
+      }),
+    );
+    if (!behind) return learner;
+    return {
+      ...learner,
+      bucket: "stuck" as const,
+      stuckReason: "behind_group" as const,
+    };
+  });
+}
+
 export function currentLessonTitle(
   requiredLessons: PulseLessonRef[],
   progress: PulseProgressRow[],
@@ -143,6 +214,7 @@ export function buildPulseInsights(args: {
   courseTitle: string | null;
   counts: Record<PulseBucket, number>;
   quietLessonTitle: string | null;
+  behindGroupCount?: number;
 }): string[] {
   const insights: string[] = [];
   const course = args.courseTitle ? `“${args.courseTitle}”` : "your published courses";
@@ -153,9 +225,20 @@ export function buildPulseInsights(args: {
   }
   if (args.counts.stuck > 0) {
     const lesson = args.quietLessonTitle ? ` on “${args.quietLessonTitle}”` : "";
-    insights.push(
-      `${args.counts.stuck} student${args.counts.stuck === 1 ? " has" : "s have"} gone quiet for 7+ days${lesson}.`,
-    );
+    const behind = args.behindGroupCount ?? 0;
+    if (behind > 0 && behind >= args.counts.stuck) {
+      insights.push(
+        `${args.counts.stuck} student${args.counts.stuck === 1 ? " is" : "s are"} behind their group${lesson}.`,
+      );
+    } else if (behind > 0) {
+      insights.push(
+        `${args.counts.stuck} student${args.counts.stuck === 1 ? " is" : "s are"} stuck — quiet for 7+ days or behind their group${lesson}.`,
+      );
+    } else {
+      insights.push(
+        `${args.counts.stuck} student${args.counts.stuck === 1 ? " has" : "s have"} gone quiet for 7+ days${lesson}.`,
+      );
+    }
   }
   if (args.counts.ahead > 0) {
     insights.push(
@@ -199,8 +282,8 @@ export function buildNudgeDraft(args: {
 }): string {
   if (args.bucket === "stuck") {
     return args.courseTitle
-      ? `Checking in — it looks like you went quiet on “${args.courseTitle}”. Reply here if you want help picking it back up.`
-      : "Checking in — it looks like you went quiet. Reply here if you want help picking it back up.";
+      ? `Checking in — it looks like you have stalled on “${args.courseTitle}”. Reply here if you want help picking it back up.`
+      : "Checking in — it looks like you have stalled. Reply here if you want help picking it back up.";
   }
   return args.courseTitle
     ? `You’ve got access to “${args.courseTitle}” and haven’t opened it yet. Start the first lesson when you’re ready, or reply if something is blocking you.`

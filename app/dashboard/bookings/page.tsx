@@ -53,12 +53,15 @@ export default async function BookingsPage({
     Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const requestedPanel = firstValue(query.panel);
   const mentorParam = firstValue(query.mentor);
+  const studentParam = firstValue(query.student);
+  const focusStudentId =
+    studentParam && UUID_RE.test(studentParam) ? studentParam : "";
   const initialPanel: "session-types" | "availability" | "bookings" =
     requestedPanel === "availability" ||
     requestedPanel === "session-types" ||
     requestedPanel === "bookings"
       ? requestedPanel
-      : requestedTab || firstValue(query.page) || mentorParam
+      : requestedTab || firstValue(query.page) || mentorParam || focusStudentId
         ? "bookings"
         : "session-types";
   const offset = (page - 1) * BOOKING_PAGE_SIZE;
@@ -147,6 +150,12 @@ export default async function BookingsPage({
     upcomingSoonQuery = upcomingSoonQuery.eq("mentor_user_id", mentorScope);
   }
 
+  if (focusStudentId) {
+    bookingsQuery = bookingsQuery.eq("student_user_id", focusStudentId);
+    pendingQuery = pendingQuery.eq("student_user_id", focusStudentId);
+    upcomingSoonQuery = upcomingSoonQuery.eq("student_user_id", focusStudentId);
+  }
+
   if (tab === "pending") {
     bookingsQuery = bookingsQuery.eq("status", "pending");
   } else if (tab === "upcoming") {
@@ -163,13 +172,31 @@ export default async function BookingsPage({
     { data: bookings, count: totalCount },
     { count: pendingCount },
     { data: upcomingSoonRows },
+    { data: focusStudentRow },
   ] = await Promise.all([
     bookingsQuery
       .order("starts_at", { ascending: false })
       .range(offset, offset + BOOKING_PAGE_SIZE - 1),
     pendingQuery,
     upcomingSoonQuery,
+    focusStudentId
+      ? supabase
+          .from("student_applications")
+          .select("full_name, profile:profiles!student_user_id(full_name)")
+          .eq("trader_id", traderId)
+          .eq("student_user_id", focusStudentId)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const focusProfile = Array.isArray(focusStudentRow?.profile)
+    ? focusStudentRow?.profile[0] ?? null
+    : focusStudentRow?.profile ?? null;
+  const focusStudentName = focusStudentId
+    ? focusStudentRow?.full_name?.trim() ||
+      focusProfile?.full_name?.trim() ||
+      "Student"
+    : null;
 
   return (
     <DashboardShell
@@ -188,6 +215,8 @@ export default async function BookingsPage({
         currentMentor={mentorScope}
         currentPage={page}
         currentTab={tab}
+        focusStudentId={focusStudentId || null}
+        focusStudentName={focusStudentName}
         initialPanel={initialPanel}
         mentorTimezone={timezone}
         mentors={mentors}

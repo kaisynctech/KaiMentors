@@ -32,7 +32,7 @@ const BUCKET_LABEL: Record<PulseBucket, string> = {
 const BUCKET_NOTE: Record<PulseBucket, string> = {
   ahead: "Finished the current required lessons",
   on_track: "Moving through the path",
-  stuck: "Quiet for 7+ days",
+  stuck: "Quiet 7+ days, or behind the group",
   not_started: "Have access, have not opened it",
 };
 
@@ -339,9 +339,17 @@ export function AcademyProgressPulse({
                 <p className={styles.sub}>
                   {learner.bucket === "not_started"
                     ? "Has not opened this path yet"
-                    : learner.currentLessonTitle
-                      ? `Next: ${learner.currentLessonTitle}`
-                      : "Path complete"}
+                    : learner.stuckReason === "behind_group"
+                      ? learner.currentLessonTitle
+                        ? `Behind the group · Next: ${learner.currentLessonTitle}`
+                        : "Behind the group"
+                      : learner.stuckReason === "quiet"
+                        ? learner.currentLessonTitle
+                          ? `Quiet 7+ days · Next: ${learner.currentLessonTitle}`
+                          : "Quiet for 7+ days"
+                        : learner.currentLessonTitle
+                          ? `Next: ${learner.currentLessonTitle}`
+                          : "Path complete"}
                   {" · "}
                   Last active {timeAgo(learner.lastActivityAt)}
                 </p>
@@ -371,7 +379,9 @@ export function AcademyProgressPulse({
                   </button>
                 ) : null}
                 {bookingsEnabled ? (
-                  <Link href="/dashboard/bookings">
+                  <Link
+                    href={`/dashboard/bookings?panel=bookings&student=${encodeURIComponent(learner.studentUserId)}`}
+                  >
                     <CalendarCheck size={14} />
                     Sessions
                   </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp, Info, Loader2, Plus, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./booking-session-type-manager.module.css";
@@ -94,6 +95,8 @@ interface Props {
   currentMentor: string;
   initialPanel: BookingPanel;
   upcomingSoon: BookingRecord | null;
+  focusStudentId?: string | null;
+  focusStudentName?: string | null;
 }
 
 // ── Constants ────────────────────────────────────────
@@ -180,6 +183,8 @@ export function BookingSessionTypeManager({
   currentMentor,
   initialPanel,
   upcomingSoon,
+  focusStudentId = null,
+  focusStudentName = null,
 }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<BookingPanel>(initialPanel);
@@ -192,6 +197,7 @@ export function BookingSessionTypeManager({
       params.set("tab", currentTab);
       params.set("page", String(currentPage));
       if (callerRole === "owner") params.set("mentor", currentMentor);
+      if (focusStudentId) params.set("student", focusStudentId);
     }
     router.replace(`/dashboard/bookings?${params.toString()}`);
   }
@@ -252,6 +258,8 @@ export function BookingSessionTypeManager({
           pendingCount={pendingCount}
           totalCount={totalCount}
           upcomingSoon={upcomingSoon}
+          focusStudentId={focusStudentId}
+          focusStudentName={focusStudentName}
         />
       )}
     </div>
@@ -1003,6 +1011,8 @@ function BookingsPanel({
   pendingCount,
   currentMentor,
   upcomingSoon,
+  focusStudentId = null,
+  focusStudentName = null,
 }: {
   initialBookings: BookingRecord[];
   mentorTimezone: string;
@@ -1016,6 +1026,8 @@ function BookingsPanel({
   pendingCount: number;
   currentMentor: string;
   upcomingSoon: BookingRecord | null;
+  focusStudentId?: string | null;
+  focusStudentName?: string | null;
 }) {
   const router = useRouter();
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
@@ -1048,6 +1060,7 @@ function BookingsPanel({
     if (callerRole === "owner") {
       params.set("mentor", next.mentor ?? currentMentor);
     }
+    if (focusStudentId) params.set("student", focusStudentId);
     return `/dashboard/bookings?${params.toString()}`;
   }
 
@@ -1178,6 +1191,18 @@ function BookingsPanel({
         </div>
       )}
 
+      {focusStudentId ? (
+        <div className={styles.bUpcomingBanner}>
+          <span className={styles.bBannerLabel}>Student</span>
+          <span className={styles.bBannerText}>
+            Showing sessions for {focusStudentName ?? "this student"}
+          </span>
+          <Link className={styles.bBannerJoin} href="/dashboard/bookings?panel=bookings">
+            All students →
+          </Link>
+        </div>
+      ) : null}
+
       {upcomingSoon && (
         <div className={styles.bUpcomingBanner}>
           <span className={styles.bBannerLabel}>Coming up</span>
@@ -1209,7 +1234,11 @@ function BookingsPanel({
 
       {bookings.length === 0 ? (
         <div className={styles.bEmpty}>
-          <p>No bookings match this filter.</p>
+          <p>
+            {focusStudentName
+              ? `No sessions with ${focusStudentName} yet.`
+              : "No bookings match this filter."}
+          </p>
         </div>
       ) : (
         <div className={styles.bList}>
