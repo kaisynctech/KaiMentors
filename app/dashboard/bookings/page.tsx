@@ -4,7 +4,30 @@ import { BookingSessionTypeManager } from "@/components/booking-session-type-man
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
-export default async function BookingsPage() {
+const BOOKING_PAGE_SIZE = 50;
+const BOOKING_SELECT =
+  "id,student_user_id,session_type_id,starts_at,ends_at,status,student_notes,mentor_notes,cancellation_reason,cancelled_by,live_class_id,mentor_user_id,application:student_applications!application_id(profile:profiles!student_user_id(full_name,email)),session_type:booking_session_types!session_type_id(name,duration_minutes)";
+
+type BookingTab = "all" | "pending" | "upcoming" | "past" | "cancelled";
+const validTabs = new Set<BookingTab>([
+  "all",
+  "pending",
+  "upcoming",
+  "past",
+  "cancelled",
+]);
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function firstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
   if (
@@ -16,15 +39,37 @@ export default async function BookingsPage() {
   ) {
     redirect("/dashboard");
   }
-  const { supabase, traderId, displayName, role, timezone, user, portal } = workspace;
+  const { supabase, traderId, displayName, role, timezone, user, portal } =
+    workspace;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const query = await searchParams;
+  const requestedTab = firstValue(query.tab);
+  const tab: BookingTab =
+    requestedTab && validTabs.has(requestedTab as BookingTab)
+      ? (requestedTab as BookingTab)
+      : "all";
+  const requestedPage = Number(firstValue(query.page));
+  const page =
+    Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const requestedPanel = firstValue(query.panel);
+  const mentorParam = firstValue(query.mentor);
+  const initialPanel: "session-types" | "availability" | "bookings" =
+    requestedPanel === "availability" ||
+    requestedPanel === "session-types" ||
+    requestedPanel === "bookings"
+      ? requestedPanel
+      : requestedTab || firstValue(query.page) || mentorParam
+        ? "bookings"
+        : "session-types";
+  const offset = (page - 1) * BOOKING_PAGE_SIZE;
+  const now = new Date().toISOString();
+  const next24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const today = now.slice(0, 10);
 
   const [
     { data: sessionTypes },
     { data: windows },
     { data: overrides },
-    { data: bookings },
     { data: mentorMembers },
   ] = await Promise.all([
     supabase
@@ -51,14 +96,6 @@ export default async function BookingsPage() {
       .order("override_date")
       .limit(60),
     supabase
-      .from("bookings")
-      .select(
-        "id,student_user_id,session_type_id,starts_at,ends_at,status,student_notes,mentor_notes,cancellation_reason,cancelled_by,live_class_id,mentor_user_id,application:student_applications!application_id(profile:profiles!student_user_id(full_name,email)),session_type:booking_session_types!session_type_id(name,duration_minutes)",
-      )
-      .eq("trader_id", traderId)
-      .order("starts_at", { ascending: false })
-      .limit(100),
-    supabase
       .from("trader_members")
       .select("user_id, role")
       .eq("trader_id", traderId)
@@ -76,6 +113,64 @@ export default async function BookingsPage() {
     name: mentorProfiles?.find((p) => p.id === m.user_id)?.full_name ?? "Mentor",
   }));
 
+  const mentorScope =
+    role === "owner" && mentorParam === "all"
+      ? "all"
+      : role === "owner" && mentorParam && UUID_RE.test(mentorParam)
+        ? mentorParam
+        : user.id;
+
+  let bookingsQuery = supabase
+    .from("bookings")
+    .select(BOOKING_SELECT, { count: "exact" })
+    .eq("trader_id", traderId);
+
+  let pendingQuery = supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("trader_id", traderId)
+    .eq("status", "pending");
+
+  let upcomingSoonQuery = supabase
+    .from("bookings")
+    .select(BOOKING_SELECT)
+    .eq("trader_id", traderId)
+    .eq("status", "confirmed")
+    .gt("starts_at", now)
+    .lte("starts_at", next24h)
+    .order("starts_at", { ascending: true })
+    .limit(1);
+
+  if (mentorScope !== "all") {
+    bookingsQuery = bookingsQuery.eq("mentor_user_id", mentorScope);
+    pendingQuery = pendingQuery.eq("mentor_user_id", mentorScope);
+    upcomingSoonQuery = upcomingSoonQuery.eq("mentor_user_id", mentorScope);
+  }
+
+  if (tab === "pending") {
+    bookingsQuery = bookingsQuery.eq("status", "pending");
+  } else if (tab === "upcoming") {
+    bookingsQuery = bookingsQuery
+      .eq("status", "confirmed")
+      .gt("starts_at", now);
+  } else if (tab === "past") {
+    bookingsQuery = bookingsQuery.lte("starts_at", now);
+  } else if (tab === "cancelled") {
+    bookingsQuery = bookingsQuery.eq("status", "cancelled");
+  }
+
+  const [
+    { data: bookings, count: totalCount },
+    { count: pendingCount },
+    { data: upcomingSoonRows },
+  ] = await Promise.all([
+    bookingsQuery
+      .order("starts_at", { ascending: false })
+      .range(offset, offset + BOOKING_PAGE_SIZE - 1),
+    pendingQuery,
+    upcomingSoonQuery,
+  ]);
+
   return (
     <DashboardShell
       activePath="/dashboard/bookings"
@@ -90,9 +185,17 @@ export default async function BookingsPage() {
         bookings={bookings ?? []}
         callerRole={role}
         callerUserId={user.id}
+        currentMentor={mentorScope}
+        currentPage={page}
+        currentTab={tab}
+        initialPanel={initialPanel}
         mentorTimezone={timezone}
         mentors={mentors}
         overrides={overrides ?? []}
+        pageSize={BOOKING_PAGE_SIZE}
+        pendingCount={pendingCount ?? 0}
+        totalCount={totalCount ?? 0}
+        upcomingSoon={upcomingSoonRows?.[0] ?? null}
         sessionTypes={sessionTypes ?? []}
         windows={windows ?? []}
       />

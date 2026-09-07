@@ -1340,3 +1340,41 @@
   padding: 6px 10px;
   margin: 0;
 }
+
+.bPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border);
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.bPagination p {
+  margin: 0;
+}
+
+.bPaginationBtns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bPaginationBtns button {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+
+.bPaginationBtns button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

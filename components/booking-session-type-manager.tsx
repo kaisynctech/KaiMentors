@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDown, ChevronUp, Info, Loader2, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./booking-session-type-manager.module.css";
 
 // ── Types ────────────────────────────────────────────
@@ -73,6 +74,9 @@ interface Mentor {
   name: string;
 }
 
+type BookingFilter = "all" | "pending" | "upcoming" | "past" | "cancelled";
+type BookingPanel = "session-types" | "availability" | "bookings";
+
 interface Props {
   sessionTypes: SessionType[];
   windows: AvailabilityWindow[];
@@ -82,6 +86,14 @@ interface Props {
   mentors: Mentor[];
   callerRole: "owner" | "mentor";
   callerUserId: string;
+  currentTab: BookingFilter;
+  currentPage: number;
+  totalCount: number;
+  pageSize: number;
+  pendingCount: number;
+  currentMentor: string;
+  initialPanel: BookingPanel;
+  upcomingSoon: BookingRecord | null;
 }
 
 // ── Constants ────────────────────────────────────────
@@ -160,10 +172,29 @@ export function BookingSessionTypeManager({
   mentors,
   callerRole,
   callerUserId,
+  currentTab,
+  currentPage,
+  totalCount,
+  pageSize,
+  pendingCount,
+  currentMentor,
+  initialPanel,
+  upcomingSoon,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"session-types" | "availability" | "bookings">(
-    "session-types",
-  );
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<BookingPanel>(initialPanel);
+
+  function openPanel(panel: BookingPanel) {
+    setActiveTab(panel);
+    const params = new URLSearchParams();
+    params.set("panel", panel);
+    if (panel === "bookings") {
+      params.set("tab", currentTab);
+      params.set("page", String(currentPage));
+      if (callerRole === "owner") params.set("mentor", currentMentor);
+    }
+    router.replace(`/dashboard/bookings?${params.toString()}`);
+  }
 
   return (
     <div className={styles.bookingManager}>
@@ -171,28 +202,26 @@ export function BookingSessionTypeManager({
       <div className={styles.tabBar}>
         <button
           className={`${styles.tabBtn} ${activeTab === "session-types" ? styles.activeTabBtn : ""}`}
-          onClick={() => setActiveTab("session-types")}
+          onClick={() => openPanel("session-types")}
           type="button"
         >
           Session Types
         </button>
         <button
           className={`${styles.tabBtn} ${activeTab === "availability" ? styles.activeTabBtn : ""}`}
-          onClick={() => setActiveTab("availability")}
+          onClick={() => openPanel("availability")}
           type="button"
         >
           Availability
         </button>
         <button
           className={`${styles.tabBtn} ${activeTab === "bookings" ? styles.activeTabBtn : ""}`}
-          onClick={() => setActiveTab("bookings")}
+          onClick={() => openPanel("bookings")}
           type="button"
         >
           Bookings
-          {initialBookings.filter((b) => b.status === "pending").length > 0 ? (
-            <span className={styles.pendingCount}>
-              {initialBookings.filter((b) => b.status === "pending").length}
-            </span>
+          {pendingCount > 0 ? (
+            <span className={styles.pendingCount}>{pendingCount}</span>
           ) : null}
         </button>
       </div>
@@ -213,9 +242,16 @@ export function BookingSessionTypeManager({
         <BookingsPanel
           callerRole={callerRole}
           callerUserId={callerUserId}
+          currentMentor={currentMentor}
+          currentPage={currentPage}
+          currentTab={currentTab}
           initialBookings={initialBookings}
           mentorTimezone={mentorTimezone}
           mentors={mentors}
+          pageSize={pageSize}
+          pendingCount={pendingCount}
+          totalCount={totalCount}
+          upcomingSoon={upcomingSoon}
         />
       )}
     </div>
@@ -913,8 +949,6 @@ function AvailabilityPanel({
 
 // ── Bookings Panel ───────────────────────────────────
 
-type BookingFilter = "all" | "pending" | "upcoming" | "past" | "cancelled";
-
 function getStudentName(booking: BookingRecord): string {
   const app = Array.isArray(booking.application)
     ? booking.application[0]
@@ -962,16 +996,29 @@ function BookingsPanel({
   callerRole,
   callerUserId,
   mentors,
+  currentTab,
+  currentPage,
+  totalCount,
+  pageSize,
+  pendingCount,
+  currentMentor,
+  upcomingSoon,
 }: {
   initialBookings: BookingRecord[];
   mentorTimezone: string;
   callerRole: "owner" | "mentor";
   callerUserId: string;
   mentors: Mentor[];
+  currentTab: BookingFilter;
+  currentPage: number;
+  totalCount: number;
+  pageSize: number;
+  pendingCount: number;
+  currentMentor: string;
+  upcomingSoon: BookingRecord | null;
 }) {
+  const router = useRouter();
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
-  const [filter, setFilter] = useState<BookingFilter>("all");
-  const [mentorFilter, setMentorFilter] = useState<string>(callerUserId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [mentorNoteDrafts, setMentorNoteDrafts] = useState<Record<string, string>>({});
   const [savingNotes, setSavingNotes] = useState<Record<string, boolean>>({});
@@ -980,27 +1027,37 @@ function BookingsPanel({
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
-  const now = new Date().toISOString();
-  const next24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  useEffect(() => {
+    setBookings(initialBookings);
+  }, [initialBookings]);
 
-  // Next confirmed session within 24 hours
-  const upcomingBanner = bookings
-    .filter((b) => b.status === "confirmed" && b.starts_at > now && b.starts_at <= next24h)
-    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const offset = (currentPage - 1) * pageSize;
+  const firstRow = totalCount === 0 ? 0 : offset + 1;
+  const lastRow = Math.min(offset + pageSize, totalCount);
 
-  const mentorFiltered =
-    mentorFilter === "all"
-      ? bookings
-      : bookings.filter((b) => b.mentor_user_id === mentorFilter);
+  function bookingsHref(next: {
+    tab?: BookingFilter;
+    page?: number;
+    mentor?: string;
+  }) {
+    const params = new URLSearchParams();
+    params.set("panel", "bookings");
+    params.set("tab", next.tab ?? currentTab);
+    params.set("page", String(next.page ?? 1));
+    if (callerRole === "owner") {
+      params.set("mentor", next.mentor ?? currentMentor);
+    }
+    return `/dashboard/bookings?${params.toString()}`;
+  }
 
-  const filtered = mentorFiltered.filter((b) => {
-    if (filter === "all") return true;
-    if (filter === "pending") return b.status === "pending";
-    if (filter === "upcoming") return b.status === "confirmed" && b.starts_at > now;
-    if (filter === "past") return b.starts_at <= now;
-    if (filter === "cancelled") return b.status === "cancelled";
-    return true;
-  });
+  function navigate(next: {
+    tab?: BookingFilter;
+    page?: number;
+    mentor?: string;
+  }) {
+    router.push(bookingsHref(next));
+  }
 
   function formatBookingDT(iso: string): string {
     return new Date(iso).toLocaleString("en-US", {
@@ -1078,6 +1135,7 @@ function BookingsPanel({
         ),
       );
       if (action === "cancel") setCancelTarget(null);
+      router.refresh();
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
@@ -1085,7 +1143,7 @@ function BookingsPanel({
 
   const FILTERS: Array<{ key: BookingFilter; label: string }> = [
     { key: "all", label: "All" },
-    { key: "pending", label: `Pending (${bookings.filter((b) => b.status === "pending").length})` },
+    { key: "pending", label: `Pending (${pendingCount})` },
     { key: "upcoming", label: "Upcoming" },
     { key: "past", label: "Past" },
     { key: "cancelled", label: "Cancelled" },
@@ -1097,7 +1155,7 @@ function BookingsPanel({
         <div style={{ padding: "12px 20px 0", display: "flex", alignItems: "center", gap: 8 }}>
           <label style={{ fontSize: 12, color: "#6b7280" }}>Mentor:</label>
           <select
-            onChange={(e) => setMentorFilter(e.target.value)}
+            onChange={(e) => navigate({ mentor: e.target.value, page: 1 })}
             style={{
               fontSize: 13,
               border: "1px solid #d1d5db",
@@ -1105,7 +1163,7 @@ function BookingsPanel({
               padding: "4px 8px",
               background: "#fff",
             }}
-            value={mentorFilter}
+            value={currentMentor}
           >
             <option value={callerUserId}>My bookings</option>
             <option value="all">All mentors</option>
@@ -1120,16 +1178,16 @@ function BookingsPanel({
         </div>
       )}
 
-      {upcomingBanner && (
+      {upcomingSoon && (
         <div className={styles.bUpcomingBanner}>
           <span className={styles.bBannerLabel}>Coming up</span>
           <span className={styles.bBannerText}>
-            {getBookingTypeName(upcomingBanner)} with {getStudentName(upcomingBanner)} — {formatBookingDT(upcomingBanner.starts_at)}
+            {getBookingTypeName(upcomingSoon)} with {getStudentName(upcomingSoon)} — {formatBookingDT(upcomingSoon.starts_at)}
           </span>
-          {upcomingBanner.live_class_id && (
+          {upcomingSoon.live_class_id && (
             <a
               className={styles.bBannerJoin}
-              href={`/dashboard/live-classes/${upcomingBanner.live_class_id}`}
+              href={`/dashboard/live-classes/${upcomingSoon.live_class_id}`}
             >
               Join now →
             </a>
@@ -1139,9 +1197,9 @@ function BookingsPanel({
       <div className={styles.bFilterBar}>
         {FILTERS.map((f) => (
           <button
-            className={`${styles.bFilterBtn} ${filter === f.key ? styles.bFilterBtnActive : ""}`}
+            className={`${styles.bFilterBtn} ${currentTab === f.key ? styles.bFilterBtnActive : ""}`}
             key={f.key}
-            onClick={() => setFilter(f.key)}
+            onClick={() => navigate({ tab: f.key, page: 1 })}
             type="button"
           >
             {f.label}
@@ -1149,13 +1207,13 @@ function BookingsPanel({
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {bookings.length === 0 ? (
         <div className={styles.bEmpty}>
           <p>No bookings match this filter.</p>
         </div>
       ) : (
         <div className={styles.bList}>
-          {filtered.map((b) => {
+          {bookings.map((b) => {
             const isExpanded = expandedId === b.id;
             const isLoading = actionLoading[b.id];
             const errMsg = actionError[b.id];
@@ -1313,6 +1371,33 @@ function BookingsPanel({
           })}
         </div>
       )}
+
+      {totalPages > 1 ? (
+        <div className={styles.bPagination}>
+          <p>
+            Showing {firstRow}–{lastRow} of {totalCount}
+          </p>
+          <div className={styles.bPaginationBtns}>
+            <button
+              disabled={currentPage <= 1}
+              onClick={() => navigate({ page: currentPage - 1 })}
+              type="button"
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage >= totalPages}
+              onClick={() => navigate({ page: currentPage + 1 })}
+              type="button"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
