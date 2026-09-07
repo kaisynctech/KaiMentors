@@ -147,3 +147,29 @@ test("long-form course videos can play for 60 minutes without the signed URL dyi
   assert.match(longForm, /interval '2 hours'/);
   assert.match(longForm, /2147483648/);
 });
+
+test("hour-long MP4 lessons play in chunks instead of downloading the whole file", async () => {
+  const limits = await read("lib", "media-limits.ts");
+  const sessionRoute = await read("app", "api", "course-media", "[mediaId]", "session", "route.ts");
+  const bytesRoute = await read("app", "api", "course-media", "[mediaId]", "bytes", "route.ts");
+  const range = await read("lib", "course-media-range.ts");
+  const player = await read("components", "course-video.tsx");
+  const lesson = await read("components", "protected-lesson-content.tsx");
+  const { parseCourseMediaByteRange } = await import("../lib/media-limits.ts");
+  assert.deepEqual(parseCourseMediaByteRange("0", "1023"), { start: 0, end: 1023, length: 1024 });
+  assert.equal(parseCourseMediaByteRange("0", String(9 * 1024 * 1024)), null);
+  assert.equal(parseCourseMediaByteRange("-1", "10"), null);
+  assert.match(limits, /COURSE_MEDIA_RANGE_MAX_BYTES = 8 \* 1024 \* 1024/);
+  assert.match(sessionRoute, /playback: evidence\.mime_type === "video\/mp4" \? "chunks"/);
+  assert.match(bytesRoute, /fetchCourseMediaRange/);
+  assert.match(range, /Range: `bytes=\$\{start\}-\$\{end\}`/);
+  assert.match(range, /issue_course_media_session/);
+  assert.match(player, /createFile/);
+  assert.match(player, /preload="metadata"/);
+  assert.match(player, /COURSE_VIDEO_BUFFER_AHEAD_SECONDS/);
+  assert.doesNotMatch(player, /preload="auto"/);
+  assert.match(lesson, /CourseVideo/);
+  assert.match(lesson, /useChunks=\{issued\.playback === "chunks"\}/);
+  assert.doesNotMatch(lesson, /preload="auto"/);
+  assert.doesNotMatch(player, /mux\.com|@mux\//i);
+});

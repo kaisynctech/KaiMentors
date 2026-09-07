@@ -9,6 +9,23 @@ export const ACADEMY_IMAGE_MAX_BYTES = 20 * 1024 * 1024;
 export const COURSE_MEDIA_SESSION_TTL_SECONDS = 2 * 60 * 60;
 export const COURSE_MEDIA_SESSION_REFRESH_BEFORE_SECONDS = 5 * 60;
 
+/** Same-origin MP4 ranges for HLS-style chunked playback. */
+export const COURSE_MEDIA_RANGE_MAX_BYTES = 8 * 1024 * 1024;
+export const COURSE_MEDIA_RANGE_CHUNK_BYTES = 1024 * 1024;
+export const COURSE_VIDEO_BUFFER_AHEAD_SECONDS = 25;
+
+export function parseCourseMediaByteRange(startRaw: string | null, endRaw: string | null) {
+  if (startRaw == null || endRaw == null) return null;
+  if (!/^\d+$/.test(startRaw) || !/^\d+$/.test(endRaw)) return null;
+  const start = Number(startRaw);
+  const end = Number(endRaw);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return null;
+  if (start < 0 || end < start) return null;
+  const length = end - start + 1;
+  if (length > COURSE_MEDIA_RANGE_MAX_BYTES) return null;
+  return { start, end, length };
+}
+
 /** Page-load signed URLs for resources, community, and broker walkthroughs. */
 export const ACADEMY_MEDIA_SIGNED_TTL_SECONDS = 4 * 60 * 60;
 

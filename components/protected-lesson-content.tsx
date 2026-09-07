@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ExternalLink, Loader2, PartyPopper } from "lucide-react";
 import Image from "next/image";
+import { CourseVideo } from "@/components/course-video";
 import { COURSE_MEDIA_SESSION_REFRESH_BEFORE_SECONDS } from "@/lib/media-limits";
 import styles from "./protected-lesson-content.module.css";
 
 type Media = { id: string; media_type: string; title: string; processing_state?: string };
+type IssuedMedia = { url: string; playback: "chunks" | "file" };
 type Block = {
   id: string;
   block_type: string;
@@ -36,7 +38,7 @@ export function ProtectedLessonContent({
   courseWillBeComplete?: boolean;
   courseId?: string;
 }) {
-  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [urls, setUrls] = useState<Record<string, IssuedMedia>>({});
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(completed);
   const [courseComplete, setCourseComplete] = useState(false);
@@ -52,10 +54,18 @@ export function ProtectedLessonContent({
   const issueSession = useCallback(async (mediaId: string) => {
     const response = await fetch(`/api/course-media/${mediaId}/session`, { method: "POST" });
     if (!response.ok) return null;
-    const payload = await response.json() as { url?: string; expiresIn?: number };
+    const payload = await response.json() as {
+      url?: string;
+      expiresIn?: number;
+      mimeType?: string;
+      playback?: "chunks" | "file";
+    };
     if (!payload.url) return null;
     expiresAt.current[mediaId] = Date.now() + (payload.expiresIn ?? 7200) * 1000;
-    return payload.url;
+    return {
+      url: payload.url,
+      playback: payload.playback === "chunks" ? "chunks" as const : "file" as const,
+    };
   }, []);
 
   const refreshMedia = useCallback(async (mediaId: string) => {
@@ -78,7 +88,7 @@ export function ProtectedLessonContent({
       return url ? ([mediaId, url] as const) : null;
     })).then((entries) => {
       if (active) {
-        setUrls(Object.fromEntries(entries.filter(Boolean) as Array<readonly [string, string]>));
+        setUrls(Object.fromEntries(entries.filter(Boolean) as Array<readonly [string, IssuedMedia]>));
         setLoading(false);
       }
     });
@@ -135,16 +145,12 @@ export function ProtectedLessonContent({
       if (block.block_type === "link") return <a className={styles.link} href={String(value.url ?? "#")} key={block.id} rel="noopener noreferrer" target="_blank">{String(value.label ?? "Open supporting link")}<ExternalLink /></a>;
       if (block.block_type === "gallery") {
         const items = (block.galleryMedia ?? []).filter((item) => item.media && urls[item.media.id]).sort((a, b) => a.sort_order - b.sort_order);
-        return items.length ? <section className={styles.gallery} key={block.id}>{items.map((item) => <figure key={item.media!.id}><div className={styles.galleryImage}><div className={styles.watermark}>{watermark}</div><Image alt={item.caption ?? item.media!.title} fill sizes="(max-width: 600px) 100vw, 50vw" src={urls[item.media!.id]} unoptimized /></div>{item.caption ? <figcaption>{item.caption}</figcaption> : null}</figure>)}</section> : <div className={styles.unavailable} key={block.id}>This protected gallery is unavailable or still processing.</div>;
+        return items.length ? <section className={styles.gallery} key={block.id}>{items.map((item) => <figure key={item.media!.id}><div className={styles.galleryImage}><div className={styles.watermark}>{watermark}</div><Image alt={item.caption ?? item.media!.title} fill sizes="(max-width: 600px) 100vw, 50vw" src={urls[item.media!.id].url} unoptimized /></div>{item.caption ? <figcaption>{item.caption}</figcaption> : null}</figure>)}</section> : <div className={styles.unavailable} key={block.id}>This protected gallery is unavailable or still processing.</div>;
       }
-      const url = block.media_id ? urls[block.media_id] : null;
-      if (!url) return <div className={styles.unavailable} key={block.id}>This protected media is unavailable or still processing.</div>;
-      return <section className={styles.media} key={block.id}><div className={styles.watermark}>{watermark}</div>{block.block_type === "video" ? <video controls controlsList="nodownload noremoteplayback" disablePictureInPicture onEnded={(event) => progress(event.currentTarget.duration, true)} onLoadedMetadata={(event) => {
-                const video = event.currentTarget;
+      const issued = block.media_id ? urls[block.media_id] : null;
+      if (!issued) return <div className={styles.unavailable} key={block.id}>This protected media is unavailable or still processing.</div>;
+      return <section className={styles.media} key={block.id}><div className={styles.watermark}>{watermark}</div>{block.block_type === "video" ? <CourseVideo controls controlsList="nodownload noremoteplayback" disablePictureInPicture fallbackUrl={issued.url} mediaId={block.media_id!} onEnded={(event) => progress(event.currentTarget.duration, true)} onLoadedMetadata={(event) => {
                 const mediaId = block.media_id!;
-                const restore = restoreAt.current[mediaId];
-                const start = restore ?? (resumeSeconds > 0 ? resumeSeconds : 0);
-                if (start > 0) video.currentTime = Math.min(start, video.duration || start);
                 delete restoreAt.current[mediaId];
               }} onPause={(event) => progress(event.currentTarget.currentTime)} onPlaying={() => { if (block.media_id) errorTries.current[block.media_id] = 0; }} onError={() => {
                 const mediaId = block.media_id;
@@ -167,7 +173,7 @@ export function ProtectedLessonContent({
                   return;
                 }
                 progress(video.currentTime);
-              }} playsInline preload="auto" src={url} /> : block.block_type === "pdf" ? <iframe src={`${url}#toolbar=0&navpanes=0`} title={block.media?.title ?? "Protected document"} /> : <Image alt={String(value.caption ?? block.media?.title ?? "")} height={900} src={url} unoptimized width={1600} />}<p>{String(value.caption ?? block.media?.title ?? "")}</p></section>;
+              }} restoreSeconds={restoreAt.current[block.media_id!] ?? null} resumeSeconds={resumeSeconds} useChunks={issued.playback === "chunks"} /> : block.block_type === "pdf" ? <iframe src={`${issued.url}#toolbar=0&navpanes=0`} title={block.media?.title ?? "Protected document"} /> : <Image alt={String(value.caption ?? block.media?.title ?? "")} height={900} src={issued.url} unoptimized width={1600} />}<p>{String(value.caption ?? block.media?.title ?? "")}</p></section>;
     })}
     <button className={styles.complete} disabled={done} onClick={() => progress(resumeSeconds, true)}>{done ? <><CheckCircle2 /> Lesson completed</> : "Mark lesson complete"}</button>
     {courseComplete && courseId && (

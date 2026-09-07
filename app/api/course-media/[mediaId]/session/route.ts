@@ -36,6 +36,7 @@ export async function POST(
       url: signed.signedUrl,
       expiresIn: COURSE_MEDIA_SESSION_TTL_SECONDS,
       mimeType: evidence.mime_type,
+      playback: evidence.mime_type === "video/mp4" ? "chunks" : "file",
     },
     { headers: { "Cache-Control": "no-store, private" } },
   );
