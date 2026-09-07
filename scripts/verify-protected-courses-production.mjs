@@ -35,7 +35,7 @@ for (const table of protectedTables) {
 const { data: bucket, error: bucketError } = await admin.storage.getBucket("course-content");
 if (bucketError || !bucket) throw new Error("course-content bucket is unavailable.");
 if (bucket.public) throw new Error("course-content bucket must remain private.");
-if (bucket.file_size_limit !== 524288000) throw new Error("course-content bucket limit differs from application validation.");
+if (bucket.file_size_limit !== 2147483648) throw new Error("course-content bucket limit differs from application validation.");
 
 for (const table of ["course_media", "lesson_progress", "course_media_access_sessions"]) {
   const { data, error } = await anonymous.from(table).select("id").limit(1);

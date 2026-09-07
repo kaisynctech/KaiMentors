@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { type FormEvent, useRef, useState } from "react";
 import { ImageIcon, Loader2, Plus, Sparkles, Trash2, TrendingUp, UploadCloud } from "lucide-react";
+import { fileTooLargeMessage, formatEta, maxBytesForAcademyUpload } from "@/lib/media-limits";
+import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-community.module.css";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
@@ -38,16 +40,42 @@ interface MentorCommunityProps {
 
 /* ── Upload helper ──────────────────────────────────────────────────────── */
 
-async function uploadFile(file: File, category: "gallery" | "trades"): Promise<string> {
+async function uploadFile(
+  file: File,
+  category: "gallery" | "trades",
+  onProgress?: (percent: number, eta: string | null) => void,
+): Promise<string> {
+  const max = maxBytesForAcademyUpload(file.type);
+  if (file.size > max) throw new Error(fileTooLargeMessage(file, max));
+  const startedAt = Date.now();
   const res = await fetch("/api/community/upload", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ fileName: file.name, contentType: file.type, category }),
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      category,
+    }),
   });
-  if (!res.ok) throw new Error("Upload URL failed");
-  const { signedUrl, storagePath } = (await res.json()) as { signedUrl: string; storagePath: string };
-  const upload = await fetch(signedUrl, { method: "PUT", body: file });
-  if (!upload.ok) throw new Error("Upload failed");
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(json.error ?? "Upload URL failed");
+  }
+  const { uploadUrl, bucketName, storagePath } = (await res.json()) as {
+    uploadUrl: string;
+    bucketName: string;
+    storagePath: string;
+  };
+  await uploadDirectToStorage({
+    file,
+    uploadUrl,
+    bucketName,
+    objectName: storagePath,
+    onProgress: (percent, sent, total) => {
+      onProgress?.(percent, formatEta(sent, total, startedAt));
+    },
+  });
   return storagePath;
 }
 
@@ -67,6 +95,7 @@ export function MentorCommunity({
   const [showNewItem, setShowNewItem] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const postFileRef = useRef<HTMLInputElement>(null);
@@ -118,7 +147,7 @@ export function MentorCommunity({
   async function addItem(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!activeAlbum) return;
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setUploadProgress(null);
     const fd = new FormData(e.currentTarget);
     const itemType = String(fd.get("itemType"));
     const payload: Record<string, unknown> = {
@@ -133,9 +162,14 @@ export function MentorCommunity({
       const file = fileRef.current?.files?.[0];
       if (!file) { setError("Please select a file."); setBusy(false); return; }
       try {
-        payload.filePath = await uploadFile(file, "gallery");
-      } catch {
-        setError("Upload failed. Try again."); setBusy(false); return;
+        payload.filePath = await uploadFile(file, "gallery", (percent, eta) => {
+          setUploadProgress(`${percent}%${eta ? ` · ${eta}` : ""}`);
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed. Try again.");
+        setBusy(false);
+        setUploadProgress(null);
+        return;
       }
     }
 
@@ -146,6 +180,7 @@ export function MentorCommunity({
     });
     const json = (await res.json()) as { itemId?: string; error?: string };
     setBusy(false);
+    setUploadProgress(null);
     if (!res.ok) { setError(json.error ?? "Failed"); return; }
 
     const newItem: GalleryItem = {
@@ -367,7 +402,7 @@ export function MentorCommunity({
                   </button>
                   <button className={styles.primaryBtn} disabled={busy} type="submit">
                     {busy ? <Loader2 className={styles.spin} size={14} /> : <UploadCloud size={14} />}
-                    {busy ? "Uploading…" : "Add"}
+                    {busy ? (uploadProgress ? `Uploading ${uploadProgress}` : "Uploading…") : "Add"}
                   </button>
                 </div>
               </form>

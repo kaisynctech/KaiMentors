@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, UploadCloud } from "lucide-react";
+import { COURSE_MEDIA_RULES } from "@/lib/media-limits";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import styles from "./media-block-uploader.module.css";
 
@@ -22,15 +23,15 @@ interface MediaBlockUploaderProps {
 }
 
 const ACCEPT: Record<"video" | "pdf" | "image", string> = {
-  video: "video/mp4,video/webm",
-  pdf: "application/pdf",
-  image: "image/png,image/jpeg,image/webp",
+  video: COURSE_MEDIA_RULES.video.types.join(","),
+  pdf: COURSE_MEDIA_RULES.pdf.types.join(","),
+  image: COURSE_MEDIA_RULES.image.types.join(","),
 };
 
 const HINT: Record<"video" | "pdf" | "image", string> = {
-  video: "MP4, WebM — up to 500 MB",
-  pdf: "PDF — up to 100 MB",
-  image: "PNG, JPG, WebP — up to 20 MB",
+  video: COURSE_MEDIA_RULES.video.hint,
+  pdf: COURSE_MEDIA_RULES.pdf.hint,
+  image: COURSE_MEDIA_RULES.image.hint,
 };
 
 function detectVideoDuration(file: File): Promise<number> {
@@ -60,7 +61,7 @@ export function MediaBlockUploader({
   onUploadStateChange,
   onDurationDetected,
 }: MediaBlockUploaderProps) {
-  const { state, progress, mediaId, errorMessage, startUpload, reset } = useMediaUpload();
+  const { state, progress, eta, mediaId, errorMessage, startUpload, retry, reset } = useMediaUpload();
   const [dragging, setDragging] = useState(false);
   const [uploadingFileName, setUploadingFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -99,7 +100,7 @@ export function MediaBlockUploader({
         <div className={styles.progressBar}>
           <span style={{ width: `${progress}%` }} />
         </div>
-        <span className={styles.progressLabel}>{progress}% — Uploading…</span>
+        <span className={styles.progressLabel}>{progress}% — {eta ?? "Uploading…"}</span>
       </div>
     );
   }
@@ -110,10 +111,10 @@ export function MediaBlockUploader({
         <span>{errorMessage}</span>
         <button
           className={styles.retryBtn}
-          onClick={() => { reset(); onChange(null); }}
+          onClick={() => { void retry(); }}
           type="button"
         >
-          Retry
+          Resume upload
         </button>
       </div>
     );

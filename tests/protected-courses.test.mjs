@@ -44,20 +44,24 @@ test("protected media requires short audited sessions and has no student storage
   assert.match(migration, /create policy "staff manage protected course content"/);
   assert.doesNotMatch(migration, /create policy[^;]+course content[^;]+for select[^;]+auth\.uid\(\)/i);
   assert.match(sessionRoute, /issue_course_media_session/);
-  assert.match(sessionRoute, /createSignedUrl\([^,]+,\s*300\)/);
+  assert.match(sessionRoute, /COURSE_MEDIA_SESSION_TTL_SECONDS/);
   assert.match(sessionRoute, /Cache-Control.*no-store/);
 });
 
 test("uploads are resumable, direct-to-storage, signature checked, and lifecycle controlled", async () => {
   const library = await read("components", "course-media-library.tsx");
+  const uploader = await read("lib", "tus-direct-upload.ts");
+  const hook = await read("lib", "use-media-upload.ts");
   const initializer = await read("app", "api", "course-media", "route.ts");
   const finalize = await read("app", "api", "course-media", "[mediaId]", "finalize", "route.ts");
-  const access = await read("lib", "course-access.ts");
+  const limits = await read("lib", "media-limits.ts");
   const migration = await read(...migrationPath);
-  assert.match(library, /new Upload\(file/);
-  assert.match(library, /removeFingerprintOnSuccess: true/);
+  assert.match(library, /useMediaUpload/);
+  assert.match(uploader, /new Upload\(options\.file/);
+  assert.match(uploader, /removeFingerprintOnSuccess: true/);
+  assert.match(hook, /uploadDirectToStorage/);
   assert.match(initializer, /uploadUrl:[\s\S]*storage\/v1\/upload\/resumable/);
-  assert.match(access, /max: 500 \* 1024 \* 1024/);
+  assert.match(limits, /COURSE_VIDEO_MAX_BYTES = 2 \* 1024 \* 1024 \* 1024/);
   assert.doesNotMatch(initializer, /arrayBuffer\(|formData\(/);
   assert.match(finalize, /Range: "bytes=0-31"/);
   assert.match(finalize, /signatureMatches/);
@@ -126,4 +130,18 @@ test("production acceptance is acceptance-test scoped, repeatable, and secretles
   assert.match(runner, /finally\s*{\s*await cleanup\(\)/);
   assert.doesNotMatch(runner, /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
   assert.doesNotMatch(runner, /(?:password|token|key)\s*=\s*["'][^"']+["']/i);
+});
+
+test("long-form course videos can play for 60 minutes without the signed URL dying", async () => {
+  const limits = await read("lib", "media-limits.ts");
+  const sessionRoute = await read("app", "api", "course-media", "[mediaId]", "session", "route.ts");
+  const player = await read("components", "protected-lesson-content.tsx");
+  const longForm = await read("supabase", "migrations", "20260907120000_long_form_course_video.sql");
+  assert.match(limits, /COURSE_MEDIA_SESSION_TTL_SECONDS = 2 \* 60 \* 60/);
+  assert.match(limits, /COURSE_VIDEO_MAX_BYTES = 2 \* 1024 \* 1024 \* 1024/);
+  assert.match(sessionRoute, /COURSE_MEDIA_SESSION_TTL_SECONDS/);
+  assert.match(player, /refreshMedia/);
+  assert.match(player, /COURSE_MEDIA_SESSION_REFRESH_BEFORE_SECONDS/);
+  assert.match(longForm, /interval '2 hours'/);
+  assert.match(longForm, /2147483648/);
 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ACADEMY_MEDIA_SIGNED_TTL_SECONDS } from "@/lib/media-limits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await admin.storage
     .from("academy-media")
-    .createSignedUrl(path, 3600);
+    .createSignedUrl(path, ACADEMY_MEDIA_SIGNED_TTL_SECONDS);
 
   if (error || !data) {
     return NextResponse.json({ error: "Could not generate URL." }, { status: 500 });

@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { type FormEvent, useRef, useState, KeyboardEvent } from "react";
 import { ExternalLink, FileText, Film, Loader2, Plus, Trash2, UploadCloud } from "lucide-react";
+import { fileTooLargeMessage, formatEta, maxBytesForAcademyUpload } from "@/lib/media-limits";
+import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-resources.module.css";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
@@ -34,23 +36,39 @@ type ResourceType = "video" | "pdf" | "link";
 async function uploadFile(
   file: File,
   subPath: "resources" | "resources/thumbnails",
+  onProgress?: (percent: number, eta: string | null) => void,
 ): Promise<string> {
+  const max = maxBytesForAcademyUpload(file.type);
+  if (file.size > max) throw new Error(fileTooLargeMessage(file, max));
+  const startedAt = Date.now();
   const res = await fetch("/api/resources/upload", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fileName: file.name, contentType: file.type, subPath }),
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      subPath,
+    }),
   });
-  if (!res.ok) throw new Error("Upload URL failed");
-  const { signedUrl, storagePath } = (await res.json()) as {
-    signedUrl: string;
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(json.error ?? "Upload URL failed");
+  }
+  const { uploadUrl, bucketName, storagePath } = (await res.json()) as {
+    uploadUrl: string;
+    bucketName: string;
     storagePath: string;
   };
-  const upload = await fetch(signedUrl, {
-    method: "PUT",
-    body: file,
-    headers: { "Content-Type": file.type },
+  await uploadDirectToStorage({
+    file,
+    uploadUrl,
+    bucketName,
+    objectName: storagePath,
+    onProgress: (percent, sent, total) => {
+      onProgress?.(percent, formatEta(sent, total, startedAt));
+    },
   });
-  if (!upload.ok) throw new Error("Upload failed");
   return storagePath;
 }
 
@@ -63,6 +81,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
   const [labels, setLabels]       = useState<string[]>([]);
   const [labelInput, setLabelInput] = useState("");
   const [busy, setBusy]   = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -81,15 +100,24 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
   /* Create resource */
   async function createResource(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setUploadProgress(null);
     const fd = new FormData(e.currentTarget);
 
     let storagePath: string | undefined;
     if (itemType !== "link") {
       const file = fileRef.current?.files?.[0];
       if (!file) { setError("Please select a file."); setBusy(false); return; }
-      try { storagePath = await uploadFile(file, "resources"); }
-      catch { setError("Upload failed. Try again."); setBusy(false); return; }
+      try {
+        storagePath = await uploadFile(file, "resources", (percent, eta) => {
+          setUploadProgress(`${percent}%${eta ? ` · ${eta}` : ""}`);
+        });
+      }
+      catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed. Try again.");
+        setBusy(false);
+        setUploadProgress(null);
+        return;
+      }
     }
 
     const payload = {
@@ -110,6 +138,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
     });
     const json = (await res.json()) as { resourceId?: string; error?: string };
     setBusy(false);
+    setUploadProgress(null);
     if (!res.ok) { setError(json.error ?? "Failed to save."); return; }
 
     const newItem: ResourceItem = {
@@ -275,7 +304,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
             </button>
             <button className={styles.primaryBtn} disabled={busy} type="submit">
               {busy ? <Loader2 className={styles.spin} size={14} /> : <UploadCloud size={14} />}
-              {busy ? "Saving…" : "Save resource"}
+              {busy ? (uploadProgress ? `Uploading ${uploadProgress}` : "Saving…") : "Save resource"}
             </button>
           </div>
         </form>

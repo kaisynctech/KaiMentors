@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { StudentShell } from "@/components/student-shell";
 import { CommunityView } from "@/components/community-view";
 import type { GalleryAlbum, GalleryItem, TradePost } from "@/components/community-view";
+import { ACADEMY_MEDIA_SIGNED_TTL_SECONDS } from "@/lib/media-limits";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
@@ -134,7 +135,7 @@ export default async function AcademyCommunityPage({
     if (!path || !admin) return null;
     const { data } = await admin.storage
       .from("academy-media")
-      .createSignedUrl(path, 3600);
+      .createSignedUrl(path, ACADEMY_MEDIA_SIGNED_TTL_SECONDS);
     return data?.signedUrl ?? null;
   }
 

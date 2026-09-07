@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ContentGate } from "@/components/content-gate";
 import { ResourcesView } from "@/components/resources-view";
 import { StudentShell } from "@/components/student-shell";
+import { ACADEMY_MEDIA_SIGNED_TTL_SECONDS } from "@/lib/media-limits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
@@ -98,12 +99,12 @@ export default async function StudentResourcesPage({
     (rows ?? []).map(async (r) => {
       const mediaUrl =
         r.storage_path && admin
-          ? (await admin.storage.from("academy-media").createSignedUrl(r.storage_path, 3600))
+          ? (await admin.storage.from("academy-media").createSignedUrl(r.storage_path, ACADEMY_MEDIA_SIGNED_TTL_SECONDS))
               .data?.signedUrl ?? null
           : null;
       const thumbnailUrl =
         r.thumbnail_path && admin
-          ? (await admin.storage.from("academy-media").createSignedUrl(r.thumbnail_path, 3600))
+          ? (await admin.storage.from("academy-media").createSignedUrl(r.thumbnail_path, ACADEMY_MEDIA_SIGNED_TTL_SECONDS))
               .data?.signedUrl ?? null
           : null;
       return {

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { StudentBrokerView } from "@/components/student-broker-view";
 import { StudentShell } from "@/components/student-shell";
+import { ACADEMY_MEDIA_SIGNED_TTL_SECONDS } from "@/lib/media-limits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
@@ -57,7 +58,7 @@ export default async function AcademyBrokerPage({
     if (!path || !admin) return null;
     const { data } = await admin.storage
       .from("academy-media")
-      .createSignedUrl(path, 3600);
+      .createSignedUrl(path, ACADEMY_MEDIA_SIGNED_TTL_SECONDS);
     return data?.signedUrl ?? null;
   }
 

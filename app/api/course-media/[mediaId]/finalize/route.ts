@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireMentorCourseContext, signatureMatches } from "@/lib/course-access";
 
-export async function POST(_request: Request, { params }: { params: Promise<{ mediaId: string }> }) {
+const bodySchema = z.object({
+  durationSeconds: z.number().int().positive().max(12 * 60 * 60).nullable().optional(),
+});
+
+export async function POST(request: Request, { params }: { params: Promise<{ mediaId: string }> }) {
   const { mediaId } = await params;
   const context = await requireMentorCourseContext();
   if (!context.ok) return NextResponse.json({ error: context.error }, { status: context.status });
@@ -20,7 +25,14 @@ export async function POST(_request: Request, { params }: { params: Promise<{ me
     await context.supabase.from("course_media").update({ processing_state: "failed", failure_reason: "File signature did not match declared MIME type." }).eq("id", media.id);
     return NextResponse.json({ error: "File validation failed." }, { status: 400 });
   }
-  await context.supabase.from("course_media").update({ processing_state: "ready", ready_at: new Date().toISOString(), failure_reason: null }).eq("id", media.id);
+  const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
+  const durationSeconds = parsed.success ? parsed.data.durationSeconds ?? null : null;
+  await context.supabase.from("course_media").update({
+    processing_state: "ready",
+    ready_at: new Date().toISOString(),
+    failure_reason: null,
+    ...(durationSeconds ? { duration_seconds: durationSeconds } : {}),
+  }).eq("id", media.id);
   if (media.replaces_media_id) {
     const { error: replacementError } = await context.supabase.rpc("replace_course_media", {
       target_old_media_id: media.replaces_media_id,

@@ -1,8 +1,11 @@
 import "server-only";
 import { isAcademyActive, isSuperAdminUser } from "@/lib/entitlements";
+import { COURSE_MEDIA_RULES } from "@/lib/media-limits";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
+
+export { COURSE_MEDIA_RULES };
 
 export async function requireCourseUser() {
   const supabase = await createClient();
@@ -41,12 +44,6 @@ export async function requireMentorCourseContext(options?: { allowInactive?: boo
 
   return { ok: true, supabase: workspace.supabase, user: workspace.user, traderId: workspace.traderId, memberRole: workspace.role } as const;
 }
-
-export const COURSE_MEDIA_RULES = {
-  video: { types: ["video/mp4", "video/webm"], extensions: ["mp4", "webm"], max: 500 * 1024 * 1024 },
-  pdf: { types: ["application/pdf"], extensions: ["pdf"], max: 100 * 1024 * 1024 },
-  image: { types: ["image/png", "image/jpeg", "image/webp"], extensions: ["png", "jpg", "jpeg", "webp"], max: 20 * 1024 * 1024 },
-} as const;
 
 export function fileExtension(name: string) {
   return name.split(".").pop()?.toLowerCase() ?? "";

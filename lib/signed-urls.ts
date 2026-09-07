@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ACADEMY_MEDIA_SIGNED_TTL_SECONDS } from "@/lib/media-limits";
 
 /**
  * MB-125: generate signed URLs for multiple storage paths in a single API
@@ -27,7 +28,7 @@ export async function signedUrls(
   client: SupabaseClient,
   bucket: string,
   paths: (string | null | undefined)[],
-  expiresIn = 3600,
+  expiresIn = ACADEMY_MEDIA_SIGNED_TTL_SECONDS,
 ): Promise<Map<string, string | null>> {
   const validPaths = [...new Set(paths.filter((p): p is string => !!p))];
   if (validPaths.length === 0) return new Map();

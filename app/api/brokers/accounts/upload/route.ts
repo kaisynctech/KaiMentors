@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ACADEMY_IMAGE_MAX_BYTES, ACADEMY_VIDEO_MAX_BYTES, fileTooLargeMessage } from "@/lib/media-limits";
 
 const uploadSchema = z.object({
   accountId: z.string().uuid(),
@@ -23,9 +24,6 @@ const VIDEO_TYPES: Record<string, string> = {
   "video/webm": "webm",
   "video/quicktime": "mov",
 };
-
-const IMAGE_MAX = 10 * 1024 * 1024;
-const VIDEO_MAX = 500 * 1024 * 1024;
 
 async function getWorkspace() {
   const supabase = await createClient();
@@ -78,16 +76,16 @@ export async function POST(request: Request) {
     if (!ext) {
       return NextResponse.json({ error: "Unsupported image type." }, { status: 400 });
     }
-    if (fileSize > IMAGE_MAX) {
-      return NextResponse.json({ error: "Image must be under 10 MB." }, { status: 400 });
+    if (fileSize > ACADEMY_IMAGE_MAX_BYTES) {
+      return NextResponse.json({ error: fileTooLargeMessage({ name: "image", size: fileSize }, ACADEMY_IMAGE_MAX_BYTES) }, { status: 400 });
     }
   } else {
     ext = VIDEO_TYPES[mimeType] ?? "";
     if (!ext) {
       return NextResponse.json({ error: "Unsupported video type." }, { status: 400 });
     }
-    if (fileSize > VIDEO_MAX) {
-      return NextResponse.json({ error: "Video must be under 500 MB." }, { status: 400 });
+    if (fileSize > ACADEMY_VIDEO_MAX_BYTES) {
+      return NextResponse.json({ error: fileTooLargeMessage({ name: "video", size: fileSize }, ACADEMY_VIDEO_MAX_BYTES) }, { status: 400 });
     }
   }
 
