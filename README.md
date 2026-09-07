@@ -49,9 +49,10 @@ with `NEXT_PUBLIC_` or expose it to browser code.
 database configuration, without changing portal or dashboard code.
 
 The included `http-json-v1` adapter is a generic contract for brokers that
-provide a partner-verification endpoint. Production broker adapters should
-normalize their responses to `VerificationResult` and must never return raw
-credentials or unnecessarily sensitive broker data.
+provide a partner-verification endpoint. `xm-mypartners-v1` verifies an XM
+client ID against the mentor's MyPartners affiliate token. Production
+broker adapters should normalize their responses to `VerificationResult`
+and must never return raw credentials or unnecessarily sensitive broker data.
 
 ## Website Builder
 

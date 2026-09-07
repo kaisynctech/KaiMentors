@@ -12,3 +12,5 @@ supabase/.temp
 .acceptance-tmp
 .claude/settings.local.json
 .keys/
+API's/
+API*/

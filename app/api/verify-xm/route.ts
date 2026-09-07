@@ -63,16 +63,9 @@ export async function POST(request: Request) {
     },
   });
 
-  if (!brokerAccount || brokerAccount.verification_method !== "api") {
-    return NextResponse.json({
-      type: "PENDING_SIGNUP",
-      affiliateCode: brokerAccount?.partner_code ?? "BANDISHARES05",
-      affiliateLink: brokerAccount?.affiliate_link ?? "https://www.xm.com",
-    });
-  }
-
   return NextResponse.json({
-    ok: true,
-    message: "Verification submitted. We will confirm your XM partnership shortly.",
+    type: "PENDING_SIGNUP",
+    affiliateCode: brokerAccount?.partner_code ?? "BANDISHARES05",
+    affiliateLink: brokerAccount?.affiliate_link ?? "https://www.xm.com",
   });
 }

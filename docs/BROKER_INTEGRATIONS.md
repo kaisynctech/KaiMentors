@@ -2,9 +2,9 @@
 
 ## Multi-Academy Validation
 
-Broker account rows remain owned by `trader_id`; academy provisioning does not clone or share broker connections. The deployed matrix contains one KaiTrades test broker account and none for Traders Confidence or Milkers FX. Public broker options and student registration continue to resolve the portal server-side, so a custom package or Core Academy Page cannot select another academy's broker connection.
+Broker account rows remain owned by `trader_id`; academy provisioning does not clone or share broker connections. KaiTrades has a test Apex Markets row (`manual_review`). Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII / CP714), and Sharesworldwide (BANDISHARES05) each have their own XM Global API connection. Public broker options and student registration continue to resolve the portal server-side, so a custom package or Core Academy Page cannot select another academy's broker connection.
 
-Last updated: 2026-06-17
+Last updated: 2026-09-02
 
 ## Architecture
 
@@ -22,9 +22,24 @@ Broker API calls are handled through an Edge Function adapter registry:
 
 - `supabase/functions/verify-broker-account/adapters/registry.ts`
 - `supabase/functions/verify-broker-account/adapters/http-json.ts`
+- `supabase/functions/verify-broker-account/adapters/xm-mypartners.ts`
 - `supabase/functions/verify-broker-account/adapters/types.ts`
 
 This keeps broker-specific logic out of the browser and allows additional broker adapters to be added without changing public registration forms.
+
+### XM MyPartners (`xm-mypartners-v1`)
+
+Used by Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII local / CP714 international, one affiliate token), and Sharesworldwide (BANDISHARES05). Each academy has its own Vault secret. The Edge Function calls `GET https://mypartners.xm.com/api/traders/{loginId}` with that tenant's concatenated two-part API token (`tokenPart1` + `tokenPart2`).
+
+Documented XM statuses:
+
+- `200` affiliate match → student verified
+- `404` account not under this IB → rejected
+- `400` / `401` → mentor review
+
+XM's partner gateway is fronted by Akamai Bot Manager. A HTML `401 Unauthorized` (not JSON) means the request never reached the trader API. That outcome is stored as `XM_GATEWAY_UNAUTHORIZED` and sent to mentor review. The adapter waits at most 10 seconds for XM; timeout or network failure also goes to mentor review so student verification cannot hang. Do not attach another academy's XM token to KaiTrades or any other portal.
+
+Credentials live only in Supabase Vault. They must not be committed, placed in migrations, or returned to the browser.
 
 ## Verification Methods
 
