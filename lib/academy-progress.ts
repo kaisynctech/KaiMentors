@@ -30,6 +30,9 @@ export type PulseProgressRow = {
   is_started: boolean;
   is_completed: boolean;
   last_activity_at: string | null;
+  position_seconds?: number | null;
+  first_started_at?: string | null;
+  first_completed_at?: string | null;
 };
 
 export type PulseLessonRef = {
@@ -37,6 +40,7 @@ export type PulseLessonRef = {
   course_id: string;
   title: string;
   sort_order: number;
+  duration_seconds?: number | null;
 };
 
 export function studentHasCourseAccess(args: {
@@ -210,11 +214,75 @@ export function currentLessonTitle(
   return next?.title ?? null;
 }
 
+export const THIN_WATCH_MIN_DURATION_SECONDS = 60;
+export const THIN_WATCH_POSITION_FRACTION = 0.5;
+export const THIN_WATCH_ELAPSED_SECONDS = 90;
+export const THIN_WATCH_LONG_DURATION_SECONDS = 180;
+export const THIN_WATCH_ELAPSED_FRACTION = 0.2;
+
+export function isThinWatch(args: {
+  isCompleted: boolean;
+  positionSeconds?: number | null;
+  firstStartedAt?: string | null;
+  firstCompletedAt?: string | null;
+  lastActivityAt?: string | null;
+  durationSeconds?: number | null;
+}): boolean {
+  if (!args.isCompleted) return false;
+  const duration = args.durationSeconds ?? 0;
+  if (duration < THIN_WATCH_MIN_DURATION_SECONDS) return false;
+
+  const position = Math.max(0, args.positionSeconds ?? 0);
+  if (position < duration * THIN_WATCH_POSITION_FRACTION) return true;
+
+  const started = args.firstStartedAt ? Date.parse(args.firstStartedAt) : NaN;
+  const completedAt = args.firstCompletedAt
+    ? Date.parse(args.firstCompletedAt)
+    : args.lastActivityAt
+      ? Date.parse(args.lastActivityAt)
+      : NaN;
+  if (!Number.isFinite(started) || !Number.isFinite(completedAt)) return false;
+  const elapsed = Math.max(0, completedAt - started) / 1000;
+  if (elapsed < duration * THIN_WATCH_ELAPSED_FRACTION) return true;
+  return (
+    duration >= THIN_WATCH_LONG_DURATION_SECONDS &&
+    elapsed <= THIN_WATCH_ELAPSED_SECONDS
+  );
+}
+
+export function countThinWatches(
+  lessons: PulseLessonRef[],
+  progress: PulseProgressRow[],
+): { count: number; firstTitle: string | null } {
+  const byId = new Map(progress.map((row) => [row.lesson_id, row]));
+  let count = 0;
+  let firstTitle: string | null = null;
+  for (const lesson of lessons) {
+    const row = byId.get(lesson.id);
+    if (!row) continue;
+    if (
+      isThinWatch({
+        isCompleted: row.is_completed,
+        positionSeconds: row.position_seconds,
+        firstStartedAt: row.first_started_at,
+        firstCompletedAt: row.first_completed_at,
+        lastActivityAt: row.last_activity_at,
+        durationSeconds: lesson.duration_seconds,
+      })
+    ) {
+      count += 1;
+      if (!firstTitle) firstTitle = lesson.title;
+    }
+  }
+  return { count, firstTitle };
+}
+
 export function buildPulseInsights(args: {
   courseTitle: string | null;
   counts: Record<PulseBucket, number>;
   quietLessonTitle: string | null;
   behindGroupCount?: number;
+  thinWatchStudentCount?: number;
 }): string[] {
   const insights: string[] = [];
   const course = args.courseTitle ? `“${args.courseTitle}”` : "your published courses";
@@ -243,6 +311,12 @@ export function buildPulseInsights(args: {
   if (args.counts.ahead > 0) {
     insights.push(
       `${args.counts.ahead} student${args.counts.ahead === 1 ? " is" : "s are"} ahead of the current path.`,
+    );
+  }
+  const thinWatchStudents = args.thinWatchStudentCount ?? 0;
+  if (thinWatchStudents > 0) {
+    insights.push(
+      `${thinWatchStudents} student${thinWatchStudents === 1 ? " completed a lesson" : "s completed lessons"} without watching most of the video.`,
     );
   }
   if (insights.length === 0) {

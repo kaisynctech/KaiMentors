@@ -49,6 +49,7 @@ export function AcademyProgressPulse({
   courseId = "",
   groupId = "",
   bucket: bucketFromUrl = "all",
+  watchThin: watchThinFromUrl = false,
   showCourseFilter = true,
   messagesEnabled = true,
   bookingsEnabled = true,
@@ -57,6 +58,7 @@ export function AcademyProgressPulse({
   courseId?: string;
   groupId?: string;
   bucket?: PulseBucket | "all";
+  watchThin?: boolean;
   showCourseFilter?: boolean;
   messagesEnabled?: boolean;
   bookingsEnabled?: boolean;
@@ -67,10 +69,12 @@ export function AcademyProgressPulse({
   const [error, setError] = useState("");
   const [localGroupId, setLocalGroupId] = useState("");
   const [localBucket, setLocalBucket] = useState<PulseBucket | "all">("all");
+  const [localWatchThin, setLocalWatchThin] = useState(false);
 
   const embedded = !showCourseFilter;
   const activeGroupId = embedded ? localGroupId : groupId;
   const activeBucket = embedded ? localBucket : bucketFromUrl;
+  const activeWatchThin = embedded ? localWatchThin : watchThinFromUrl;
 
   const scopedLearners = useMemo(() => {
     if (!activeGroupId) return pulse.learners;
@@ -85,23 +89,35 @@ export function AcademyProgressPulse({
     return next;
   }, [scopedLearners]);
 
+  const thinWatchCount = useMemo(
+    () => scopedLearners.filter((learner) => learner.thinWatchCount > 0).length,
+    [scopedLearners],
+  );
+
   const visible = useMemo(() => {
-    if (activeBucket === "all") return scopedLearners;
-    return scopedLearners.filter((learner) => learner.bucket === activeBucket);
-  }, [activeBucket, scopedLearners]);
+    const byBucket =
+      activeBucket === "all"
+        ? scopedLearners
+        : scopedLearners.filter((learner) => learner.bucket === activeBucket);
+    if (!activeWatchThin) return byBucket;
+    return byBucket.filter((learner) => learner.thinWatchCount > 0);
+  }, [activeBucket, activeWatchThin, scopedLearners]);
 
   function hrefFor(next: {
     courseId?: string;
     groupId?: string;
     bucket?: string;
+    watchThin?: boolean;
   }) {
     const params = new URLSearchParams();
     const nextCourse = next.courseId ?? courseId;
     const nextGroup = next.groupId ?? groupId;
     const nextBucket = next.bucket ?? bucketFromUrl;
+    const nextWatchThin = next.watchThin ?? watchThinFromUrl;
     if (nextCourse) params.set("course", nextCourse);
     if (nextGroup) params.set("group", nextGroup);
     if (nextBucket && nextBucket !== "all") params.set("bucket", nextBucket);
+    if (nextWatchThin) params.set("watch", "thin");
     const query = params.toString();
     return `/dashboard/progress${query ? `?${query}` : ""}`;
   }
@@ -112,6 +128,15 @@ export function AcademyProgressPulse({
       return;
     }
     router.push(hrefFor({ bucket: next }));
+  }
+
+  function toggleWatchThin() {
+    const next = !activeWatchThin;
+    if (embedded) {
+      setLocalWatchThin(next);
+      return;
+    }
+    router.push(hrefFor({ watchThin: next }));
   }
 
   async function messageStudent(learner: PulseLearner, draft?: string) {
@@ -141,7 +166,11 @@ export function AcademyProgressPulse({
 
   async function nudgeBucket(bucket: NudgeBucket) {
     if (!messagesEnabled) return;
-    const targets = scopedLearners.filter((learner) => learner.bucket === bucket);
+    const targets = scopedLearners.filter((learner) => {
+      if (learner.bucket !== bucket) return false;
+      if (activeWatchThin && learner.thinWatchCount === 0) return false;
+      return true;
+    });
     if (targets.length === 0) return;
     const draft = buildNudgeDraft({
       bucket,
@@ -257,6 +286,7 @@ export function AcademyProgressPulse({
           {bucketFromUrl !== "all" ? (
             <input name="bucket" type="hidden" value={bucketFromUrl} />
           ) : null}
+          {watchThinFromUrl ? <input name="watch" type="hidden" value="thin" /> : null}
         </form>
       ) : pulse.groups.length > 0 ? (
         <div className={styles.filters}>
@@ -299,13 +329,26 @@ export function AcademyProgressPulse({
           </button>
         ))}
       </div>
+      {thinWatchCount > 0 ? (
+        <button
+          className={`${styles.watchChip} ${activeWatchThin ? styles.watchChipActive : ""}`}
+          onClick={toggleWatchThin}
+          type="button"
+        >
+          Barely watched ({thinWatchCount})
+        </button>
+      ) : null}
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <h2>
-            {activeBucket === "all" ? "Learners" : BUCKET_LABEL[activeBucket]}
+            {activeWatchThin
+              ? "Barely watched"
+              : activeBucket === "all"
+                ? "Learners"
+                : BUCKET_LABEL[activeBucket]}
             <small>
               {visible.length} student{visible.length === 1 ? "" : "s"}
             </small>
@@ -335,7 +378,12 @@ export function AcademyProgressPulse({
                 {initials(learner.fullName)}
               </div>
               <div className={styles.meta}>
-                <p className={styles.name}>{learner.fullName}</p>
+                <p className={styles.name}>
+                  {learner.fullName}
+                  {learner.thinWatchCount > 0 ? (
+                    <span className={styles.flag}>Barely watched</span>
+                  ) : null}
+                </p>
                 <p className={styles.sub}>
                   {learner.bucket === "not_started"
                     ? "Has not opened this path yet"
@@ -350,6 +398,11 @@ export function AcademyProgressPulse({
                         : learner.currentLessonTitle
                           ? `Next: ${learner.currentLessonTitle}`
                           : "Path complete"}
+                  {learner.thinWatchCount > 0
+                    ? learner.thinWatchCount === 1 && learner.thinWatchLessonTitle
+                      ? ` · Completed “${learner.thinWatchLessonTitle}” without watching most of it`
+                      : ` · Completed ${learner.thinWatchCount} lessons without watching most of the video`
+                    : ""}
                   {" · "}
                   Last active {timeAgo(learner.lastActivityAt)}
                 </p>
@@ -437,6 +490,11 @@ export function AcademyProgressPulse({
       {activeBucket === "ahead" && visible.length > 0 ? (
         <p className={styles.footnote}>
           <CheckCircle2 size={14} /> These students finished the required lessons. Rankings stay on the mentor side only.
+        </p>
+      ) : null}
+      {thinWatchCount > 0 ? (
+        <p className={styles.footnote}>
+          Barely watched stays on the mentor side. Students never see this flag.
         </p>
       ) : null}
     </div>

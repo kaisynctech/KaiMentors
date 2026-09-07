@@ -8,7 +8,9 @@ import {
   buildPulseInsights,
   buildNudgeTitle,
   classifyLearner,
+  countThinWatches,
   currentLessonTitle,
+  isThinWatch,
   learnerIsBehindPeers,
   studentHasCourseAccess,
 } from "../lib/academy-progress.ts";
@@ -219,6 +221,145 @@ test("watch position is a clock time, not a duration phrase", () => {
   assert.equal(formatWatchPosition(3723), "1:02:03");
 });
 
+const started = "2026-09-07T12:00:00.000Z";
+function secondsLater(seconds) {
+  return new Date(Date.parse(started) + seconds * 1000).toISOString();
+}
+
+test("incomplete or short lessons are not flagged as thin watches", () => {
+  assert.equal(
+    isThinWatch({
+      isCompleted: false,
+      positionSeconds: 0,
+      durationSeconds: 600,
+    }),
+    false,
+  );
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 0,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(5),
+      durationSeconds: null,
+    }),
+    false,
+  );
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 40,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(40),
+      durationSeconds: 45,
+    }),
+    false,
+  );
+});
+
+test("mark complete near the start of a video is a thin watch", () => {
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 0,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(2),
+      durationSeconds: 600,
+    }),
+    true,
+  );
+});
+
+test("skip to the end of a long video in seconds is a thin watch", () => {
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 3240,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(8),
+      durationSeconds: 3600,
+    }),
+    true,
+  );
+});
+
+test("skipping a four-minute video after one minute is a thin watch", () => {
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 2160,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(60),
+      durationSeconds: 240,
+    }),
+    true,
+  );
+});
+
+test("watching most of a video then completing is not a thin watch", () => {
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 3240,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(20 * 60),
+      durationSeconds: 3600,
+    }),
+    false,
+  );
+  assert.equal(
+    isThinWatch({
+      isCompleted: true,
+      positionSeconds: 81,
+      firstStartedAt: started,
+      firstCompletedAt: secondsLater(80),
+      durationSeconds: 90,
+    }),
+    false,
+  );
+});
+
+test("thin watch counts name the first skipped lesson", () => {
+  const result = countThinWatches(
+    [
+      { id: "l1", course_id: "c1", title: "Welcome", sort_order: 1, duration_seconds: 600 },
+      { id: "l2", course_id: "c1", title: "Risk", sort_order: 2, duration_seconds: 600 },
+    ],
+    [
+      {
+        lesson_id: "l1",
+        is_started: true,
+        is_completed: true,
+        last_activity_at: secondsLater(4),
+        position_seconds: 540,
+        first_started_at: started,
+        first_completed_at: secondsLater(4),
+      },
+      {
+        lesson_id: "l2",
+        is_started: true,
+        is_completed: true,
+        last_activity_at: secondsLater(40 * 60),
+        position_seconds: 540,
+        first_started_at: started,
+        first_completed_at: secondsLater(40 * 60),
+      },
+    ],
+  );
+  assert.equal(result.count, 1);
+  assert.equal(result.firstTitle, "Welcome");
+});
+
+test("digest names students who completed without watching", () => {
+  const lines = buildPulseInsights({
+    courseTitle: "Foundations",
+    counts: { ahead: 1, on_track: 2, stuck: 0, not_started: 0 },
+    quietLessonTitle: null,
+    thinWatchStudentCount: 3,
+  });
+  assert.match(lines.at(-1) ?? "", /3 students completed lessons without watching/);
+});
+
 test("pulse nudges through group conversations and students see leftover time", async () => {
   const root = path.resolve(import.meta.dirname, "..");
   const pulse = await readFile(
@@ -230,10 +371,23 @@ test("pulse nudges through group conversations and students see leftover time", 
     path.join(root, "app", "student", "courses", "page.tsx"),
     "utf8",
   );
+  const course = await readFile(
+    path.join(root, "app", "student", "courses", "[courseId]", "page.tsx"),
+    "utf8",
+  );
+  const lesson = await readFile(
+    path.join(root, "app", "student", "courses", "[courseId]", "lessons", "[lessonId]", "page.tsx"),
+    "utf8",
+  );
   assert.match(pulse, /type: "group"/);
   assert.match(pulse, /allowStudentReplies: true/);
   assert.match(pulse, /Nudge stuck/);
   assert.match(pulse, /panel=bookings&student=/);
+  assert.match(pulse, /Barely watched/);
   assert.match(home, /Left off at/);
   assert.match(learning, /Resume from/);
+  assert.doesNotMatch(home, /Barely watched/);
+  assert.doesNotMatch(learning, /Barely watched/);
+  assert.doesNotMatch(course, /Barely watched/);
+  assert.doesNotMatch(lesson, /Barely watched/);
 });

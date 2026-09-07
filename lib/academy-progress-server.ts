@@ -4,6 +4,7 @@ import {
   applyGroupRelativeStuck,
   buildPulseInsights,
   classifyLearner,
+  countThinWatches,
   currentLessonTitle,
   emptyBucketCounts,
   studentHasCourseAccess,
@@ -27,6 +28,8 @@ export type PulseLearner = {
   currentLessonTitle: string | null;
   groupIds: string[];
   stuckReason: StuckReason | null;
+  thinWatchCount: number;
+  thinWatchLessonTitle: string | null;
 };
 
 export type PulseLessonStat = {
@@ -97,14 +100,14 @@ export async function loadAcademyProgressPulse(
       .eq("entity_type", "course"),
     supabase
       .from("lessons")
-      .select("id,course_id,title,sort_order,is_required,status")
+      .select("id,course_id,title,sort_order,is_required,status,duration_seconds")
       .eq("trader_id", traderId)
       .eq("status", "published")
       .eq("is_required", true)
       .order("sort_order"),
     supabase
       .from("lesson_progress")
-      .select("student_user_id,course_id,lesson_id,is_started,is_completed,last_activity_at")
+      .select("student_user_id,course_id,lesson_id,is_started,is_completed,last_activity_at,position_seconds,first_started_at,first_completed_at")
       .eq("trader_id", traderId),
   ]);
 
@@ -143,6 +146,9 @@ export async function loadAcademyProgressPulse(
       is_started: row.is_started,
       is_completed: row.is_completed,
       last_activity_at: row.last_activity_at,
+      position_seconds: row.position_seconds,
+      first_started_at: row.first_started_at,
+      first_completed_at: row.first_completed_at,
     });
     progressByStudent.set(row.student_user_id, list);
   }
@@ -175,6 +181,7 @@ export async function loadAcademyProgressPulse(
       progress,
       now,
     });
+    const thinWatch = countThinWatches(scopedLessons, progress);
 
     const profile = Array.isArray(application.profile)
       ? application.profile[0] ?? null
@@ -191,6 +198,8 @@ export async function loadAcademyProgressPulse(
       currentLessonTitle: currentLessonTitle(scopedLessons, progress),
       groupIds,
       stuckReason: classified.bucket === "stuck" ? "quiet" : null,
+      thinWatchCount: thinWatch.count,
+      thinWatchLessonTitle: thinWatch.firstTitle,
     });
   }
 
@@ -255,6 +264,8 @@ export async function loadAcademyProgressPulse(
       behindGroupCount: learners.filter(
         (learner) => learner.stuckReason === "behind_group",
       ).length,
+      thinWatchStudentCount: learners.filter((learner) => learner.thinWatchCount > 0)
+        .length,
     }),
     selectedCourseTitle,
   };

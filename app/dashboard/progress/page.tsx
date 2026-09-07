@@ -35,6 +35,7 @@ export default async function AcademyProgressPage({
     requestedBucket && (PULSE_BUCKETS as readonly string[]).includes(requestedBucket)
       ? (requestedBucket as PulseBucket)
       : "all";
+  const watchThin = firstValue(query.watch) === "thin";
 
   const pulse = await loadAcademyProgressPulse(workspace.supabase, workspace.traderId, {
     courseId: courseId || null,
@@ -69,6 +70,7 @@ export default async function AcademyProgressPage({
         groupId={groupId}
         messagesEnabled={messagesEnabled}
         pulse={pulse}
+        watchThin={watchThin}
       />
     </DashboardShell>
   );
