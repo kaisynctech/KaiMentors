@@ -40,6 +40,7 @@ test("explicit false hides the same module for mentor and student", () => {
   assert.equal(hrefs.has("/dashboard/community"), false);
   assert.equal(hrefs.has("/dashboard/bookings"), false);
   assert.equal(hrefs.has("/dashboard/courses"), true);
+  assert.equal(hrefs.has("/dashboard/progress"), true);
   assert.equal(hrefs.has("/dashboard/projects"), false);
 });
 
@@ -97,6 +98,7 @@ test("mentor save path and student nav both read the portal feature map", async 
   assert.match(studentCommunity, /"community"/);
   assert.match(mentorCommunity, /isPortalFeatureEnabled/);
   assert.match(mentorCommunity, /"community"/);
+  assert.match(dashboardShell, /\/dashboard\/progress/);
   assert.match(dashboardShell, /\/dashboard\/projects/);
   assert.match(studentShell, /featureKey: "projects"/);
   assert.match(mentorProjects, /"projects"/);

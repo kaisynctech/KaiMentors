@@ -140,6 +140,67 @@
   font-size: 11px;
 }
 
+.pulse {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px 22px;
+  background: #fff;
+}
+
+.pulseHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pulseHeader h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.pulseHeader p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pulseHeader a {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pulseGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pulseGrid a {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #e5e8ea;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.pulseGrid span {
+  color: #717a80;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pulseGrid strong {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
 @media (max-width: 1080px) {
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -147,6 +208,10 @@
 
   .contentGrid {
     grid-template-columns: 1fr;
+  }
+
+  .pulseGrid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

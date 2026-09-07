@@ -111,6 +111,7 @@ export const MENTOR_NAV_FEATURE_BY_HREF: Record<string, PortalFeatureKey> = {
   "/dashboard/messages": "messages",
   "/dashboard/community": "community",
   "/dashboard/courses": "courses",
+  "/dashboard/progress": "courses",
   "/dashboard/resources": "resources",
   "/dashboard/projects": "projects",
   "/dashboard/live-classes": "live_classes",

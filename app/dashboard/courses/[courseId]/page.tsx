@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { CourseDetailManager } from "@/components/course-detail-manager";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadAcademyProgressPulse } from "@/lib/academy-progress-server";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
@@ -36,6 +37,7 @@ export default async function CourseDetailPage({
     { data: grants },
     { data: progressRows },
     { data: resources },
+    pulse,
   ] = await Promise.all([
     supabase
       .from("courses")
@@ -98,6 +100,7 @@ export default async function CourseDetailPage({
       .eq("trader_id", tid)
       .eq("course_id", courseId)
       .order("sort_order"),
+    loadAcademyProgressPulse(supabase, tid, { courseId }),
   ]);
   if (!course) notFound();
 
@@ -191,6 +194,17 @@ export default async function CourseDetailPage({
           .map((g) => g.student_user_id)
           .filter((v): v is string => Boolean(v))}
         progress={progress}
+        pulse={pulse}
+        messagesEnabled={isPortalFeatureEnabled(
+          workspace.studentPortalFeatures,
+          "messages",
+          workspace.accessModel,
+        )}
+        bookingsEnabled={isPortalFeatureEnabled(
+          workspace.studentPortalFeatures,
+          "bookings",
+          workspace.accessModel,
+        )}
         resources={resources ?? []}
         activityFeed={activityFeed}
       />

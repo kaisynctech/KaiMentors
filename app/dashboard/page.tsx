@@ -4,6 +4,8 @@ import { DashboardAnnouncementsPanel } from "@/components/dashboard-announcement
 import { DashboardShell } from "@/components/dashboard-shell";
 import { PwaInstallCard } from "@/components/pwa-install-card";
 import { MetricCard } from "@/components/metric-card";
+import { loadAcademyProgressPulse } from "@/lib/academy-progress-server";
+import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 import styles from "./dashboard.module.css";
 
@@ -35,9 +37,17 @@ export default async function TraderDashboard() {
     groupIds: string[];
   }> = [];
   let groups: Array<{ id: string; name: string; color: string }> = [];
+  let pulse: Awaited<ReturnType<typeof loadAcademyProgressPulse>> | null = null;
+  const coursesEnabled = workspace
+    ? isPortalFeatureEnabled(
+        workspace.studentPortalFeatures,
+        "courses",
+        workspace.accessModel,
+      )
+    : false;
 
   if (supabase && traderId) {
-    const [students, verified, pending, courses, applications, announcementRows, groupRows, grantRows] = await Promise.all([
+    const [students, verified, pending, courses, applications, announcementRows, groupRows, grantRows, pulseResult] = await Promise.all([
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).eq("status", "verified"),
       supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).in("status", ["pending", "processing", "manual_review", "needs_more_information"]),
@@ -63,6 +73,9 @@ export default async function TraderDashboard() {
         .select("entity_id, group_id")
         .eq("trader_id", traderId)
         .eq("entity_type", "announcement"),
+      coursesEnabled
+        ? loadAcademyProgressPulse(supabase, traderId)
+        : Promise.resolve(null),
     ]);
 
     stats = {
@@ -89,6 +102,7 @@ export default async function TraderDashboard() {
       groupIds: grantsByAnnouncement.get(row.id) ?? [],
     })) as typeof announcements;
     groups = groupRows.data ?? [];
+    pulse = pulseResult;
   }
 
   return (
@@ -106,6 +120,36 @@ export default async function TraderDashboard() {
         <MetricCard icon={Clock3} label="Needs attention" note="Pending or manual review" value={stats.pending} />
         <MetricCard icon={BookOpen} label="Courses" note="Draft and published" value={stats.courses} />
       </section>
+
+      {pulse ? (
+        <section className={styles.pulse}>
+          <div className={styles.pulseHeader}>
+            <div>
+              <h2>Academy progress</h2>
+              <p>{pulse.insights[0]}</p>
+            </div>
+            <Link href="/dashboard/progress">Open pulse</Link>
+          </div>
+          <div className={styles.pulseGrid}>
+            <Link href="/dashboard/progress?bucket=ahead">
+              <span>Ahead</span>
+              <strong>{pulse.counts.ahead}</strong>
+            </Link>
+            <Link href="/dashboard/progress?bucket=on_track">
+              <span>On track</span>
+              <strong>{pulse.counts.on_track}</strong>
+            </Link>
+            <Link href="/dashboard/progress?bucket=stuck">
+              <span>Stuck</span>
+              <strong>{pulse.counts.stuck}</strong>
+            </Link>
+            <Link href="/dashboard/progress?bucket=not_started">
+              <span>Not started</span>
+              <strong>{pulse.counts.not_started}</strong>
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {portalName ? <PwaInstallCard academyName={portalName} /> : null}
 

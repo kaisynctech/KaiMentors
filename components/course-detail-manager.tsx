@@ -12,6 +12,7 @@ import { OverviewTab } from "./course-tabs/overview-tab";
 import { ResourcesTab } from "./course-tabs/resources-tab";
 import { SettingsTab } from "./course-tabs/settings-tab";
 import { StudentsTab } from "./course-tabs/students-tab";
+import type { AcademyProgressPulse } from "@/lib/academy-progress-server";
 
 type Status = "draft" | "published" | "archived";
 type AccessMode = "all_verified" | "restricted" | "one_to_one";
@@ -83,6 +84,9 @@ interface Props {
     started: number;
     last_activity_at: string | null;
   }>;
+  pulse: AcademyProgressPulse;
+  messagesEnabled: boolean;
+  bookingsEnabled: boolean;
   resources: Array<{ id: string; title: string; status: Status; sort_order: number }>;
   activityFeed: ActivityFeedItem[];
 }
@@ -105,6 +109,9 @@ export function CourseDetailManager({
   selectedGroupIds,
   selectedStudentIds,
   progress,
+  pulse,
+  messagesEnabled,
+  bookingsEnabled,
   resources,
   activityFeed,
 }: Props) {
@@ -420,7 +427,11 @@ export function CourseDetailManager({
       )}
 
       {tab === "Students" && (
-        <StudentsTab progress={progress} modules={modules} lessons={lessons} />
+        <StudentsTab
+          bookingsEnabled={bookingsEnabled}
+          messagesEnabled={messagesEnabled}
+          pulse={pulse}
+        />
       )}
 
       {tab === "Settings" && (
