@@ -5,6 +5,8 @@ import {
   interpretXmTraderResponse,
   isXmHtmlGatewayResponse,
   resolveXmApiToken,
+  XM_USER_AGENT,
+  xmTraderRequestHeaders,
 } from "../supabase/functions/verify-broker-account/adapters/xm-mypartners.ts";
 
 test("XM MyPartners token is the two emailed parts concatenated", () => {
@@ -17,6 +19,14 @@ test("XM MyPartners token is the two emailed parts concatenated", () => {
   );
   assert.equal(resolveXmApiToken({ apiToken: "ONEPIECE" }), "ONEPIECE");
   assert.equal(resolveXmApiToken({}), "");
+});
+
+test("XM trader lookup sends a named User-Agent with the Bearer token", () => {
+  const headers = xmTraderRequestHeaders("secret-token");
+  assert.equal(headers.get("Accept"), "application/json");
+  assert.equal(headers.get("Authorization"), "Bearer secret-token");
+  assert.equal(headers.get("User-Agent"), XM_USER_AGENT);
+  assert.match(XM_USER_AGENT, /^KaiSync\//);
 });
 
 test("XM trader lookup 200 means the client sits under this affiliate", () => {

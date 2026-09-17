@@ -10,6 +10,24 @@ export const XM_MYPARTNERS_TRADER_URL =
 
 export const XM_FETCH_TIMEOUT_MS = 10_000;
 
+/**
+ * XM's pack, as written:
+ * - GET https://mypartners.xm.com/api/traders/{loginId}
+ * - Token = Part1 + Part2 with no separator
+ * - Authorization: Bearer {token}
+ * User-Agent is not in their PDF; we send a real product name so the
+ * request is not an unlabeled Deno/curl client.
+ */
+export const XM_USER_AGENT = "KaiSync/1.0 (broker-verify; +https://kaimentors.vercel.app)";
+
+export function xmTraderRequestHeaders(token: string): Headers {
+  const headers = new Headers();
+  headers.set("Accept", "application/json");
+  headers.set("Authorization", `Bearer ${token}`);
+  headers.set("User-Agent", XM_USER_AGENT);
+  return headers;
+}
+
 export function resolveXmApiToken(credentials: BrokerCredentials): string {
   const combined = credentials.apiToken ?? credentials.apiKey ?? "";
   if (combined.trim()) return combined.trim();
@@ -131,10 +149,7 @@ export class XmMypartnersAdapter implements BrokerAdapter {
         `${XM_MYPARTNERS_TRADER_URL}/${encodeURIComponent(loginId)}`,
         {
           method: "GET",
-          headers: {
-            accept: "application/json",
-            authorization: `Bearer ${token}`,
-          },
+          headers: xmTraderRequestHeaders(token),
           signal: AbortSignal.timeout(XM_FETCH_TIMEOUT_MS),
         },
       );
