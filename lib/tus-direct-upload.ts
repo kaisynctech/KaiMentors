@@ -1,6 +1,10 @@
 import { Upload } from "tus-js-client";
 import { createClient } from "@/lib/supabase/browser";
-import { TUS_CHUNK_SIZE, TUS_RETRY_DELAYS } from "@/lib/media-limits";
+import {
+  TUS_CHUNK_SIZE,
+  TUS_RETRY_DELAYS,
+  resolveUploadContentType,
+} from "@/lib/media-limits";
 
 export async function uploadDirectToStorage(options: {
   file: File;
@@ -29,7 +33,7 @@ export async function uploadDirectToStorage(options: {
       metadata: {
         bucketName: options.bucketName,
         objectName: options.objectName,
-        contentType: options.file.type,
+        contentType: resolveUploadContentType(options.file),
         cacheControl: "private, max-age=0",
       },
       chunkSize: TUS_CHUNK_SIZE,

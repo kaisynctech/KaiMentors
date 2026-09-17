@@ -3,6 +3,7 @@ import {
   COURSE_MEDIA_RULES,
   fileTooLargeMessage,
   formatEta,
+  resolveUploadContentType,
 } from "@/lib/media-limits";
 import { readVideoDuration, uploadDirectToStorage } from "@/lib/tus-direct-upload";
 
@@ -67,7 +68,7 @@ export function useMediaUpload(): UseMediaUploadResult {
       body: JSON.stringify({
         title: title ?? file.name,
         fileName: file.name,
-        mimeType: file.type,
+        mimeType: resolveUploadContentType(file) || file.type,
         sizeBytes: file.size,
         mediaType,
         replacesMediaId: replacesMediaId ?? null,

@@ -3,7 +3,14 @@
 import Image from "next/image";
 import { type FormEvent, useRef, useState, KeyboardEvent } from "react";
 import { ExternalLink, FileText, Film, Loader2, Plus, Trash2, UploadCloud } from "lucide-react";
-import { fileTooLargeMessage, formatEta, maxBytesForAcademyUpload } from "@/lib/media-limits";
+import {
+  ACADEMY_MEDIA_RULES,
+  academyUploadMismatch,
+  fileTooLargeMessage,
+  formatEta,
+  maxBytesForAcademyFile,
+  resolveUploadContentType,
+} from "@/lib/media-limits";
 import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-resources.module.css";
 
@@ -36,9 +43,12 @@ type ResourceType = "video" | "pdf" | "link";
 async function uploadFile(
   file: File,
   subPath: "resources" | "resources/thumbnails",
+  kind: "video" | "pdf",
   onProgress?: (percent: number, eta: string | null) => void,
 ): Promise<string> {
-  const max = maxBytesForAcademyUpload(file.type);
+  const mismatch = academyUploadMismatch(file, kind);
+  if (mismatch) throw new Error(mismatch);
+  const max = maxBytesForAcademyFile(file);
   if (file.size > max) throw new Error(fileTooLargeMessage(file, max));
   const startedAt = Date.now();
   const res = await fetch("/api/resources/upload", {
@@ -46,7 +56,7 @@ async function uploadFile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       fileName: file.name,
-      contentType: file.type,
+      contentType: resolveUploadContentType(file),
       sizeBytes: file.size,
       subPath,
     }),
@@ -108,7 +118,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
       const file = fileRef.current?.files?.[0];
       if (!file) { setError("Please select a file."); setBusy(false); return; }
       try {
-        storagePath = await uploadFile(file, "resources", (percent, eta) => {
+        storagePath = await uploadFile(file, "resources", itemType, (percent, eta) => {
           setUploadProgress(`${percent}%${eta ? ` · ${eta}` : ""}`);
         });
       }
@@ -177,7 +187,11 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
   }
 
   const accept =
-    itemType === "video" ? "video/mp4,video/webm,video/quicktime" : "application/pdf";
+    itemType === "video"
+      ? ACADEMY_MEDIA_RULES.video.types.join(",")
+      : ACADEMY_MEDIA_RULES.pdf.types.join(",");
+  const fileHint =
+    itemType === "video" ? ACADEMY_MEDIA_RULES.video.hint : ACADEMY_MEDIA_RULES.pdf.hint;
 
   function TypeIcon({ type }: { type: ResourceType }) {
     if (type === "video") return <Film size={28} />;
@@ -225,6 +239,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
             <label>
               File
               <input accept={accept} key={itemType} ref={fileRef} required type="file" />
+              <small>{fileHint}</small>
             </label>
           ) : (
             <label>

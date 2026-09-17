@@ -54,6 +54,30 @@ export const COURSE_MEDIA_RULES = {
   },
 } as const;
 
+/** Resources, community, and broker media in the academy-media bucket. */
+export const ACADEMY_MEDIA_RULES = {
+  video: {
+    types: ["video/mp4", "video/webm", "video/quicktime"] as const,
+    extensions: ["mp4", "webm", "mov"] as const,
+    max: ACADEMY_VIDEO_MAX_BYTES,
+    hint: "MP4, WebM, or MOV — up to 2 GB (about 20–60 minutes at 1080p)",
+  },
+  pdf: {
+    types: ["application/pdf"] as const,
+    extensions: ["pdf"] as const,
+    max: ACADEMY_PDF_MAX_BYTES,
+    hint: "PDF — up to 100 MB",
+  },
+  image: {
+    types: ["image/png", "image/jpeg", "image/webp", "image/gif"] as const,
+    extensions: ["png", "jpg", "jpeg", "webp", "gif"] as const,
+    max: ACADEMY_IMAGE_MAX_BYTES,
+    hint: "PNG, JPG, WebP, GIF — up to 20 MB",
+  },
+} as const;
+
+export type AcademyMediaKind = keyof typeof ACADEMY_MEDIA_RULES;
+
 export function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024 * 1024) {
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
@@ -79,4 +103,44 @@ export function maxBytesForAcademyUpload(contentType: string) {
   if (contentType.startsWith("video/")) return ACADEMY_VIDEO_MAX_BYTES;
   if (contentType === "application/pdf") return ACADEMY_PDF_MAX_BYTES;
   return ACADEMY_IMAGE_MAX_BYTES;
+}
+
+const UPLOAD_TYPE_BY_EXTENSION: Record<string, string> = {
+  pdf: "application/pdf",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+};
+
+/** Browsers sometimes send an empty File.type; Storage still needs a MIME. */
+export function resolveUploadContentType(file: { name: string; type: string }) {
+  if (file.type.trim()) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return UPLOAD_TYPE_BY_EXTENSION[ext] ?? "";
+}
+
+export function maxBytesForAcademyFile(file: { name: string; type: string }) {
+  return maxBytesForAcademyUpload(resolveUploadContentType(file));
+}
+
+export function academyUploadMismatch(
+  file: { name: string; type: string },
+  kind: AcademyMediaKind,
+): string | null {
+  const mime = resolveUploadContentType(file);
+  if ((ACADEMY_MEDIA_RULES[kind].types as readonly string[]).includes(mime)) {
+    return null;
+  }
+  if (kind === "video") {
+    return "Choose an MP4, WebM, or MOV. Switch Type to PDF if this is a document.";
+  }
+  if (kind === "pdf") {
+    return "Choose a PDF. Switch Type to Video if this is a recording.";
+  }
+  return "That file type is not supported.";
 }

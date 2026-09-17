@@ -148,6 +148,63 @@ test("long-form course videos can play for 60 minutes without the signed URL dyi
   assert.match(longForm, /2147483648/);
 });
 
+test("academy resource PDFs are an allowed storage MIME", async () => {
+  const { resolveUploadContentType } = await import("../lib/media-limits.ts");
+  const migration = await read("supabase", "migrations", "20260917153000_academy_media_allow_pdf.sql");
+  assert.match(migration, /academy-media/);
+  assert.match(migration, /application\/pdf/);
+  assert.equal(
+    resolveUploadContentType({ name: "notes.pdf", type: "" }),
+    "application/pdf",
+  );
+  assert.equal(
+    resolveUploadContentType({ name: "lesson.mp4", type: "" }),
+    "video/mp4",
+  );
+  assert.equal(
+    resolveUploadContentType({ name: "clip.mp4", type: "video/mp4" }),
+    "video/mp4",
+  );
+});
+
+test("academy resource videos use the 2 GB TUS path and reject the wrong type", async () => {
+  const {
+    ACADEMY_MEDIA_RULES,
+    ACADEMY_VIDEO_MAX_BYTES,
+    academyUploadMismatch,
+    maxBytesForAcademyFile,
+    resolveUploadContentType,
+  } = await import("../lib/media-limits.ts");
+  const uploadRoute = await read("app", "api", "resources", "upload", "route.ts");
+  const mentor = await read("components", "mentor-resources.tsx");
+  const view = await read("components", "resources-view.tsx");
+  assert.equal(ACADEMY_MEDIA_RULES.video.max, ACADEMY_VIDEO_MAX_BYTES);
+  assert.equal(
+    maxBytesForAcademyFile({ name: "session.mp4", type: "" }),
+    ACADEMY_VIDEO_MAX_BYTES,
+  );
+  assert.equal(
+    resolveUploadContentType({ name: "clip.mov", type: "" }),
+    "video/quicktime",
+  );
+  assert.equal(academyUploadMismatch({ name: "session.mp4", type: "" }, "video"), null);
+  assert.match(
+    academyUploadMismatch({ name: "notes.pdf", type: "application/pdf" }, "video") ?? "",
+    /Switch Type to PDF/,
+  );
+  assert.match(
+    academyUploadMismatch({ name: "session.mp4", type: "video/mp4" }, "pdf") ?? "",
+    /Switch Type to Video/,
+  );
+  assert.match(uploadRoute, /video\/mp4/);
+  assert.match(uploadRoute, /video\/webm/);
+  assert.match(uploadRoute, /video\/quicktime/);
+  assert.match(mentor, /ACADEMY_MEDIA_RULES/);
+  assert.match(mentor, /academyUploadMismatch/);
+  assert.match(view, /playsInline/);
+  assert.match(view, /preload="metadata"/);
+});
+
 test("hour-long MP4 lessons play in chunks instead of downloading the whole file", async () => {
   const limits = await read("lib", "media-limits.ts");
   const sessionRoute = await read("app", "api", "course-media", "[mediaId]", "session", "route.ts");

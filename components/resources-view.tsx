@@ -144,6 +144,8 @@ export function ResourcesView({ resources, hasModuleAccess: _hasModuleAccess }: 
                 autoPlay
                 className={styles.lightboxVideo}
                 controls
+                playsInline
+                preload="metadata"
                 src={lightbox.mediaUrl}
               />
             ) : null}

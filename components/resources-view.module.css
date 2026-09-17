@@ -129,8 +129,10 @@
 }
 .lightboxVideo {
   width: 100%;
+  max-height: 80vh;
   aspect-ratio: 16/9;
   background: #000;
+  object-fit: contain;
 }
 .lightboxCaption {
   color: #e5e7eb;

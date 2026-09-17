@@ -3,7 +3,12 @@
 import Image from "next/image";
 import { type FormEvent, useRef, useState } from "react";
 import { ImageIcon, Loader2, Plus, Sparkles, Trash2, TrendingUp, UploadCloud } from "lucide-react";
-import { fileTooLargeMessage, formatEta, maxBytesForAcademyUpload } from "@/lib/media-limits";
+import {
+  fileTooLargeMessage,
+  formatEta,
+  maxBytesForAcademyUpload,
+  resolveUploadContentType,
+} from "@/lib/media-limits";
 import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-community.module.css";
 
@@ -45,7 +50,8 @@ async function uploadFile(
   category: "gallery" | "trades",
   onProgress?: (percent: number, eta: string | null) => void,
 ): Promise<string> {
-  const max = maxBytesForAcademyUpload(file.type);
+  const contentType = resolveUploadContentType(file);
+  const max = maxBytesForAcademyUpload(contentType);
   if (file.size > max) throw new Error(fileTooLargeMessage(file, max));
   const startedAt = Date.now();
   const res = await fetch("/api/community/upload", {
@@ -53,7 +59,7 @@ async function uploadFile(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       fileName: file.name,
-      contentType: file.type,
+      contentType,
       sizeBytes: file.size,
       category,
     }),
