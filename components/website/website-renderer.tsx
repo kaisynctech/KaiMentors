@@ -281,9 +281,9 @@ function WebsiteSectionView({
             <div className={styles.joinSteps}>
               {data.brokers.some((broker) => isXmBrokerName(broker.name)) ? (
                 <>
-                  <span>1</span><p>Create your student account and enter your XM client ID.</p>
-                  <span>2</span><p>We verify that ID automatically against this academy.</p>
-                  <span>3</span><p>Unlock verified academy access.</p>
+                  <span>1</span><p>Create your student account.</p>
+                  <span>2</span><p>Enter your XM client ID on the student dashboard.</p>
+                  <span>3</span><p>We verify it automatically and unlock access.</p>
                 </>
               ) : (
                 <>
@@ -307,10 +307,6 @@ function WebsiteSectionView({
                 loginPath={signInHref}
                 portalSlug={data.portal.slug}
                 primaryColor={data.theme.primary_color}
-                requireAccountNumber={data.brokers.length > 0}
-                requireXmId={data.brokers.some((broker) =>
-                  isXmBrokerName(broker.name),
-                )}
                 studentDestination={
                   customDomain
                     ? "/academy"

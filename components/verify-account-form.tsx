@@ -139,7 +139,9 @@ export function VerifyAccountForm({
           ? isXm
             ? "Checking your XM ID…"
             : "Checking your trading account…"
-          : "Verify your broker account"}
+          : isXm
+            ? "Enter your XM client ID"
+            : "Verify your broker account"}
       </h3>
 
       {brokers.length > 1 && (

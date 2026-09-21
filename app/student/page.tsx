@@ -259,6 +259,10 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     showBrokerVerification &&
     !isAffiliateMismatch &&
     (status === "pending" || status === "manual_review");
+  const awaitingXmId =
+    showBrokerVerification &&
+    !isAffiliateMismatch &&
+    savedAccountNumber.length < 3;
 
   // Status display
   const statusConfig = {
@@ -269,10 +273,18 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
         ? isXmAcademy
           ? "This XM ID is not under this academy."
           : "This account is not under this academy."
-        : "Your academy access is being reviewed.",
+        : awaitingXmId
+          ? "You're not verified yet."
+          : isXmAcademy
+            ? "We're checking your XM ID."
+            : "We're checking your trading account.",
       body: isAffiliateMismatch
         ? affiliateMismatchMessage(isXmAcademy)
-        : "We'll notify you once your broker account has been verified.",
+        : awaitingXmId
+          ? isXmAcademy
+            ? "Enter your XM client ID below. We check it automatically — your mentor does not review it."
+            : "Enter your trading account number below. We check it automatically — your mentor does not review it."
+          : "This usually completes within a few minutes.",
     },
     processing: {
       icon: <Clock3 size={22} />,

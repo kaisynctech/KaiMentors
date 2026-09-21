@@ -27,16 +27,6 @@ export function requiredAccountNumberMessage(isXm: boolean) {
     : "Enter your trading account number. You cannot leave this blank.";
 }
 
-export function joinAccountNumberLabel(isXm: boolean) {
-  return isXm ? "XM client ID number" : "Trading account number";
-}
-
-export function joinAccountNumberHint(isXm: boolean) {
-  return isXm
-    ? "This is the number from your XM MT4/MT5 login. You must enter it to join — we verify it automatically."
-    : "Enter the account number your broker gave you. You must enter it to join.";
-}
-
 export function isAffiliateMismatchReason(reason: string | null | undefined) {
   return reason === "AFFILIATE_MISMATCH";
 }

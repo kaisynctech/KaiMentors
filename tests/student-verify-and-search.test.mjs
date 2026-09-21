@@ -93,20 +93,19 @@ test("mentor student list searches as you type and has a Search button", async (
   assert.match(page, /postgrestSearchNeedle/);
 });
 
-test("join form requires XM ID for verification academies and saves it", async () => {
+test("join form creates the account; XM ID is entered on the student dashboard", async () => {
   const form = await read("components", "student-registration-form.tsx");
-  assert.match(form, /requireAccountNumber/);
-  assert.match(form, /requireXmId/);
-  assert.match(form, /joinAccountNumberLabel\(requireXmId\)/);
-  assert.match(form, /name="accountNumber"/);
+  assert.doesNotMatch(form, /requireXmId/);
+  assert.doesNotMatch(form, /name="accountNumber"/);
+  assert.match(form, /student dashboard/);
   const join = await read("components", "academy-join-page.tsx");
-  assert.match(join, /requireAccountNumber=\{!isSubscription\}/);
-  assert.match(join, /requireXmId=\{requireXmId\}/);
+  assert.match(join, /student dashboard will ask for your XM client ID/);
   const register = await read("app", "api", "student", "register", "route.ts");
-  assert.match(register, /requiredAccountNumberMessage/);
-  assert.match(register, /accountNumber\.length < 3/);
-  assert.match(register, /broker_account_identifier: savedAccountNumber/);
-  assert.match(register, /trading_account_number: savedAccountNumber/);
+  assert.match(register, /broker_account_identifier: null/);
+  assert.match(register, /trading_account_number: null/);
+  const page = await read("app", "student", "page.tsx");
+  assert.match(page, /You're not verified yet/);
+  assert.match(page, /Enter your XM client ID below/);
 });
 
 test("student dashboard auto-verifies a saved XM ID without mentor review", async () => {

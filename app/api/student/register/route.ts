@@ -3,10 +3,6 @@ import { z } from "zod";
 import { hashAccountSetupValue } from "@/lib/account-setup";
 import { canSendAuthEmail } from "@/lib/auth-email-policy";
 import {
-  isXmBrokerName,
-  requiredAccountNumberMessage,
-} from "@/lib/broker-verify-copy";
-import {
   isPlatformHostname,
   normalizeRequestHostname,
 } from "@/lib/domains/hostnames";
@@ -33,7 +29,6 @@ const registrationSchema = z.object({
   province: z.string().max(80).nullable().optional(),
   country: z.string().max(80).nullable().optional(),
   notificationsOptIn: z.enum(["on", "off"]).optional(),
-  accountNumber: z.string().trim().max(120).optional(),
 });
 
 async function resolveRegistrationPortal(
@@ -98,7 +93,6 @@ export async function POST(request: Request) {
     province: formData.get("province")?.toString() || null,
     country: formData.get("country")?.toString() || null,
     notificationsOptIn: (formData.get("notificationsOptIn")?.toString() as "on" | "off") ?? "off",
-    accountNumber: formData.get("accountNumber")?.toString() ?? "",
   });
   if (!parsed.success) {
     return NextResponse.json(
@@ -127,28 +121,6 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-
-  const requireAccount = validPortal.access_model !== "subscription";
-  const accountNumber = (input.accountNumber ?? "").trim();
-  let isXmAcademy = false;
-  if (requireAccount) {
-    const { data: brokerRows } = await admin
-      .from("trader_broker_accounts")
-      .select("broker:brokers(name)")
-      .eq("trader_id", validPortal.trader_id)
-      .eq("is_active", true);
-    isXmAcademy = (brokerRows ?? []).some((row) => {
-      const broker = Array.isArray(row.broker) ? row.broker[0] : row.broker;
-      return isXmBrokerName(broker?.name);
-    });
-    if (accountNumber.length < 3) {
-      return NextResponse.json(
-        { error: requiredAccountNumberMessage(isXmAcademy) },
-        { status: 400 },
-      );
-    }
-  }
-  const savedAccountNumber = requireAccount ? accountNumber : null;
 
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
@@ -181,7 +153,7 @@ export async function POST(request: Request) {
 
     const { data: existingApp } = await admin
       .from("student_applications")
-      .select("id,trading_account_number,broker_account_identifier")
+      .select("id")
       .eq("student_user_id", existingUserId)
       .eq("portal_id", validPortal.id)
       .maybeSingle();
@@ -193,8 +165,8 @@ export async function POST(request: Request) {
         portal_id: validPortal.id,
         student_user_id: existingUserId,
         trader_broker_account_id: null,
-        broker_account_identifier: savedAccountNumber,
-        trading_account_number: savedAccountNumber,
+        broker_account_identifier: null,
+        trading_account_number: null,
         platform_account_number: null,
         phone_number: input.phoneNumber,
         full_name: input.fullName,
@@ -208,18 +180,6 @@ export async function POST(request: Request) {
         notifications_opt_in: input.notificationsOptIn === "on",
       });
       // Ignore insert error — existing user keeps their account regardless.
-    } else if (
-      savedAccountNumber &&
-      !(existingApp.trading_account_number ?? "").trim() &&
-      !(existingApp.broker_account_identifier ?? "").trim()
-    ) {
-      await admin
-        .from("student_applications")
-        .update({
-          broker_account_identifier: savedAccountNumber,
-          trading_account_number: savedAccountNumber,
-        })
-        .eq("id", existingApp.id);
     }
 
     // Send OTP — same delivery gate as new-user path.
@@ -263,8 +223,8 @@ export async function POST(request: Request) {
       portal_id: validPortal.id,
       student_user_id: created.user.id,
       trader_broker_account_id: null,
-      broker_account_identifier: savedAccountNumber,
-      trading_account_number: savedAccountNumber,
+      broker_account_identifier: null,
+      trading_account_number: null,
       platform_account_number: null,
       phone_number: input.phoneNumber,
       full_name: input.fullName,
