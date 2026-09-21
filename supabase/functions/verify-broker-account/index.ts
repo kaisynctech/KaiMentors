@@ -93,16 +93,26 @@ Deno.serve(async (request) => {
       publicConfig: connection.public_config ?? {},
     });
 
-    const status = result.verified
+    const isMismatch = result.code === "AFFILIATE_MISMATCH";
+    const attemptStatus = result.verified
       ? "verified"
       : result.requiresManualReview
         ? "manual_review"
         : "rejected";
+    // Keep mismatch applications pending so the student can correct the ID.
+    const applicationStatus = result.verified
+      ? "verified"
+      : result.requiresManualReview
+        ? "manual_review"
+        : isMismatch
+          ? "pending"
+          : "rejected";
+    const responseStatus = isMismatch ? "mismatch" : attemptStatus;
 
     await admin
       .from("verification_attempts")
       .update({
-        status,
+        status: attemptStatus,
         response_code: result.code,
         response_summary: result.summary,
         completed_at: new Date().toISOString(),
@@ -112,7 +122,7 @@ Deno.serve(async (request) => {
     await admin
       .from("student_applications")
       .update({
-        status,
+        status: applicationStatus,
         status_reason: result.code,
         verified_at: result.verified ? new Date().toISOString() : null,
         broker_verified: result.verified,
@@ -120,7 +130,7 @@ Deno.serve(async (request) => {
       })
       .eq("id", application.id);
 
-    return json({ status, requestId }, 200);
+    return json({ status: responseStatus, code: result.code, requestId }, 200);
   } catch (verificationError) {
     const message =
       verificationError instanceof Error ? verificationError.message : "Verification failed.";

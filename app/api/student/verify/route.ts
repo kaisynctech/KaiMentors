@@ -1,7 +1,35 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  affiliateMismatchMessage,
+  isXmAdapterKey,
+  isXmBrokerName,
+} from "@/lib/broker-verify-copy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+
+type BrokerRow = {
+  name?: string | null;
+  is_active?: boolean | null;
+  adapter_key?: string | null;
+};
+
+function connectionBroker(connection: { broker: unknown }): BrokerRow | null {
+  const broker = Array.isArray(connection.broker)
+    ? connection.broker[0]
+    : connection.broker;
+  return (broker as BrokerRow | null) ?? null;
+}
+
+function mismatchResponse(broker: BrokerRow | null) {
+  const isXm =
+    isXmAdapterKey(broker?.adapter_key) || isXmBrokerName(broker?.name);
+  return NextResponse.json({
+    status: "mismatch",
+    code: "AFFILIATE_MISMATCH",
+    error: affiliateMismatchMessage(isXm),
+  });
+}
 
 const verifySchema = z.object({
   portalId: z.string().uuid(),
@@ -102,7 +130,9 @@ export async function POST(request: Request) {
   // Step 5 — Load broker connections for this trader
   const connectionsQuery = admin
     .from("trader_broker_accounts")
-    .select("id, broker_id, verification_method, broker:brokers(name, is_active)")
+    .select(
+      "id, broker_id, verification_method, broker:brokers(name, is_active, adapter_key)",
+    )
     .eq("trader_id", application.trader_id)
     .eq("is_active", true)
     .order("created_at", { ascending: true });
@@ -117,8 +147,8 @@ export async function POST(request: Request) {
   }
 
   const connections = (connectionsRaw ?? []).filter((c) => {
-    const b = Array.isArray(c.broker) ? c.broker[0] : c.broker;
-    return b && (b as { is_active: boolean }).is_active === true;
+    const broker = connectionBroker(c);
+    return broker?.is_active === true;
   });
 
   const apiConnections = connections.filter((c) => c.verification_method === "api");
@@ -126,6 +156,7 @@ export async function POST(request: Request) {
 
   // Step 6 — Try API connections via Edge Function
   let apiInvokeOk = false;
+  let mismatchBroker: BrokerRow | null = null;
   for (const connection of apiConnections) {
     // Pre-set the broker connection on the application — EF reads trader_broker_account_id
     await admin
@@ -149,7 +180,8 @@ export async function POST(request: Request) {
     if (efError) continue;
     apiInvokeOk = true;
 
-    if (efResult && (efResult as { status?: string }).status === "verified") {
+    const result = (efResult ?? {}) as { status?: string; code?: string };
+    if (result.status === "verified") {
       await admin
         .from("student_applications")
         .update({
@@ -173,7 +205,41 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({ status: "verified" });
     }
+
+    if (result.status === "mismatch" || result.code === "AFFILIATE_MISMATCH") {
+      mismatchBroker = connectionBroker(connection);
+      if (brokerConnectionId || apiConnections.length === 1) {
+        await admin.from("audit_logs").insert({
+          trader_id: application.trader_id,
+          actor_user_id: user.id,
+          action: "student.verification.mismatch",
+          entity_type: "student_applications",
+          entity_id: application.id,
+          metadata: {
+            triggeredFrom: "student_dashboard",
+            brokerConnectionId: connection.id,
+            code: "AFFILIATE_MISMATCH",
+          },
+        });
+        return mismatchResponse(mismatchBroker);
+      }
+    }
     // EF returned manual_review or rejected — try next connection
+  }
+
+  if (mismatchBroker) {
+    await admin.from("audit_logs").insert({
+      trader_id: application.trader_id,
+      actor_user_id: user.id,
+      action: "student.verification.mismatch",
+      entity_type: "student_applications",
+      entity_id: application.id,
+      metadata: {
+        triggeredFrom: "student_dashboard",
+        code: "AFFILIATE_MISMATCH",
+      },
+    });
+    return mismatchResponse(mismatchBroker);
   }
 
   if (apiConnectionsExisted && !apiInvokeOk) {

@@ -55,6 +55,10 @@ function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function postgrestSearchNeedle(raw: string) {
+  return raw.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+}
+
 export default async function StudentsPage({
   searchParams,
 }: {
@@ -146,7 +150,7 @@ export default async function StudentsPage({
     let fallback = supabase
       .from("student_applications")
       .select(
-        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,screenshot_path,broker_verified,full_name,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
+        "id,status,status_reason,submitted_at,reviewed_at,phone_number,trading_account_number,platform_account_number,broker_account_identifier,screenshot_path,broker_verified,full_name,profile:profiles!student_user_id(full_name,email,phone),connection:trader_broker_accounts(broker_id,verification_method,broker:brokers(name))",
         { count: "exact" },
       )
       .eq("trader_id", traderId);
@@ -157,26 +161,27 @@ export default async function StudentsPage({
     }
     if (brokerId) fallback = fallback.eq("connection.broker_id", brokerId);
     if (search) {
-      // full_name is a direct column on student_applications (added in
-      // 202606250031) so it can go straight into the .or() string. email
-      // lives on the joined profiles table, which PostgREST's .or() can't
-      // reference -- resolved via a separate pre-query instead. profiles
-      // has no trader_id column (confirmed via information_schema before
-      // writing this), so the pre-query is unscoped by trader; the outer
-      // .eq("trader_id", traderId) on the main fallback query discards any
-      // other-trader matches this pulls in. Capped at 200 rows, well within
-      // PostgREST's .in() limits.
-      const { data: emailMatches } = await supabase
-        .from("profiles")
-        .select("id")
-        .ilike("email", `%${search}%`)
-        .limit(200);
-      const emailMatchIds = (emailMatches ?? []).map((p) => p.id);
+      // full_name and broker_account_identifier are direct columns on
+      // student_applications so they can go into the .or() string. email and
+      // profile full_name live on profiles, which PostgREST's .or() can't
+      // reference — resolved via a separate pre-query. profiles has no
+      // trader_id column, so the pre-query is unscoped by trader; the outer
+      // .eq("trader_id", traderId) discards other-trader matches. Capped at
+      // 200 rows, well within PostgREST's .in() limits.
+      const needle = postgrestSearchNeedle(search);
+      const { data: profileMatches } = needle
+        ? await supabase
+            .from("profiles")
+            .select("id")
+            .or(`email.ilike.%${needle}%,full_name.ilike.%${needle}%`)
+            .limit(200)
+        : { data: [] as Array<{ id: string }> };
+      const profileMatchIds = (profileMatches ?? []).map((p) => p.id);
 
       fallback = fallback.or(
-        `full_name.ilike.%${search}%,phone_number.ilike.%${search}%,trading_account_number.ilike.%${search}%,platform_account_number.ilike.%${search}%${
-          emailMatchIds.length > 0
-            ? `,student_user_id.in.(${emailMatchIds.join(",")})`
+        `full_name.ilike.%${needle}%,phone_number.ilike.%${needle}%,trading_account_number.ilike.%${needle}%,platform_account_number.ilike.%${needle}%,broker_account_identifier.ilike.%${needle}%${
+          profileMatchIds.length > 0
+            ? `,student_user_id.in.(${profileMatchIds.join(",")})`
             : ""
         }`,
       );

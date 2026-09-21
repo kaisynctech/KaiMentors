@@ -134,6 +134,21 @@
   font-size: 11px;
 }
 
+.searchSubmit {
+  flex-shrink: 0;
+  border: 0;
+  padding: 0 2px;
+  color: #111315;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.searchSubmit:hover {
+  color: #0f1720;
+}
+
 .filters {
   display: flex;
   align-items: center;

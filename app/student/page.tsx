@@ -25,6 +25,7 @@ import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { formatWatchPosition } from "@/lib/courses";
+import { affiliateMismatchMessage, isXmBrokerName } from "@/lib/broker-verify-copy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
@@ -246,13 +247,20 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     }
   }
 
+  const isXmAcademy = brokerGuides.some((guide) => isXmBrokerName(guide.broker_name));
+  const isAffiliateMismatch = application.status_reason === "AFFILIATE_MISMATCH";
+
   // Status display
   const statusConfig = {
     pending: {
       icon: <Clock3 size={22} />,
       iconClass: styles.statusIconPending,
-      title: "Your academy access is being reviewed.",
-      body: "We'll notify you once your broker account has been verified.",
+      title: isAffiliateMismatch
+        ? "This account is not registered under this mentor."
+        : "Your academy access is being reviewed.",
+      body: isAffiliateMismatch
+        ? affiliateMismatchMessage(isXmAcademy)
+        : "We'll notify you once your broker account has been verified.",
     },
     processing: {
       icon: <Clock3 size={22} />,

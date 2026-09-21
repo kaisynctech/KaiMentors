@@ -126,6 +126,28 @@ export function StudentReviewList({
     setSelected(new Set());
   }, [applications]);
 
+  useEffect(() => {
+    setSearch(filters.search);
+  }, [filters.search]);
+
+  useEffect(() => {
+    const next = search.trim();
+    if (next === filters.search.trim()) return;
+    const timeout = window.setTimeout(() => {
+      navigate({ page: null, search: next || null });
+    }, 350);
+    return () => window.clearTimeout(timeout);
+    // navigate reads the latest filters from this render; search is the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    search,
+    filters.search,
+    filters.tab,
+    filters.brokerId,
+    filters.method,
+    filters.pageSize,
+  ]);
+
   const eligibleRows = useMemo(
     () => rows.filter((row) => reviewableStatuses.includes(row.status)),
     [rows],
@@ -352,10 +374,13 @@ export function StudentReviewList({
           <input
             aria-label="Search students"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search name, email, phone, or account"
+            placeholder="Search name, email, phone, or account ID"
             type="search"
             value={search}
           />
+          <button className={styles.searchSubmit} type="submit">
+            Search
+          </button>
         </form>
         <div className={styles.filters}>
           <Filter size={16} />

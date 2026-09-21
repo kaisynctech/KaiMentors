@@ -3,6 +3,11 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import type { VerificationMethod } from "@/lib/database.types";
+import {
+  affiliateMismatchMessage,
+  isXmBrokerName,
+  requiredAccountNumberMessage,
+} from "@/lib/broker-verify-copy";
 import styles from "./verify-account-form.module.css";
 
 interface VerifyBroker {
@@ -18,7 +23,7 @@ interface VerifyAccountFormProps {
 }
 
 function isXmBroker(brokers: VerifyBroker[]) {
-  return brokers.some((broker) => /xm/i.test(broker.broker_name));
+  return brokers.some((broker) => isXmBrokerName(broker.broker_name));
 }
 
 export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAccountFormProps) {
@@ -39,11 +44,7 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
 
     const trimmedAccount = accountNumber.trim();
     if (trimmedAccount.length < 3) {
-      setError(
-        isXm
-          ? "Enter your XM client ID number. You cannot leave this blank."
-          : "Enter your trading account number. You cannot leave this blank.",
-      );
+      setError(requiredAccountNumberMessage(isXm));
       setLoading(false);
       return;
     }
@@ -70,6 +71,13 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
 
       if (payload.status === "verified") {
         window.location.href = studentHome;
+        return;
+      }
+
+      if (payload.status === "mismatch") {
+        setError(
+          payload.error ?? affiliateMismatchMessage(isXm),
+        );
         return;
       }
 
