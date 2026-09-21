@@ -156,7 +156,6 @@ export async function POST(request: Request) {
   const apiConnectionsExisted = apiConnections.length > 0;
 
   // Step 6 — Try API connections via Edge Function
-  let apiInvokeOk = false;
   let mismatchBroker: BrokerRow | null = null;
   for (const connection of apiConnections) {
     // Pre-set the broker connection on the application — EF reads trader_broker_account_id
@@ -179,7 +178,6 @@ export async function POST(request: Request) {
     );
 
     if (efError) continue;
-    apiInvokeOk = true;
 
     const result = (efResult ?? {}) as { status?: string; code?: string };
     if (result.status === "verified") {
@@ -225,7 +223,7 @@ export async function POST(request: Request) {
         return mismatchResponse(mismatchBroker);
       }
     }
-    // EF returned manual_review or rejected — try next connection
+    // XM with an ID never goes to mentor review. Try the next connection, then stop.
   }
 
   if (mismatchBroker) {
@@ -243,7 +241,11 @@ export async function POST(request: Request) {
     return mismatchResponse(mismatchBroker);
   }
 
-  if (apiConnectionsExisted && !apiInvokeOk) {
+  if (apiConnectionsExisted) {
+    await admin
+      .from("student_applications")
+      .update({ status: "pending" })
+      .eq("id", application.id);
     return NextResponse.json(
       { error: "Automatic verification is temporarily unavailable. Please try again in a moment." },
       { status: 503 },

@@ -256,7 +256,9 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       icon: <Clock3 size={22} />,
       iconClass: styles.statusIconPending,
       title: isAffiliateMismatch
-        ? "This account is not registered under this mentor."
+        ? isXmAcademy
+          ? "This XM ID is not under this academy."
+          : "This account is not under this academy."
         : "Your academy access is being reviewed.",
       body: isAffiliateMismatch
         ? affiliateMismatchMessage(isXmAcademy)

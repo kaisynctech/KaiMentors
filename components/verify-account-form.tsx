@@ -82,6 +82,12 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
       }
 
       if (payload.status === "manual_review") {
+        if (isXm) {
+          setError(
+            "We could not check this XM ID just now. Please try again in a moment.",
+          );
+          return;
+        }
         setSuccessMessage(
           "We couldn't verify automatically — your account has been sent for manual review. You'll receive an email when it's approved.",
         );

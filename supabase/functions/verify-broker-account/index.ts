@@ -93,21 +93,37 @@ Deno.serve(async (request) => {
       publicConfig: connection.public_config ?? {},
     });
 
+    const hasAccountId = Boolean(
+      String(application.broker_account_identifier ?? "").trim(),
+    );
+    const isXm =
+      broker.adapter_key === "xm-mypartners-v1" ||
+      /xm/i.test(String(broker.adapter_key ?? ""));
     const isMismatch = result.code === "AFFILIATE_MISMATCH";
+    // XM IDs are automatic: match, not-under-this-academy, or retry. Never mentor review.
+    const skipMentorReview = isXm && hasAccountId;
+
     const attemptStatus = result.verified
       ? "verified"
-      : result.requiresManualReview
-        ? "manual_review"
-        : "rejected";
-    // Keep mismatch applications pending so the student can correct the ID.
+      : isMismatch || skipMentorReview
+        ? "rejected"
+        : result.requiresManualReview
+          ? "manual_review"
+          : "rejected";
     const applicationStatus = result.verified
       ? "verified"
-      : result.requiresManualReview
-        ? "manual_review"
-        : isMismatch
-          ? "pending"
+      : isMismatch || skipMentorReview
+        ? "pending"
+        : result.requiresManualReview
+          ? "manual_review"
           : "rejected";
-    const responseStatus = isMismatch ? "mismatch" : attemptStatus;
+    const responseStatus = result.verified
+      ? "verified"
+      : isMismatch
+        ? "mismatch"
+        : skipMentorReview
+          ? "retry"
+          : attemptStatus;
 
     await admin
       .from("verification_attempts")
@@ -130,15 +146,23 @@ Deno.serve(async (request) => {
       })
       .eq("id", application.id);
 
-    return json({ status: responseStatus, code: result.code, requestId }, 200);
+    const httpStatus = responseStatus === "retry" ? 503 : 200;
+    return json({ status: responseStatus, code: result.code, requestId }, httpStatus);
   } catch (verificationError) {
     const message =
       verificationError instanceof Error ? verificationError.message : "Verification failed.";
+    const hasAccountId = Boolean(
+      String(application.broker_account_identifier ?? "").trim(),
+    );
+    const isXm =
+      broker.adapter_key === "xm-mypartners-v1" ||
+      /xm/i.test(String(broker.adapter_key ?? ""));
+    const skipMentorReview = isXm && hasAccountId;
 
     await admin
       .from("verification_attempts")
       .update({
-        status: "manual_review",
+        status: skipMentorReview ? "rejected" : "manual_review",
         error_message: message,
         completed_at: new Date().toISOString(),
       })
@@ -146,10 +170,20 @@ Deno.serve(async (request) => {
 
     await admin
       .from("student_applications")
-      .update({ status: "manual_review", status_reason: "ADAPTER_ERROR" })
+      .update({
+        status: skipMentorReview ? "pending" : "manual_review",
+        status_reason: "ADAPTER_ERROR",
+      })
       .eq("id", application.id);
 
-    return json({ status: "manual_review", requestId }, 202);
+    return json(
+      {
+        status: skipMentorReview ? "retry" : "manual_review",
+        code: "ADAPTER_ERROR",
+        requestId,
+      },
+      skipMentorReview ? 503 : 202,
+    );
   }
 });
 
@@ -159,18 +193,15 @@ async function loadCredentials(
 ) {
   if (!secretId) return {};
 
-  const { data, error } = await admin
-    .schema("vault")
-    .from("decrypted_secrets")
-    .select("decrypted_secret")
-    .eq("id", secretId)
-    .single();
+  const { data, error } = await admin.rpc("read_broker_vault_secret", {
+    target_secret_id: secretId,
+  });
 
-  if (error || !data?.decrypted_secret) {
+  if (error || typeof data !== "string" || !data.trim()) {
     throw new Error("Broker credentials could not be loaded.");
   }
 
-  return JSON.parse(data.decrypted_secret);
+  return JSON.parse(data);
 }
 
 function json(body: unknown, status: number) {

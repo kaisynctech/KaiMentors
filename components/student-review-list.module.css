@@ -417,6 +417,12 @@
   background: #fff0f0;
 }
 
+.affiliateMismatch {
+  color: #9a3412;
+  background: #ffedd5;
+  text-transform: none;
+}
+
 .needs_more_information {
   color: #285f8d;
   background: #eaf4fd;

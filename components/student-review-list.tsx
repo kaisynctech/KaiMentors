@@ -22,6 +22,11 @@ import {
 } from "react";
 import type { VerificationMethod } from "@/lib/database.types";
 import {
+  affiliateMismatchStatusLabel,
+  isAffiliateMismatchReason,
+  isXmBrokerName,
+} from "@/lib/broker-verify-copy";
+import {
   reviewableStatuses,
   statusLabels,
   studentTabStatuses,
@@ -91,6 +96,19 @@ function formatDate(value: string) {
     month: "short",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function statusPresentation(application: StudentApplicationRow) {
+  if (isAffiliateMismatchReason(application.statusReason)) {
+    return {
+      label: affiliateMismatchStatusLabel(isXmBrokerName(application.brokerName)),
+      className: styles.affiliateMismatch,
+    };
+  }
+  return {
+    label: statusLabels[application.status],
+    className: styles[application.status],
+  };
 }
 
 function matchesTab(status: StudentApplicationRow["status"], tab: StudentTab) {
@@ -552,9 +570,9 @@ export function StudentReviewList({
                   </td>
                   <td>
                     <span
-                      className={`${styles.status} ${styles[application.status]}`}
+                      className={`${styles.status} ${statusPresentation(application).className}`}
                     >
-                      {statusLabels[application.status]}
+                      {statusPresentation(application).label}
                     </span>
                   </td>
                   <td>{formatDate(application.submittedAt)}</td>
@@ -691,9 +709,9 @@ export function StudentReviewList({
               </button>
             </div>
             <span
-              className={`${styles.status} ${styles[detail.status]}`}
+              className={`${styles.status} ${statusPresentation(detail).className}`}
             >
-              {statusLabels[detail.status]}
+              {statusPresentation(detail).label}
             </span>
             <dl className={styles.detailGrid}>
               <div>
@@ -730,7 +748,11 @@ export function StudentReviewList({
             {detail.statusReason ? (
               <div className={styles.reviewNote}>
                 <strong>Latest review note</strong>
-                <p>{detail.statusReason}</p>
+                <p>
+                  {isAffiliateMismatchReason(detail.statusReason)
+                    ? affiliateMismatchStatusLabel(isXmBrokerName(detail.brokerName))
+                    : detail.statusReason}
+                </p>
               </div>
             ) : null}
             <div className={styles.proofBlock}>

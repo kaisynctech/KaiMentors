@@ -106,7 +106,8 @@ test("student verify does not treat an Edge Function outage as a successful revi
     "utf8",
   );
   assert.match(source, /temporarily unavailable/);
-  assert.match(source, /apiInvokeOk/);
+  assert.match(source, /apiConnectionsExisted/);
+  assert.match(source, /status: 503/);
   assert.match(source, /accountNumber: z.string\(\)\.trim\(\)\.min\(3\)\.max\(120\),/);
   assert.doesNotMatch(source, /accountNumber: z.string\(\)\.trim\(\)\.min\(3\)\.max\(120\)\.optional\(\)/);
 });
