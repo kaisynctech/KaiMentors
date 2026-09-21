@@ -53,7 +53,7 @@ test("broker verify edge function auto-verifies or mismatches XM IDs, never ment
 
 test("student dashboard explains mismatch instead of generic review copy", async () => {
   const page = await read("app", "student", "page.tsx");
-  assert.match(page, /AFFILIATE_MISMATCH/);
+  assert.match(page, /isAffiliateMismatchReason/);
   assert.match(page, /This XM ID is not under this academy/);
   assert.match(page, /affiliateMismatchMessage\(isXmAcademy\)/);
 });
@@ -91,4 +91,50 @@ test("mentor student list searches as you type and has a Search button", async (
   const page = await read("app", "dashboard", "students", "page.tsx");
   assert.match(page, /broker_account_identifier/);
   assert.match(page, /postgrestSearchNeedle/);
+});
+
+test("join form requires XM ID for verification academies and saves it", async () => {
+  const form = await read("components", "student-registration-form.tsx");
+  assert.match(form, /requireAccountNumber/);
+  assert.match(form, /requireXmId/);
+  assert.match(form, /joinAccountNumberLabel\(requireXmId\)/);
+  assert.match(form, /name="accountNumber"/);
+  const join = await read("components", "academy-join-page.tsx");
+  assert.match(join, /requireAccountNumber=\{!isSubscription\}/);
+  assert.match(join, /requireXmId=\{requireXmId\}/);
+  const register = await read("app", "api", "student", "register", "route.ts");
+  assert.match(register, /requiredAccountNumberMessage/);
+  assert.match(register, /accountNumber\.length < 3/);
+  assert.match(register, /broker_account_identifier: savedAccountNumber/);
+  assert.match(register, /trading_account_number: savedAccountNumber/);
+});
+
+test("student dashboard auto-verifies a saved XM ID without mentor review", async () => {
+  const form = await read("components", "verify-account-form.tsx");
+  assert.match(form, /autoSubmit/);
+  assert.match(form, /initialAccountNumber/);
+  assert.match(form, /submitVerification/);
+  const page = await read("app", "student", "page.tsx");
+  assert.match(page, /shouldAutoVerify/);
+  assert.match(page, /autoSubmit=\{shouldAutoVerify\}/);
+  assert.match(page, /initialAccountNumber=\{savedAccountNumber\}/);
+});
+
+test("verification academies hide students with no XM / broker account", async () => {
+  const migration = await read(
+    "supabase",
+    "migrations",
+    "20260921190000_student_applications_require_account.sql",
+  );
+  assert.match(migration, /target_require_account boolean default false/);
+  assert.match(migration, /application\.broker_account_identifier/);
+  assert.match(
+    migration,
+    /length\(trim\(coalesce\(application\.trading_account_number, ''\)\)\) > 0/,
+  );
+  const page = await read("app", "dashboard", "students", "page.tsx");
+  assert.match(page, /target_require_account: requireBrokerAccount/);
+  assert.match(page, /studentBrokerAccountPresenceOr/);
+  const list = await read("components", "student-review-list.tsx");
+  assert.match(list, /studentBrokerAccountDisplay/);
 });

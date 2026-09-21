@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { StudentRegistrationForm } from "@/components/student-registration-form";
 import { getAcademyEntryHref } from "@/lib/academy-routes";
+import { isXmBrokerName } from "@/lib/broker-verify-copy";
 import { getPortalBrandingUrl } from "@/lib/storage";
 import {
   getWebsiteMediaUrl,
@@ -278,9 +279,19 @@ function WebsiteSectionView({
           <div>
             <SectionHeading content={content} />
             <div className={styles.joinSteps}>
-              <span>1</span><p>Create your student account.</p>
-              <span>2</span><p>Submit your broker details.</p>
-              <span>3</span><p>Unlock verified academy access.</p>
+              {data.brokers.some((broker) => isXmBrokerName(broker.name)) ? (
+                <>
+                  <span>1</span><p>Create your student account and enter your XM client ID.</p>
+                  <span>2</span><p>We verify that ID automatically against this academy.</p>
+                  <span>3</span><p>Unlock verified academy access.</p>
+                </>
+              ) : (
+                <>
+                  <span>1</span><p>Create your student account.</p>
+                  <span>2</span><p>Submit your broker details.</p>
+                  <span>3</span><p>Unlock verified academy access.</p>
+                </>
+              )}
             </div>
           </div>
           <div className={styles.formCard}>
@@ -296,6 +307,10 @@ function WebsiteSectionView({
                 loginPath={signInHref}
                 portalSlug={data.portal.slug}
                 primaryColor={data.theme.primary_color}
+                requireAccountNumber={data.brokers.length > 0}
+                requireXmId={data.brokers.some((broker) =>
+                  isXmBrokerName(broker.name),
+                )}
                 studentDestination={
                   customDomain
                     ? "/academy"

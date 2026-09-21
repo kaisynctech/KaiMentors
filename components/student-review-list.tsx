@@ -29,6 +29,7 @@ import {
 import {
   reviewableStatuses,
   statusLabels,
+  studentBrokerAccountDisplay,
   studentTabStatuses,
   type ReviewAction,
   type StudentApplicationRow,
@@ -561,7 +562,8 @@ export function StudentReviewList({
                     <div className={styles.stackedCell}>
                       <strong>{application.brokerName ?? "—"}</strong>
                       <small>
-                        {application.tradingAccountNumber ?? "No account number"}
+                        {studentBrokerAccountDisplay(application) ??
+                          "No account number"}
                       </small>
                     </div>
                   </td>
@@ -728,7 +730,9 @@ export function StudentReviewList({
               </div>
               <div>
                 <dt>Trading account</dt>
-                <dd>{detail.tradingAccountNumber ?? "Not provided"}</dd>
+                <dd>
+                  {studentBrokerAccountDisplay(detail) ?? "Not provided"}
+                </dd>
               </div>
               <div>
                 <dt>MT4 / MT5</dt>

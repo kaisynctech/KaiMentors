@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { VerificationMethod } from "@/lib/database.types";
 import {
   affiliateMismatchMessage,
@@ -20,29 +20,39 @@ interface VerifyAccountFormProps {
   portalId: string;
   brokers: VerifyBroker[];
   studentHome: string;
+  initialAccountNumber?: string;
+  autoSubmit?: boolean;
 }
 
 function isXmBroker(brokers: VerifyBroker[]) {
   return brokers.some((broker) => isXmBrokerName(broker.broker_name));
 }
 
-export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAccountFormProps) {
+export function VerifyAccountForm({
+  portalId,
+  brokers,
+  studentHome,
+  initialAccountNumber = "",
+  autoSubmit = false,
+}: VerifyAccountFormProps) {
   const [brokerConnectionId, setBrokerConnectionId] = useState(
     brokers.length === 1 ? brokers[0].id : "",
   );
-  const [accountNumber, setAccountNumber] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [accountNumber, setAccountNumber] = useState(initialAccountNumber);
+  const [loading, setLoading] = useState(
+    autoSubmit && initialAccountNumber.trim().length >= 3,
+  );
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const autoSubmitted = useRef(false);
   const isXm = isXmBroker(brokers);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submitVerification(nextAccount: string) {
     setLoading(true);
     setError("");
     setSuccessMessage("");
 
-    const trimmedAccount = accountNumber.trim();
+    const trimmedAccount = nextAccount.trim();
     if (trimmedAccount.length < 3) {
       setError(requiredAccountNumberMessage(isXm));
       setLoading(false);
@@ -99,6 +109,21 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
     }
   }
 
+  useEffect(() => {
+    if (!autoSubmit || autoSubmitted.current) return;
+    const trimmed = initialAccountNumber.trim();
+    if (trimmed.length < 3) return;
+    autoSubmitted.current = true;
+    void submitVerification(trimmed);
+    // Auto-verify once when the student already submitted an XM ID at join.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSubmit, initialAccountNumber]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void submitVerification(accountNumber);
+  }
+
   if (successMessage) {
     return (
       <div className={styles.successMessage}>
@@ -109,7 +134,13 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <h3 className={styles.formTitle}>Verify your broker account</h3>
+      <h3 className={styles.formTitle}>
+        {loading && autoSubmit && !error
+          ? isXm
+            ? "Checking your XM ID…"
+            : "Checking your trading account…"
+          : "Verify your broker account"}
+      </h3>
 
       {brokers.length > 1 && (
         <div className={styles.field}>

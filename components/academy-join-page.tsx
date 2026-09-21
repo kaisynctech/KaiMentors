@@ -3,6 +3,7 @@ import Link from "next/link";
 import { StudentRegistrationForm } from "@/components/student-registration-form";
 import type { AcademyEntryContext } from "@/lib/academy-entry";
 import { getAcademyEntryHref } from "@/lib/academy-routes";
+import { isXmBrokerName } from "@/lib/broker-verify-copy";
 import { getPortalBrandingUrl } from "@/lib/storage";
 import styles from "./academy-entry.module.css";
 
@@ -19,6 +20,7 @@ export function AcademyJoinPage({
   const loginHref = getAcademyEntryHref(routeContext, "login");
   const studentPortalPath = getAcademyEntryHref(routeContext, "academy");
   const isSubscription = data.portal.access_model === "subscription";
+  const requireXmId = data.brokers.some((broker) => isXmBrokerName(broker.name));
   const theme = {
     "--academy-primary": data.portal.primary_color,
     "--academy-accent": data.portal.accent_color,
@@ -63,7 +65,9 @@ export function AcademyJoinPage({
             <p>
               {isSubscription
                 ? "Create your account below. Returning students should use Sign In."
-                : "Use the form below to request private academy access. Returning students should use Sign In."}
+                : requireXmId
+                  ? "Enter your XM client ID to join. We verify it automatically — your mentor does not review it by hand. Returning students should use Sign In."
+                  : "Enter your trading account number to join. We verify it automatically. Returning students should use Sign In."}
             </p>
           </div>
           <StudentRegistrationForm
@@ -72,6 +76,8 @@ export function AcademyJoinPage({
             loginPath={loginHref}
             portalSlug={data.portal.slug}
             primaryColor={data.portal.primary_color}
+            requireAccountNumber={!isSubscription}
+            requireXmId={requireXmId}
             studentDestination={studentPortalPath}
           />
           {!isSubscription && (

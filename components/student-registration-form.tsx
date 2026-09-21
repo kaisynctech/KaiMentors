@@ -2,8 +2,13 @@
 
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/browser";
 import { studentHomeHref } from "@/lib/academy-routes";
+import {
+  joinAccountNumberHint,
+  joinAccountNumberLabel,
+  requiredAccountNumberMessage,
+} from "@/lib/broker-verify-copy";
+import { createClient } from "@/lib/supabase/browser";
 import styles from "./student-registration-form.module.css";
 
 interface RegistrationFormProps {
@@ -13,6 +18,8 @@ interface RegistrationFormProps {
   academyName?: string;
   studentDestination?: string;
   accessModel?: "verification" | "subscription";
+  requireAccountNumber?: boolean;
+  requireXmId?: boolean;
 }
 
 const TRADING_LEVELS = [
@@ -34,9 +41,12 @@ export function StudentRegistrationForm({
   academyName,
   studentDestination,
   accessModel = "verification",
+  requireAccountNumber = false,
+  requireXmId = false,
 }: RegistrationFormProps) {
   const destination = studentDestination ?? studentHomeHref(portalSlug);
   const isSubscription = accessModel === "subscription";
+  const mustCollectAccount = requireAccountNumber && !isSubscription;
   const STEPS = isSubscription
     ? (["Profile", "About You", "Review"] as const)
     : (["Profile", "Experience", "Review"] as const);
@@ -64,6 +74,7 @@ export function StudentRegistrationForm({
   const [tradingLevel, setTradingLevel] = useState("");
   const [yearsTrading, setYearsTrading] = useState("");
   const [tradingChallenge, setTradingChallenge] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
   const [notificationsOptIn, setNotificationsOptIn] = useState(false);
 
   // Step 3 — Review
@@ -75,7 +86,9 @@ export function StudentRegistrationForm({
     phoneNumber.trim().length >= 7 &&
     password.length >= 10 &&
     password === passwordConfirmation;
-  const step2Valid = tradingLevel !== "";
+  const step2Valid =
+    tradingLevel !== "" &&
+    (!mustCollectAccount || accountNumber.trim().length >= 3);
   const canNext = step === 0 ? step1Valid : step2Valid;
 
   async function submit(formData: FormData) {
@@ -177,6 +190,9 @@ export function StudentRegistrationForm({
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="phoneNumber" value={phoneNumber} />
       <input type="hidden" name="tradingLevel" value={tradingLevel} />
+      {mustCollectAccount ? (
+        <input type="hidden" name="accountNumber" value={accountNumber} />
+      ) : null}
       {!isSubscription && (
         <>
           <input type="hidden" name="yearsTrading" value={yearsTrading} />
@@ -333,6 +349,34 @@ export function StudentRegistrationForm({
           </div>
           {!isSubscription && (
             <>
+              {mustCollectAccount ? (
+                <div className={styles.field}>
+                  <label htmlFor="srf_account">
+                    {joinAccountNumberLabel(requireXmId)}
+                  </label>
+                  <input
+                    autoComplete="off"
+                    id="srf_account"
+                    inputMode="numeric"
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder={
+                      requireXmId
+                        ? "Your XM client ID"
+                        : "Your trading account number"
+                    }
+                    required
+                    type="text"
+                    value={accountNumber}
+                  />
+                  <small>{joinAccountNumberHint(requireXmId)}</small>
+                  {accountNumber.trim().length > 0 &&
+                  accountNumber.trim().length < 3 ? (
+                    <p className={styles.fieldHint}>
+                      {requiredAccountNumberMessage(requireXmId)}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               <div className={styles.field}>
                 <label htmlFor="srf_years">How long have you been trading?</label>
                 <select
@@ -381,9 +425,19 @@ export function StudentRegistrationForm({
             <strong>What happens next</strong>
             <p>
               After submitting, you&apos;ll receive a 6-digit code by email. Enter it on the
-              next screen to activate your account and sign in to your{" "}
-              {isSubscription ? "student dashboard" : "student dashboard"}.
+              next screen to activate your account and sign in to your student dashboard.
+              {mustCollectAccount
+                ? requireXmId
+                  ? " We then check your XM client ID automatically — no mentor review."
+                  : " We then check your trading account automatically — no mentor review."
+                : ""}
             </p>
+            {mustCollectAccount && accountNumber.trim() ? (
+              <p>
+                {joinAccountNumberLabel(requireXmId)}:{" "}
+                <strong>{accountNumber.trim()}</strong>
+              </p>
+            ) : null}
           </div>
           {isSubscription ? (
             <div className={styles.disclaimerCard}>
@@ -420,9 +474,10 @@ export function StudentRegistrationForm({
               </span>
             ) : (
               <span>
-                I have read and understood the above. I consent to my trading account being verified
-                against the academy&apos;s connected broker(s) when I submit my verification details
-                from the student portal. I accept full responsibility for my own trading decisions.
+                I have read and understood the above. I consent to my{" "}
+                {requireXmId ? "XM client ID" : "trading account"} being verified
+                automatically against this academy&apos;s connected broker. I accept
+                full responsibility for my own trading decisions.
               </span>
             )}
           </label>

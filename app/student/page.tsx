@@ -25,7 +25,7 @@ import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { formatWatchPosition } from "@/lib/courses";
-import { affiliateMismatchMessage, isXmBrokerName } from "@/lib/broker-verify-copy";
+import { affiliateMismatchMessage, isAffiliateMismatchReason, isXmBrokerName } from "@/lib/broker-verify-copy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
@@ -248,7 +248,17 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   }
 
   const isXmAcademy = brokerGuides.some((guide) => isXmBrokerName(guide.broker_name));
-  const isAffiliateMismatch = application.status_reason === "AFFILIATE_MISMATCH";
+  const isAffiliateMismatch = isAffiliateMismatchReason(application.status_reason);
+  const savedAccountNumber = (
+    application.trading_account_number ??
+    application.broker_account_identifier ??
+    ""
+  ).trim();
+  const shouldAutoVerify =
+    savedAccountNumber.length >= 3 &&
+    showBrokerVerification &&
+    !isAffiliateMismatch &&
+    (status === "pending" || status === "manual_review");
 
   // Status display
   const statusConfig = {
@@ -660,11 +670,13 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
               </p>
             ) : null}
             <VerifyAccountForm
+              autoSubmit={shouldAutoVerify}
               brokers={brokerGuides.map((g) => ({
                 id: g.id,
                 broker_name: g.broker_name,
                 verification_method: g.verification_method,
               }))}
+              initialAccountNumber={savedAccountNumber}
               portalId={application.portal_id}
               studentHome={`${basePath}${querySuffix}`}
             />

@@ -6,6 +6,7 @@ import { PwaInstallCard } from "@/components/pwa-install-card";
 import { MetricCard } from "@/components/metric-card";
 import { loadAcademyProgressPulse } from "@/lib/academy-progress-server";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
+import { studentBrokerAccountPresenceOr } from "@/lib/students";
 import { getMentorWorkspace } from "@/lib/workspace";
 import styles from "./dashboard.module.css";
 
@@ -46,13 +47,22 @@ export default async function TraderDashboard() {
       )
     : false;
 
+  const requireBrokerAccount = workspace?.accessModel === "verification";
+  function withBrokerAccount<T extends { or: (filters: string) => T }>(
+    query: T,
+  ) {
+    return requireBrokerAccount
+      ? query.or(studentBrokerAccountPresenceOr)
+      : query;
+  }
+
   if (supabase && traderId) {
     const [students, verified, pending, courses, applications, announcementRows, groupRows, grantRows, pulseResult] = await Promise.all([
-      supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
-      supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).eq("status", "verified"),
-      supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).in("status", ["pending", "processing", "manual_review", "needs_more_information"]),
+      withBrokerAccount(supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId)),
+      withBrokerAccount(supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).eq("status", "verified")),
+      withBrokerAccount(supabase.from("student_applications").select("*", { count: "exact", head: true }).eq("trader_id", traderId).in("status", ["pending", "processing", "manual_review", "needs_more_information"])),
       supabase.from("courses").select("*", { count: "exact", head: true }).eq("trader_id", traderId),
-      supabase.from("student_applications").select("id,status,submitted_at,profile:profiles!student_user_id(full_name,email)").eq("trader_id", traderId).order("submitted_at", { ascending: false }).limit(5),
+      withBrokerAccount(supabase.from("student_applications").select("id,status,submitted_at,profile:profiles!student_user_id(full_name,email)").eq("trader_id", traderId)).order("submitted_at", { ascending: false }).limit(5),
       supabase
         .from("announcements")
         .select("id,title,body,status,is_pinned,access_scope,published_at,updated_at")
