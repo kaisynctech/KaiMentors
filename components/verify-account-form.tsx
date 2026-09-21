@@ -17,6 +17,10 @@ interface VerifyAccountFormProps {
   studentHome: string;
 }
 
+function isXmBroker(brokers: VerifyBroker[]) {
+  return brokers.some((broker) => /xm/i.test(broker.broker_name));
+}
+
 export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAccountFormProps) {
   const [brokerConnectionId, setBrokerConnectionId] = useState(
     brokers.length === 1 ? brokers[0].id : "",
@@ -25,6 +29,7 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const isXm = isXmBroker(brokers);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,10 +37,23 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
     setError("");
     setSuccessMessage("");
 
+    const trimmedAccount = accountNumber.trim();
+    if (trimmedAccount.length < 3) {
+      setError(
+        isXm
+          ? "Enter your XM client ID number. You cannot leave this blank."
+          : "Enter your trading account number. You cannot leave this blank.",
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
-      const body: Record<string, string> = { portalId };
+      const body: Record<string, string> = {
+        portalId,
+        accountNumber: trimmedAccount,
+      };
       if (brokerConnectionId) body.brokerConnectionId = brokerConnectionId;
-      if (accountNumber.trim()) body.accountNumber = accountNumber.trim();
 
       const response = await fetch("/api/student/verify", {
         method: "POST",
@@ -98,16 +116,24 @@ export function VerifyAccountForm({ portalId, brokers, studentHome }: VerifyAcco
       )}
 
       <div className={styles.field}>
-        <label htmlFor="vaf_account">Trading account number</label>
+        <label htmlFor="vaf_account">
+          {isXm ? "XM client ID number" : "Trading account number"}
+        </label>
         <input
           autoComplete="off"
           id="vaf_account"
+          inputMode="numeric"
           onChange={(e) => setAccountNumber(e.target.value)}
-          placeholder="Leave blank if unknown"
+          placeholder={isXm ? "Your XM client ID" : "Your trading account number"}
+          required
           type="text"
           value={accountNumber}
         />
-        <small>Don&apos;t know it? Leave blank and upload a screenshot below.</small>
+        <small>
+          {isXm
+            ? "This is the number from your XM MT4/MT5 login. You must enter it — you cannot leave it blank."
+            : "Enter the account number your broker gave you. You cannot leave this blank."}
+        </small>
       </div>
 
       {error && <p className={styles.error}>{error}</p>}

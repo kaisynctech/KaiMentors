@@ -221,12 +221,20 @@ export async function middleware(request: NextRequest) {
     );
   }
   if (logicalPath.startsWith("/student") && profile?.role !== "student") {
-    const platformUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      `${request.nextUrl.protocol}//${request.nextUrl.host}`;
-    // A trader who also holds a student application must be allowed through.
-    // super_admin never has student applications and goes to /admin immediately.
+    const sameOriginDashboard = new URL("/dashboard", request.url);
+    // Mentors stay on this academy's host. Sending them to the platform URL
+    // drops the custom-domain session cookie, so they look logged out — or
+    // they bounce into the student academy by mistake.
     if (profile?.role === "trader") {
+      const { data: membership } = await supabase
+        .from("trader_members")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) {
+        return copyCookies(response, NextResponse.redirect(sameOriginDashboard));
+      }
       const { data: studentApp } = await supabase
         .from("student_applications")
         .select("id")
@@ -234,12 +242,16 @@ export async function middleware(request: NextRequest) {
         .limit(1)
         .maybeSingle();
       if (studentApp) return response;
+      return copyCookies(response, NextResponse.redirect(sameOriginDashboard));
     }
+    const platformUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      `${request.nextUrl.protocol}//${request.nextUrl.host}`;
     const destination =
       profile?.role === "super_admin" ? "/admin" : "/dashboard";
     return copyCookies(
       response,
-      NextResponse.redirect(new URL(destination, platformUrl)),
+      NextResponse.redirect(new URL(destination, customDomain ? request.url : platformUrl)),
     );
   }
 

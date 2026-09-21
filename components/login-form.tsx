@@ -69,13 +69,17 @@ export function LoginForm({
       if (academyContext) {
         // Mentor/owner check first — a super_admin who owns this workspace
         // must be routed to the mentor dashboard, not blocked.
-        const { data: membership } = await supabase
+        const { data: membership, error: membershipError } = await supabase
           .from("trader_members")
           .select("id")
           .eq("user_id", data.user.id)
           .eq("trader_id", academyContext.traderId)
           .abortSignal(AbortSignal.timeout(8000))
           .maybeSingle();
+
+        if (membershipError) {
+          throw new Error("Could not open this workspace. Please try again.");
+        }
 
         if (membership) {
           if (academyContext.customDomain) {

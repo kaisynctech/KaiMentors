@@ -107,4 +107,22 @@ test("student verify does not treat an Edge Function outage as a successful revi
   );
   assert.match(source, /temporarily unavailable/);
   assert.match(source, /apiInvokeOk/);
+  assert.match(source, /accountNumber: z.string\(\)\.trim\(\)\.min\(3\)\.max\(120\),/);
+  assert.doesNotMatch(source, /accountNumber: z.string\(\)\.trim\(\)\.min\(3\)\.max\(120\)\.optional\(\)/);
+});
+
+test("XM academies ask for a required XM client ID number", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const form = await readFile(
+    new URL("../components/verify-account-form.tsx", import.meta.url),
+    "utf8",
+  );
+  const studentPage = await readFile(
+    new URL("../app/student/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(form, /XM client ID number/);
+  assert.match(form, /cannot leave it blank/);
+  assert.doesNotMatch(form, /Leave blank if unknown/);
+  assert.match(studentPage, /if \(membership\) redirect\("\/dashboard"\)/);
 });

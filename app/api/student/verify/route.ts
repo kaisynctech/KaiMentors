@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const verifySchema = z.object({
   portalId: z.string().uuid(),
-  accountNumber: z.string().trim().min(3).max(120).optional(),
+  accountNumber: z.string().trim().min(3).max(120),
   brokerConnectionId: z.string().uuid().optional(),
 });
 

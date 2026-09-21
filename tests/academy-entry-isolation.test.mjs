@@ -157,6 +157,9 @@ test("login surfaces no longer dump students onto a fake or portal-less home", a
   assert.match(destinationHelper, /honourMentorNext\(next\) \?\? "\/dashboard"/);
   assert.match(destinationHelper, /honourMentorNext\(next\) \?\? "\/admin"/);
   assert.match(destinationHelper, /userBelongsToPortal/);
+  assert.match(loginForm, /membershipError/);
+  assert.match(middleware, /sameOriginDashboard/);
+  assert.match(middleware, /trader_members/);
 });
 
 test("KaiTrades package has independent assets and no client-specific content", async () => {

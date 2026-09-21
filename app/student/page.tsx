@@ -51,6 +51,32 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
   } = await supabase.auth.getUser();
   if (!user) redirect(getStudentLoginHref(academy));
 
+  let academyTraderId: string | null = null;
+  if (academy.portalId) {
+    const { data: portalRow } = await supabase
+      .from("portals")
+      .select("trader_id")
+      .eq("id", academy.portalId)
+      .maybeSingle();
+    academyTraderId = portalRow?.trader_id ?? null;
+  } else if (academy.portalSlug) {
+    const { data: portalRow } = await supabase
+      .from("portals")
+      .select("trader_id")
+      .eq("slug", academy.portalSlug)
+      .maybeSingle();
+    academyTraderId = portalRow?.trader_id ?? null;
+  }
+  if (academyTraderId) {
+    const { data: membership } = await supabase
+      .from("trader_members")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("trader_id", academyTraderId)
+      .maybeSingle();
+    if (membership) redirect("/dashboard");
+  }
+
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(joinAcademyPath);
 
