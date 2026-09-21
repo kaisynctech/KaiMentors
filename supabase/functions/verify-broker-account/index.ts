@@ -20,9 +20,10 @@ Deno.serve(async (request) => {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) return json({ error: "Unauthorized." }, 401);
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  // Service role for DB. Do not forward the student JWT — PostgREST would
+  // then apply student RLS, and the inner join to brokers is trader-only,
+  // so every student lookup 404s as "Application not found."
+  const admin = createClient(supabaseUrl, serviceRoleKey);
 
   const token = authHeader.replace("Bearer ", "");
   const { data: userData, error: userError } = await admin.auth.getUser(token);

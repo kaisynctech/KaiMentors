@@ -84,3 +84,27 @@ test("XM timeout or network failure goes to mentor review instead of hanging", (
   const network = interpretXmFetchFailure(new Error("fetch failed"));
   assert.equal(network.code, "XM_NETWORK_ERROR");
 });
+
+test("verify-broker-account looks up applications with the service role, not student RLS", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(
+    new URL("../supabase/functions/verify-broker-account/index.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /createClient\(supabaseUrl, serviceRoleKey\)/);
+  assert.doesNotMatch(
+    source,
+    /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*authHeader/,
+  );
+  assert.match(source, /admin\.auth\.getUser\(token\)/);
+});
+
+test("student verify does not treat an Edge Function outage as a successful review", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(
+    new URL("../app/api/student/verify/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /temporarily unavailable/);
+  assert.match(source, /apiInvokeOk/);
+});

@@ -125,6 +125,7 @@ export async function POST(request: Request) {
   const apiConnectionsExisted = apiConnections.length > 0;
 
   // Step 6 — Try API connections via Edge Function
+  let apiInvokeOk = false;
   for (const connection of apiConnections) {
     // Pre-set the broker connection on the application — EF reads trader_broker_account_id
     await admin
@@ -145,7 +146,10 @@ export async function POST(request: Request) {
       },
     );
 
-    if (!efError && efResult && (efResult as { status?: string }).status === "verified") {
+    if (efError) continue;
+    apiInvokeOk = true;
+
+    if (efResult && (efResult as { status?: string }).status === "verified") {
       await admin
         .from("student_applications")
         .update({
@@ -169,7 +173,14 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({ status: "verified" });
     }
-    // EF returned manual_review or error — try next connection
+    // EF returned manual_review or rejected — try next connection
+  }
+
+  if (apiConnectionsExisted && !apiInvokeOk) {
+    return NextResponse.json(
+      { error: "Automatic verification is temporarily unavailable. Please try again in a moment." },
+      { status: 503 },
+    );
   }
 
   // Step 7 — No API connection verified: transition to manual_review
