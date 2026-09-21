@@ -119,21 +119,12 @@ test("student dashboard auto-verifies a saved XM ID without mentor review", asyn
   assert.match(page, /initialAccountNumber=\{savedAccountNumber\}/);
 });
 
-test("verification academies hide students with no XM / broker account", async () => {
-  const migration = await read(
-    "supabase",
-    "migrations",
-    "20260921190000_student_applications_require_account.sql",
-  );
-  assert.match(migration, /target_require_account boolean default false/);
-  assert.match(migration, /application\.broker_account_identifier/);
-  assert.match(
-    migration,
-    /length\(trim\(coalesce\(application\.trading_account_number, ''\)\)\) > 0/,
-  );
+test("mentor student list shows every student, including those without an XM ID", async () => {
   const page = await read("app", "dashboard", "students", "page.tsx");
-  assert.match(page, /target_require_account: requireBrokerAccount/);
-  assert.match(page, /studentBrokerAccountPresenceOr/);
+  assert.doesNotMatch(page, /target_require_account/);
+  assert.doesNotMatch(page, /studentBrokerAccountPresenceOr/);
+  const overview = await read("app", "dashboard", "page.tsx");
+  assert.doesNotMatch(overview, /studentBrokerAccountPresenceOr/);
   const list = await read("components", "student-review-list.tsx");
   assert.match(list, /studentBrokerAccountDisplay/);
 });

@@ -37,20 +37,6 @@ export interface StudentApplicationRow {
   brokerVerified?: boolean;
 }
 
-/** PostgREST: keep rows that already have an XM / broker account ID. */
-export const studentBrokerAccountPresenceOr =
-  "and(trading_account_number.not.is.null,trading_account_number.neq.),and(broker_account_identifier.not.is.null,broker_account_identifier.neq.)";
-
-export function hasStudentBrokerAccount(row: {
-  tradingAccountNumber?: string | null;
-  brokerAccountIdentifier?: string | null;
-}) {
-  return Boolean(
-    (row.tradingAccountNumber ?? "").trim() ||
-      (row.brokerAccountIdentifier ?? "").trim(),
-  );
-}
-
 export function studentBrokerAccountDisplay(row: {
   tradingAccountNumber?: string | null;
   brokerAccountIdentifier?: string | null;

@@ -8,7 +8,6 @@ import type {
   VerificationStatus,
 } from "@/lib/database.types";
 import {
-  studentBrokerAccountPresenceOr,
   studentTabStatuses,
   type StudentApplicationRow,
   type StudentTab,
@@ -57,15 +56,6 @@ function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function withBrokerAccount<T extends { or: (filters: string) => T }>(
-  query: T,
-  requireBrokerAccount: boolean,
-) {
-  return requireBrokerAccount
-    ? query.or(studentBrokerAccountPresenceOr)
-    : query;
-}
-
 function postgrestSearchNeedle(raw: string) {
   return raw.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
 }
@@ -98,8 +88,7 @@ export default async function StudentsPage({
 
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
-  const { supabase, traderId, displayName, portal, accessModel } = workspace;
-  const requireBrokerAccount = accessModel === "verification";
+  const { supabase, traderId, displayName, portal } = workspace;
   const statuses =
     tab === "all" ? null : studentTabStatuses[tab as Exclude<StudentTab, "all">];
 
@@ -112,45 +101,30 @@ export default async function StudentsPage({
     connectionResult,
     queueResult,
   ] = await Promise.all([
-    withBrokerAccount(
-      supabase
-        .from("student_applications")
-        .select("*", { count: "exact", head: true })
-        .eq("trader_id", traderId),
-      requireBrokerAccount,
-    ),
-    withBrokerAccount(
-      supabase
-        .from("student_applications")
-        .select("*", { count: "exact", head: true })
-        .eq("trader_id", traderId)
-        .eq("status", "verified"),
-      requireBrokerAccount,
-    ),
-    withBrokerAccount(
-      supabase
-        .from("student_applications")
-        .select("*", { count: "exact", head: true })
-        .eq("trader_id", traderId)
-        .in("status", ["pending", "processing", "manual_review"]),
-      requireBrokerAccount,
-    ),
-    withBrokerAccount(
-      supabase
-        .from("student_applications")
-        .select("*", { count: "exact", head: true })
-        .eq("trader_id", traderId)
-        .eq("status", "needs_more_information"),
-      requireBrokerAccount,
-    ),
-    withBrokerAccount(
-      supabase
-        .from("student_applications")
-        .select("*", { count: "exact", head: true })
-        .eq("trader_id", traderId)
-        .eq("status", "rejected"),
-      requireBrokerAccount,
-    ),
+    supabase
+      .from("student_applications")
+      .select("*", { count: "exact", head: true })
+      .eq("trader_id", traderId),
+    supabase
+      .from("student_applications")
+      .select("*", { count: "exact", head: true })
+      .eq("trader_id", traderId)
+      .eq("status", "verified"),
+    supabase
+      .from("student_applications")
+      .select("*", { count: "exact", head: true })
+      .eq("trader_id", traderId)
+      .in("status", ["pending", "processing", "manual_review"]),
+    supabase
+      .from("student_applications")
+      .select("*", { count: "exact", head: true })
+      .eq("trader_id", traderId)
+      .eq("status", "needs_more_information"),
+    supabase
+      .from("student_applications")
+      .select("*", { count: "exact", head: true })
+      .eq("trader_id", traderId)
+      .eq("status", "rejected"),
     supabase
       .from("trader_broker_accounts")
       .select("id,broker_id,verification_method,broker:brokers(name)")
@@ -164,7 +138,6 @@ export default async function StudentsPage({
       target_verification_method: method || null,
       target_limit: pageSize,
       target_offset: (page - 1) * pageSize,
-      target_require_account: requireBrokerAccount,
     }),
   ]);
 
@@ -183,9 +156,6 @@ export default async function StudentsPage({
       )
       .eq("trader_id", traderId);
 
-    if (requireBrokerAccount) {
-      fallback = fallback.or(studentBrokerAccountPresenceOr);
-    }
     if (statuses) fallback = fallback.in("status", statuses);
     if (method) {
       fallback = fallback.eq("connection.verification_method", method);
