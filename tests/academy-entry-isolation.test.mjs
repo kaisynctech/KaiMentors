@@ -160,6 +160,32 @@ test("login surfaces no longer dump students onto a fake or portal-less home", a
   assert.match(loginForm, /membershipError/);
   assert.match(middleware, /sameOriginDashboard/);
   assert.match(middleware, /trader_members/);
+  assert.match(middleware, /resolve_public_website_domain/);
+  assert.match(middleware, /\.eq\("trader_id", academyTraderId\)/);
+  assert.doesNotMatch(
+    middleware,
+    /\.eq\("user_id", data\.user\.id\)\s*\n\s*\.limit\(1\)/,
+  );
+});
+
+test("a mentor of one academy can join another academy as a student", async () => {
+  const middleware = await readFile(
+    path.join(workspaceRoot, "middleware.ts"),
+    "utf8",
+  );
+  const verify = await readFile(
+    path.join(workspaceRoot, "app", "api", "student", "verify", "route.ts"),
+    "utf8",
+  );
+  const studentPage = await readFile(
+    path.join(workspaceRoot, "app", "student", "page.tsx"),
+    "utf8",
+  );
+  assert.match(middleware, /academyTraderId/);
+  assert.match(middleware, /studentApp \? "\/academy" : "\/join-academy"/);
+  assert.match(verify, /profile\.role !== "student" && profile\.role !== "trader"/);
+  assert.match(studentPage, /if \(membership\) redirect\("\/dashboard"\)/);
+  assert.match(studentPage, /\.eq\("trader_id", academyTraderId\)/);
 });
 
 test("KaiTrades package has independent assets and no client-specific content", async () => {

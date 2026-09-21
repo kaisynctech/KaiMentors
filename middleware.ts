@@ -64,6 +64,13 @@ function copyCookies(source: NextResponse, target: NextResponse) {
   return target;
 }
 
+function traderIdFromUnknown(value: unknown): string | null {
+  const row = Array.isArray(value) ? value[0] : value;
+  if (!row || typeof row !== "object" || !("trader_id" in row)) return null;
+  const traderId = (row as { trader_id?: unknown }).trader_id;
+  return typeof traderId === "string" && traderId.length > 0 ? traderId : null;
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const hostname = normalizeRequestHostname(
@@ -196,6 +203,25 @@ export async function middleware(request: NextRequest) {
       NextResponse.redirect(new URL("/dashboard", request.url)),
     );
   }
+  let academyTraderId: string | null = null;
+  if (customDomain) {
+    const { data: domainRow } = await supabase.rpc(
+      "resolve_public_website_domain",
+      { target_hostname: hostname },
+    );
+    academyTraderId = traderIdFromUnknown(domainRow);
+  } else {
+    const portalSlug = request.nextUrl.searchParams.get("portal");
+    if (isPortalSlug(portalSlug)) {
+      const { data: portalRow } = await supabase
+        .from("portals")
+        .select("trader_id")
+        .eq("slug", portalSlug)
+        .maybeSingle();
+      academyTraderId = portalRow?.trader_id ?? null;
+    }
+  }
+
   if (logicalPath.startsWith("/dashboard") && profile?.role !== "trader") {
     if (profile?.role === "super_admin") {
       // Always allow super_admin through to /dashboard.
@@ -220,20 +246,71 @@ export async function middleware(request: NextRequest) {
       NextResponse.redirect(new URL(destination, request.url)),
     );
   }
-  if (logicalPath.startsWith("/student") && profile?.role !== "student") {
-    const sameOriginDashboard = new URL("/dashboard", request.url);
-    // Mentors stay on this academy's host. Sending them to the platform URL
-    // drops the custom-domain session cookie, so they look logged out — or
-    // they bounce into the student academy by mistake.
-    if (profile?.role === "trader") {
-      const { data: membership } = await supabase
-        .from("trader_members")
+
+  // A mentor of academy A can still be a student of academy B. Only send them
+  // to this host's mentor dashboard when they are on THIS academy's team.
+  if (
+    logicalPath.startsWith("/dashboard") &&
+    profile?.role === "trader" &&
+    customDomain &&
+    academyTraderId
+  ) {
+    const { data: membership } = await supabase
+      .from("trader_members")
+      .select("id")
+      .eq("user_id", data.user.id)
+      .eq("trader_id", academyTraderId)
+      .maybeSingle();
+    if (!membership) {
+      const { data: studentApp } = await supabase
+        .from("student_applications")
         .select("id")
-        .eq("user_id", data.user.id)
+        .eq("student_user_id", data.user.id)
+        .eq("trader_id", academyTraderId)
         .limit(1)
         .maybeSingle();
-      if (membership) {
-        return copyCookies(response, NextResponse.redirect(sameOriginDashboard));
+      return copyCookies(
+        response,
+        NextResponse.redirect(
+          new URL(studentApp ? "/academy" : "/join-academy", request.url),
+        ),
+      );
+    }
+  }
+
+  if (logicalPath.startsWith("/student") && profile?.role !== "student") {
+    const sameOriginDashboard = new URL("/dashboard", request.url);
+    // Mentors of THIS academy stay on this host. Sending them to the platform
+    // URL drops the custom-domain session cookie. Mentors of a different
+    // academy who joined here as students must stay in the student portal.
+    if (profile?.role === "trader") {
+      if (academyTraderId) {
+        const { data: membership } = await supabase
+          .from("trader_members")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .eq("trader_id", academyTraderId)
+          .maybeSingle();
+        if (membership) {
+          return copyCookies(
+            response,
+            NextResponse.redirect(sameOriginDashboard),
+          );
+        }
+        const { data: studentApp } = await supabase
+          .from("student_applications")
+          .select("id")
+          .eq("student_user_id", data.user.id)
+          .eq("trader_id", academyTraderId)
+          .limit(1)
+          .maybeSingle();
+        if (studentApp) return response;
+        return copyCookies(
+          response,
+          NextResponse.redirect(
+            new URL(customDomain ? "/join-academy" : "/dashboard", request.url),
+          ),
+        );
       }
       const { data: studentApp } = await supabase
         .from("student_applications")

@@ -65,7 +65,8 @@ export async function POST(request: Request) {
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!profile || profile.role !== "student") {
+  // Mentors of one academy can still verify as students of another.
+  if (!profile || (profile.role !== "student" && profile.role !== "trader")) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
