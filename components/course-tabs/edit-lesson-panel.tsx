@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
 import { lessonBlockNeedsMedia, serializeLessonBlocks } from "@/lib/courses";
@@ -62,13 +62,6 @@ export function EditLessonPanel({
   const [initialData, setInitialData] = useState<FetchedLesson | null>(null);
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
   const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
-  const durationRef = useRef<HTMLInputElement>(null);
-
-  function handleDurationDetected(seconds: number) {
-    if (durationRef.current) {
-      durationRef.current.value = String(Math.max(1, Math.round(seconds / 60)));
-    }
-  }
 
   useEffect(() => {
     let active = true;
@@ -142,14 +135,12 @@ export function EditLessonPanel({
       return;
     }
     const fd = new FormData(e.currentTarget);
-    const durationMinutes = Number(fd.get("durationMinutes")) || null;
     const ok = await onSubmit(lessonId, {
       moduleId: String(fd.get("moduleId")),
       title: String(fd.get("title")),
       description: String(fd.get("description")) || null,
       status: fd.get("status") as "draft" | "published" | "archived",
       sortOrder: Number(fd.get("sortOrder")),
-      durationSeconds: durationMinutes ? durationMinutes * 60 : null,
       isRequired: fd.get("isRequired") === "on",
       blocks: serializeLessonBlocks(blocks),
     });
@@ -182,9 +173,6 @@ export function EditLessonPanel({
   const videos = readyMedia.filter((m) => m.media_type === "video");
   const pdfs = readyMedia.filter((m) => m.media_type === "pdf");
   const images = readyMedia.filter((m) => m.media_type === "image");
-  const durationMinutesDefault = initialData.durationSeconds
-    ? Math.round(initialData.durationSeconds / 60) || ""
-    : "";
 
   return (
     <form key={initialData.id} onSubmit={handleSubmit} className={styles.panel}>
@@ -230,16 +218,6 @@ export function EditLessonPanel({
           <input defaultValue={initialData.sortOrder} min="0" name="sortOrder" type="number" />
         </label>
       </div>
-      <label>
-        Duration (minutes)
-        <input
-          defaultValue={durationMinutesDefault}
-          min="1"
-          name="durationMinutes"
-          ref={durationRef}
-          type="number"
-        />
-      </label>
       <label className={styles.check}>
         <input
           defaultChecked={initialData.isRequired}
@@ -290,7 +268,6 @@ export function EditLessonPanel({
               availableMedia={videos}
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
-              onDurationDetected={handleDurationDetected}
               onMediaReady={onMediaReady}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
 import { lessonBlockNeedsMedia, serializeLessonBlocks } from "@/lib/courses";
@@ -56,7 +56,6 @@ export function AddLessonPanel({
   const [libraryMedia, setLibraryMedia] = useState<Media[]>(readyMedia);
   const [moduleId, setModuleId] = useState(defaultModuleId ?? modules[0]?.id ?? "");
   const [formError, setFormError] = useState("");
-  const durationRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLibraryMedia((prev) => mergeMedia(readyMedia, prev));
@@ -81,12 +80,6 @@ export function AddLessonPanel({
   function rememberMedia(media: Media) {
     setLibraryMedia((prev) => mergeMedia(prev, [media]));
     onMediaReady?.(media);
-  }
-
-  function handleDurationDetected(seconds: number) {
-    if (durationRef.current) {
-      durationRef.current.value = String(Math.max(1, Math.round(seconds / 60)));
-    }
   }
 
   const videos = libraryMedia.filter((m) => m.media_type === "video");
@@ -137,14 +130,12 @@ export function AddLessonPanel({
       return;
     }
     const fd = new FormData(e.currentTarget);
-    const durationMinutes = Number(fd.get("durationMinutes")) || null;
     const ok = await onSubmit({
       moduleId: String(fd.get("moduleId")),
       title: String(fd.get("title")),
       description: String(fd.get("description")) || null,
       status: fd.get("status") as "draft" | "published",
       sortOrder: Number(fd.get("sortOrder")),
-      durationSeconds: durationMinutes ? durationMinutes * 60 : null,
       isRequired: fd.get("isRequired") === "on",
       blocks: serializeLessonBlocks(blocks),
     });
@@ -199,10 +190,6 @@ export function AddLessonPanel({
           <input defaultValue="0" min="0" name="sortOrder" type="number" />
         </label>
       </div>
-      <label>
-        Duration (minutes)
-        <input min="1" name="durationMinutes" ref={durationRef} type="number" />
-      </label>
       <label className={styles.check}>
         <input defaultChecked name="isRequired" type="checkbox" /> Required
       </label>
@@ -248,7 +235,6 @@ export function AddLessonPanel({
               availableMedia={videos}
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
-              onDurationDetected={handleDurationDetected}
               onMediaReady={rememberMedia}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}

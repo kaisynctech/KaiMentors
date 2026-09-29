@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireMentorCourseContext } from "@/lib/course-access";
+import { ownedMediaDurationForLesson } from "@/lib/lesson-duration";
 
 const blockSchema = z.object({
   blockType: z.enum(["rich_text", "video", "pdf", "image", "gallery", "link"]),
@@ -57,10 +58,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
   }
   const { data: module } = await context.supabase.from("course_modules").select("id").eq("id", parsed.data.moduleId).eq("course_id", courseId).eq("trader_id", context.traderId).maybeSingle();
   if (!module) return NextResponse.json({ error: "Course module not found." }, { status: 404 });
+  const media = await ownedMediaDurationForLesson(context.supabase, context.traderId, parsed.data.blocks);
+  if (!media.ok) return NextResponse.json({ error: media.error }, { status: 400 });
   const { data, error } = await context.supabase.from("lessons").insert({
     trader_id: context.traderId, course_id: courseId, module_id: module.id,
     title: parsed.data.title, description: parsed.data.description ?? null,
-    duration_seconds: parsed.data.durationSeconds ?? null, status: parsed.data.status,
+    duration_seconds: media.durationSeconds, status: parsed.data.status,
     sort_order: parsed.data.sortOrder, is_required: parsed.data.isRequired,
     published_at: parsed.data.status === "published" ? new Date().toISOString() : null,
     created_by: context.user.id,
@@ -70,22 +73,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ cou
   const blocks = parsed.data.blocks;
 
   if (blocks.length > 0) {
-    const allMediaIds = [
-      ...blocks.flatMap(b => b.mediaId ? [b.mediaId] : []),
-      ...blocks.flatMap(b => b.galleryMediaIds ?? []),
-    ];
-    if (allMediaIds.length > 0) {
-      const { count } = await context.supabase
-        .from("course_media")
-        .select("id", { count: "exact", head: true })
-        .in("id", allMediaIds)
-        .eq("trader_id", context.traderId);
-      if (count !== allMediaIds.length) {
-        await context.supabase.from("lessons").delete().eq("id", data.id);
-        return NextResponse.json({ error: "One or more media assets do not belong to this workspace." }, { status: 400 });
-      }
-    }
-
     for (const block of blocks) {
       const { data: blockData, error: blockError } = await context.supabase
         .from("lesson_content_blocks")

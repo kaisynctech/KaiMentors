@@ -43,6 +43,21 @@ export function serializeLessonBlocks(blocks: LessonBlockInput[]): LessonBlockIn
   });
 }
 
+export function lessonDurationFromVideoMedia(
+  blocks: Array<{ blockType: string; mediaId?: string | null }>,
+  media: Array<{ id: string; duration_seconds: number | null }>,
+): number | null {
+  const byId = new Map(media.map((item) => [item.id, item.duration_seconds]));
+  let total = 0;
+  for (const block of blocks) {
+    if (block.blockType !== "video" || !block.mediaId) continue;
+    const seconds = byId.get(block.mediaId);
+    if (typeof seconds === "number" && seconds > 0) total += seconds;
+  }
+  if (total < 1) return null;
+  return Math.min(total, 86400);
+}
+
 export function formatDuration(seconds: number | null) {
   if (!seconds) return "Duration not set";
   const minutes = Math.floor(seconds / 60);

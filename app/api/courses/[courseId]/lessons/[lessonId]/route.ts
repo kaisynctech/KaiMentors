@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireMentorCourseContext } from "@/lib/course-access";
+import { ownedMediaDurationForLesson } from "@/lib/lesson-duration";
 
 // ── Shared schemas (identical to lessons/route.ts) ────────────────────────────
 
@@ -164,25 +165,8 @@ export async function PATCH(
   if (!mod) return NextResponse.json({ error: "Module not found." }, { status: 404 });
 
   const blocks = parsed.data.blocks;
-  if (blocks.length > 0) {
-    const allMediaIds = [
-      ...blocks.flatMap((b) => (b.mediaId ? [b.mediaId] : [])),
-      ...blocks.flatMap((b) => b.galleryMediaIds ?? []),
-    ];
-    if (allMediaIds.length > 0) {
-      const { count } = await context.supabase
-        .from("course_media")
-        .select("id", { count: "exact", head: true })
-        .in("id", allMediaIds)
-        .eq("trader_id", context.traderId);
-      if (count !== allMediaIds.length) {
-        return NextResponse.json(
-          { error: "One or more media assets do not belong to this workspace." },
-          { status: 400 },
-        );
-      }
-    }
-  }
+  const media = await ownedMediaDurationForLesson(context.supabase, context.traderId, blocks);
+  if (!media.ok) return NextResponse.json({ error: media.error }, { status: 400 });
 
   const existingPublishedAt = (existing as unknown as { id: string; published_at: string | null }).published_at;
   const publishedAt =
@@ -196,7 +180,7 @@ export async function PATCH(
       module_id: mod.id,
       title: parsed.data.title,
       description: parsed.data.description ?? null,
-      duration_seconds: parsed.data.durationSeconds ?? null,
+      duration_seconds: media.durationSeconds,
       status: parsed.data.status,
       sort_order: parsed.data.sortOrder,
       is_required: parsed.data.isRequired,

@@ -19,7 +19,6 @@ interface MediaBlockUploaderProps {
   value: string | null;
   onChange: (mediaId: string | null) => void;
   onUploadStateChange?: (uploading: boolean) => void;
-  onDurationDetected?: (seconds: number) => void;
   onMediaReady?: (media: Media) => void;
 }
 
@@ -35,32 +34,12 @@ const HINT: Record<"video" | "pdf" | "image", string> = {
   image: COURSE_MEDIA_RULES.image.hint,
 };
 
-function detectVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      const secs = Math.round(video.duration);
-      if (isFinite(secs) && secs > 0) resolve(secs);
-      else reject(new Error("Unreadable duration"));
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Video could not be loaded"));
-    };
-    video.src = url;
-  });
-}
-
 export function MediaBlockUploader({
   mediaType,
   availableMedia,
   value,
   onChange,
   onUploadStateChange,
-  onDurationDetected,
   onMediaReady,
 }: MediaBlockUploaderProps) {
   const { state, progress, eta, mediaId, errorMessage, startUpload, retry, reset } = useMediaUpload();
@@ -68,9 +47,7 @@ export function MediaBlockUploader({
   const [uploadingFileName, setUploadingFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const onChangeRef = useRef(onChange);
-  const onMediaReadyRef = useRef(onMediaReady);
   onChangeRef.current = onChange;
-  onMediaReadyRef.current = onMediaReady;
 
   useEffect(() => {
     if (state === "ready" && mediaId) {
@@ -94,13 +71,6 @@ export function MediaBlockUploader({
 
   async function handleFile(file: File) {
     setUploadingFileName(file.name);
-    if (mediaType === "video" && onDurationDetected) {
-      detectVideoDuration(file)
-        .then(onDurationDetected)
-        .catch(() => {
-          // metadata unreadable — duration field stays as-is
-        });
-    }
     const id = await startUpload(file, mediaType);
     if (id) attachReadyMedia(id, file.name);
   }
