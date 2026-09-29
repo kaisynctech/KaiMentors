@@ -20,6 +20,7 @@ interface MediaBlockUploaderProps {
   onChange: (mediaId: string | null) => void;
   onUploadStateChange?: (uploading: boolean) => void;
   onDurationDetected?: (seconds: number) => void;
+  onMediaReady?: (media: Media) => void;
 }
 
 const ACCEPT: Record<"video" | "pdf" | "image", string> = {
@@ -60,21 +61,36 @@ export function MediaBlockUploader({
   onChange,
   onUploadStateChange,
   onDurationDetected,
+  onMediaReady,
 }: MediaBlockUploaderProps) {
   const { state, progress, eta, mediaId, errorMessage, startUpload, retry, reset } = useMediaUpload();
   const [dragging, setDragging] = useState(false);
   const [uploadingFileName, setUploadingFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
+  const onMediaReadyRef = useRef(onMediaReady);
+  onChangeRef.current = onChange;
+  onMediaReadyRef.current = onMediaReady;
 
   useEffect(() => {
     if (state === "ready" && mediaId) {
-      onChange(mediaId);
+      onChangeRef.current(mediaId);
     }
   }, [state, mediaId]);
 
   useEffect(() => {
     onUploadStateChange?.(state === "uploading");
   }, [state]);
+
+  function attachReadyMedia(id: string, title: string) {
+    onChange(id);
+    onMediaReady?.({
+      id,
+      title,
+      media_type: mediaType,
+      processing_state: "ready",
+    });
+  }
 
   async function handleFile(file: File) {
     setUploadingFileName(file.name);
@@ -85,13 +101,14 @@ export function MediaBlockUploader({
           // metadata unreadable — duration field stays as-is
         });
     }
-    await startUpload(file, mediaType);
+    const id = await startUpload(file, mediaType);
+    if (id) attachReadyMedia(id, file.name);
   }
 
-  const readyLabel =
-    value
-      ? availableMedia.find((m) => m.id === value)?.title ?? "Selected"
-      : "";
+  const selectedId = value ?? (state === "ready" ? mediaId : null);
+  const readyLabel = selectedId
+    ? availableMedia.find((m) => m.id === selectedId)?.title ?? uploadingFileName ?? "Selected"
+    : "";
 
   if (state === "uploading") {
     return (
@@ -111,7 +128,11 @@ export function MediaBlockUploader({
         <span>{errorMessage}</span>
         <button
           className={styles.retryBtn}
-          onClick={() => { void retry(); }}
+          onClick={() => {
+            void retry().then((id) => {
+              if (id) attachReadyMedia(id, uploadingFileName || "Uploaded file");
+            });
+          }}
           type="button"
         >
           Resume upload
@@ -120,7 +141,7 @@ export function MediaBlockUploader({
     );
   }
 
-  if (value) {
+  if (selectedId) {
     return (
       <div className={styles.readyState}>
         <CheckCircle2 size={16} />
@@ -146,7 +167,7 @@ export function MediaBlockUploader({
           e.preventDefault();
           setDragging(false);
           const file = e.dataTransfer.files[0];
-          if (file) handleFile(file);
+          if (file) void handleFile(file);
         }}
         onClick={() => fileRef.current?.click()}
       >
@@ -156,7 +177,7 @@ export function MediaBlockUploader({
         <input
           accept={ACCEPT[mediaType]}
           className={styles.hiddenInput}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
           ref={fileRef}
           type="file"
         />
@@ -165,7 +186,7 @@ export function MediaBlockUploader({
         <>
           <p className={styles.orDivider}>— or choose from Media Library —</p>
           <select
-            defaultValue=""
+            value=""
             onChange={(e) => { if (e.target.value) onChange(e.target.value); }}
           >
             <option disabled value="">

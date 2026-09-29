@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
+import { lessonBlockNeedsMedia, serializeLessonBlocks } from "@/lib/courses";
 import { MediaBlockUploader } from "@/components/media-block-uploader";
 import { MediaBlockGalleryUploader } from "@/components/media-block-gallery-uploader";
 import { RichTextEditor } from "@/components/rich-text-editor";
@@ -16,7 +17,8 @@ interface AddLessonPanelProps {
   defaultModuleId: string | null;
   readyMedia: Media[];
   busy: boolean;
-  onSubmit: (lesson: LessonWithBlocksInput) => Promise<void>;
+  onSubmit: (lesson: LessonWithBlocksInput) => Promise<boolean>;
+  onMediaReady?: (media: Media) => void;
 }
 
 const BLOCK_TYPE_LABELS: Record<LessonBlockInput["blockType"], string> = {
@@ -30,10 +32,56 @@ const BLOCK_TYPE_LABELS: Record<LessonBlockInput["blockType"], string> = {
 
 const BLOCK_TYPES = ["rich_text", "video", "pdf", "image", "gallery", "link"] as const;
 
-export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onSubmit }: AddLessonPanelProps) {
+function mergeMedia(current: Media[], extra: Media[]): Media[] {
+  const seen = new Set(current.map((item) => item.id));
+  const prepend: Media[] = [];
+  for (const item of extra) {
+    if (seen.has(item.id) || item.processing_state !== "ready") continue;
+    seen.add(item.id);
+    prepend.push(item);
+  }
+  return prepend.length ? [...prepend, ...current] : current;
+}
+
+export function AddLessonPanel({
+  modules,
+  defaultModuleId,
+  readyMedia,
+  busy,
+  onSubmit,
+  onMediaReady,
+}: AddLessonPanelProps) {
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
   const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
+  const [libraryMedia, setLibraryMedia] = useState<Media[]>(readyMedia);
+  const [moduleId, setModuleId] = useState(defaultModuleId ?? modules[0]?.id ?? "");
+  const [formError, setFormError] = useState("");
   const durationRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLibraryMedia((prev) => mergeMedia(readyMedia, prev));
+  }, [readyMedia]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/course-media")
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload: { media?: Media[] }) => {
+        if (cancelled) return;
+        setLibraryMedia((prev) => mergeMedia(prev, payload.media ?? []));
+      })
+      .catch(() => {
+        // Keep the page-loaded library if the refresh fails.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function rememberMedia(media: Media) {
+    setLibraryMedia((prev) => mergeMedia(prev, [media]));
+    onMediaReady?.(media);
+  }
 
   function handleDurationDetected(seconds: number) {
     if (durationRef.current) {
@@ -41,9 +89,9 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
     }
   }
 
-  const videos = readyMedia.filter((m) => m.media_type === "video");
-  const pdfs = readyMedia.filter((m) => m.media_type === "pdf");
-  const images = readyMedia.filter((m) => m.media_type === "image");
+  const videos = libraryMedia.filter((m) => m.media_type === "video");
+  const pdfs = libraryMedia.filter((m) => m.media_type === "pdf");
+  const images = libraryMedia.filter((m) => m.media_type === "image");
 
   function appendBlock(blockType: LessonBlockInput["blockType"]) {
     setBlocks((prev) => [
@@ -83,9 +131,14 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFormError("");
+    if (blocks.some(lessonBlockNeedsMedia)) {
+      setFormError("Upload a file or choose one from the library for every video, PDF, or image block, then click Create lesson.");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     const durationMinutes = Number(fd.get("durationMinutes")) || null;
-    await onSubmit({
+    const ok = await onSubmit({
       moduleId: String(fd.get("moduleId")),
       title: String(fd.get("title")),
       description: String(fd.get("description")) || null,
@@ -93,9 +146,16 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
       sortOrder: Number(fd.get("sortOrder")),
       durationSeconds: durationMinutes ? durationMinutes * 60 : null,
       isRequired: fd.get("isRequired") === "on",
-      blocks,
+      blocks: serializeLessonBlocks(blocks),
     });
+    if (!ok) {
+      setFormError("The lesson could not be saved. Check the error above and try again.");
+    }
   }
+
+  const hasAttachedFile = blocks.some(
+    (block) => Boolean(block.mediaId) || (block.galleryMediaIds ?? []).some(Boolean),
+  );
 
   return (
     <form onSubmit={handleSubmit} className={styles.panel}>
@@ -105,7 +165,12 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
 
       <label>
         Module
-        <select name="moduleId" required defaultValue={defaultModuleId ?? ""}>
+        <select
+          name="moduleId"
+          onChange={(e) => setModuleId(e.target.value)}
+          required
+          value={moduleId}
+        >
           {modules.map((m) => (
             <option key={m.id} value={m.id}>
               {m.title}
@@ -184,6 +249,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
               onDurationDetected={handleDurationDetected}
+              onMediaReady={rememberMedia}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -194,6 +260,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
               availableMedia={pdfs}
               mediaType="pdf"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onMediaReady={rememberMedia}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -204,6 +271,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
               availableMedia={images}
               mediaType="image"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onMediaReady={rememberMedia}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -213,6 +281,7 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
             <MediaBlockGalleryUploader
               availableImages={images}
               onChange={(ids) => updateBlock(index, { galleryMediaIds: ids })}
+              onMediaReady={rememberMedia}
               onUploadStateChange={(slotIndex, uploading) =>
                 handleUploadStateChange(index * 1000 + slotIndex, uploading)
               }
@@ -243,6 +312,13 @@ export function AddLessonPanel({ modules, defaultModuleId, readyMedia, busy, onS
           )}
         </div>
       ))}
+
+      {hasAttachedFile ? (
+        <p className={styles.submitHint}>
+          The file is uploaded. Click <strong>Create lesson</strong> to add it under this module.
+        </p>
+      ) : null}
+      {formError ? <p className={styles.panelInlineError}>{formError}</p> : null}
 
       <button disabled={busy || !modules.length || uploadingBlocks.size > 0} type="submit">
         Create lesson

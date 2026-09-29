@@ -122,6 +122,7 @@ export function CourseDetailManager({
   const [error, setError] = useState("");
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [pendingSelectId, setPendingSelectId] = useState<string | null>(null);
+  const [sessionMedia, setSessionMedia] = useState<Media[]>([]);
 
   const lessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
 
@@ -134,7 +135,15 @@ export function CourseDetailManager({
       setPendingSelectId(null);
     }
   }, [lessons, pendingSelectId]);
-  const readyMedia = media.filter((m) => m.processing_state === "ready");
+  const readyMedia = useMemo(() => {
+    const ready = media.filter((item) => item.processing_state === "ready");
+    const extra = sessionMedia.filter((item) => !ready.some((readyItem) => readyItem.id === item.id));
+    return extra.length ? [...extra, ...ready] : ready;
+  }, [media, sessionMedia]);
+
+  function rememberReadyMedia(item: Media) {
+    setSessionMedia((prev) => (prev.some((existing) => existing.id === item.id) ? prev : [item, ...prev]));
+  }
 
   async function call(url: string, body: unknown) {
     setBusy(true);
@@ -167,7 +176,7 @@ export function CourseDetailManager({
   }
 
   async function createLessonWithBlocks(lesson: LessonWithBlocksInput) {
-    await call(`/api/courses/${course.id}/lessons`, lesson);
+    return call(`/api/courses/${course.id}/lessons`, lesson);
   }
 
   async function updateModule(
@@ -223,10 +232,11 @@ export function CourseDetailManager({
     setBusy(false);
     if (!response.ok) {
       setError(payload.error ?? "The lesson could not be updated.");
-      return;
+      return false;
     }
     setMessage("Lesson updated successfully.");
     router.refresh();
+    return true;
   }
 
   async function addBlock(fd: FormData) {
@@ -400,6 +410,7 @@ export function CourseDetailManager({
           updateModule={updateModule}
           duplicateLesson={duplicateLesson}
           patchCurriculum={patchCurriculum}
+          onMediaReady={rememberReadyMedia}
         />
       )}
 

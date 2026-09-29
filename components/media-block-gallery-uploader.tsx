@@ -16,6 +16,7 @@ interface MediaBlockGalleryUploaderProps {
   value: string[];
   onChange: (mediaIds: string[]) => void;
   onUploadStateChange?: (index: number, uploading: boolean) => void;
+  onMediaReady?: (media: Media) => void;
 }
 
 export function MediaBlockGalleryUploader({
@@ -23,6 +24,7 @@ export function MediaBlockGalleryUploader({
   value,
   onChange,
   onUploadStateChange,
+  onMediaReady,
 }: MediaBlockGalleryUploaderProps) {
   return (
     <>
@@ -37,6 +39,7 @@ export function MediaBlockGalleryUploader({
               onChange(next);
             }}
             onUploadStateChange={(uploading) => onUploadStateChange?.(i, uploading)}
+            onMediaReady={onMediaReady}
             value={mediaId || null}
           />
           <button

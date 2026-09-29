@@ -1193,6 +1193,20 @@
   text-align: center;
 }
 
+.submitHint {
+  color: #5f676d;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.panelInlineError {
+  color: #dc2626;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
 /* Spin */
 .spin {
   animation: spin 800ms linear infinite;

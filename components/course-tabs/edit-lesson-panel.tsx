@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import type { LessonBlockInput, LessonWithBlocksInput } from "@/lib/courses";
+import { lessonBlockNeedsMedia, serializeLessonBlocks } from "@/lib/courses";
 import { MediaBlockUploader } from "@/components/media-block-uploader";
 import { MediaBlockGalleryUploader } from "@/components/media-block-gallery-uploader";
 import { RichTextEditor } from "@/components/rich-text-editor";
@@ -29,8 +30,9 @@ interface EditLessonPanelProps {
   modules: Module[];
   readyMedia: Media[];
   busy: boolean;
-  onSubmit: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<void>;
+  onSubmit: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<boolean>;
   onCancel: () => void;
+  onMediaReady?: (media: Media) => void;
 }
 
 const BLOCK_TYPE_LABELS: Record<LessonBlockInput["blockType"], string> = {
@@ -52,9 +54,11 @@ export function EditLessonPanel({
   busy,
   onSubmit,
   onCancel,
+  onMediaReady,
 }: EditLessonPanelProps) {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [formError, setFormError] = useState("");
   const [initialData, setInitialData] = useState<FetchedLesson | null>(null);
   const [blocks, setBlocks] = useState<LessonBlockInput[]>([]);
   const [uploadingBlocks, setUploadingBlocks] = useState<Set<number>>(new Set());
@@ -132,9 +136,14 @@ export function EditLessonPanel({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!initialData) return;
+    setFormError("");
+    if (blocks.some(lessonBlockNeedsMedia)) {
+      setFormError("Upload a file or choose one from the library for every video, PDF, or image block.");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     const durationMinutes = Number(fd.get("durationMinutes")) || null;
-    await onSubmit(lessonId, {
+    const ok = await onSubmit(lessonId, {
       moduleId: String(fd.get("moduleId")),
       title: String(fd.get("title")),
       description: String(fd.get("description")) || null,
@@ -142,8 +151,11 @@ export function EditLessonPanel({
       sortOrder: Number(fd.get("sortOrder")),
       durationSeconds: durationMinutes ? durationMinutes * 60 : null,
       isRequired: fd.get("isRequired") === "on",
-      blocks,
+      blocks: serializeLessonBlocks(blocks),
     });
+    if (!ok) {
+      setFormError("The lesson could not be saved. Check the error above and try again.");
+    }
   }
 
   if (loading) {
@@ -279,6 +291,7 @@ export function EditLessonPanel({
               mediaType="video"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
               onDurationDetected={handleDurationDetected}
+              onMediaReady={onMediaReady}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -289,6 +302,7 @@ export function EditLessonPanel({
               availableMedia={pdfs}
               mediaType="pdf"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onMediaReady={onMediaReady}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -299,6 +313,7 @@ export function EditLessonPanel({
               availableMedia={images}
               mediaType="image"
               onChange={(mediaId) => updateBlock(index, { mediaId })}
+              onMediaReady={onMediaReady}
               onUploadStateChange={(uploading) => handleUploadStateChange(index, uploading)}
               value={block.mediaId ?? null}
             />
@@ -308,6 +323,7 @@ export function EditLessonPanel({
             <MediaBlockGalleryUploader
               availableImages={images}
               onChange={(ids) => updateBlock(index, { galleryMediaIds: ids })}
+              onMediaReady={onMediaReady}
               onUploadStateChange={(slotIndex, uploading) =>
                 handleUploadStateChange(index * 1000 + slotIndex, uploading)
               }
@@ -338,6 +354,8 @@ export function EditLessonPanel({
           )}
         </div>
       ))}
+
+      {formError ? <p className={styles.panelInlineError}>{formError}</p> : null}
 
       <div className={styles.panelActions}>
         <button

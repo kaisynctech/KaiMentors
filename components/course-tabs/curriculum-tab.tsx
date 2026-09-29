@@ -58,11 +58,12 @@ interface Props {
   setSelectedLesson: (id: string | null) => void;
   busy: boolean;
   createModule: (fd: FormData) => Promise<void>;
-  createLessonWithBlocks: (lesson: LessonWithBlocksInput) => Promise<void>;
-  updateLessonWithBlocks: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<void>;
+  createLessonWithBlocks: (lesson: LessonWithBlocksInput) => Promise<boolean>;
+  updateLessonWithBlocks: (lessonId: string, lesson: LessonWithBlocksInput) => Promise<boolean>;
   updateModule: (moduleId: string, updates: { requiresPreviousCompletion: boolean }) => Promise<void>;
   duplicateLesson: (lessonId: string) => Promise<void>;
   patchCurriculum: (payload: CurriculumPatch) => Promise<void>;
+  onMediaReady?: (media: Media) => void;
 }
 
 export function CurriculumTab({
@@ -79,6 +80,7 @@ export function CurriculumTab({
   updateModule,
   duplicateLesson,
   patchCurriculum,
+  onMediaReady,
 }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [activePanel, setActivePanel] = useState<"add_module" | "add_lesson" | "edit_lesson" | null>(null);
@@ -114,15 +116,21 @@ export function CurriculumTab({
   }
 
   async function handleCreateLessonWithBlocks(lesson: LessonWithBlocksInput) {
-    await createLessonWithBlocks(lesson);
-    setActivePanel(null);
-    setPendingModuleId(null);
+    const ok = await createLessonWithBlocks(lesson);
+    if (ok) {
+      setActivePanel(null);
+      setPendingModuleId(null);
+    }
+    return ok;
   }
 
   async function handleUpdateLesson(lessonId: string, lesson: LessonWithBlocksInput) {
-    await updateLessonWithBlocks(lessonId, lesson);
-    setActivePanel(null);
-    setSelectedLesson(null);
+    const ok = await updateLessonWithBlocks(lessonId, lesson);
+    if (ok) {
+      setActivePanel(null);
+      setSelectedLesson(null);
+    }
+    return ok;
   }
 
   async function handleUpdateModule(moduleId: string, requiresPreviousCompletion: boolean) {
@@ -329,11 +337,13 @@ export function CurriculumTab({
 
         {activePanel === "add_lesson" && (
           <AddLessonPanel
+            key={pendingModuleId ?? "add-lesson"}
             modules={modules}
             defaultModuleId={pendingModuleId}
             readyMedia={readyMedia}
             busy={busy}
             onSubmit={handleCreateLessonWithBlocks}
+            onMediaReady={onMediaReady}
           />
         )}
 
@@ -345,6 +355,7 @@ export function CurriculumTab({
             readyMedia={readyMedia}
             busy={busy}
             onSubmit={handleUpdateLesson}
+            onMediaReady={onMediaReady}
             onCancel={() => {
               setActivePanel(null);
               setSelectedLesson(null);

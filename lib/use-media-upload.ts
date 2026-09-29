@@ -24,8 +24,8 @@ export interface UseMediaUploadResult {
     mediaType: "video" | "pdf" | "image",
     title?: string,
     replacesMediaId?: string | null,
-  ) => Promise<void>;
-  retry: () => Promise<void>;
+  ) => Promise<string | null>;
+  retry: () => Promise<string | null>;
   reset: () => void;
 }
 
@@ -55,7 +55,7 @@ export function useMediaUpload(): UseMediaUploadResult {
     if (file.size > rule.max) {
       setState("error");
       setErrorMessage(fileTooLargeMessage(file, rule.max));
-      return;
+      return null;
     }
 
     setState("uploading");
@@ -82,7 +82,7 @@ export function useMediaUpload(): UseMediaUploadResult {
     if (!init.ok) {
       setState("error");
       setErrorMessage(payload.error ?? "Upload could not start.");
-      return;
+      return null;
     }
 
     try {
@@ -99,7 +99,7 @@ export function useMediaUpload(): UseMediaUploadResult {
     } catch (error) {
       setState("error");
       setErrorMessage(storageUploadErrorMessage(error));
-      return;
+      return null;
     }
 
     const durationSeconds = await durationPromise;
@@ -112,18 +112,19 @@ export function useMediaUpload(): UseMediaUploadResult {
     if (!final.ok) {
       setState("error");
       setErrorMessage(result.error ?? "Upload verification failed.");
-      return;
+      return null;
     }
     setMediaId(payload.mediaId);
     setProgress(100);
     setEta(null);
     setState("ready");
+    return payload.mediaId as string;
   }
 
   async function retry() {
     const pending = lastUpload.current;
-    if (!pending) return;
-    await startUpload(pending.file, pending.mediaType, pending.title, pending.replacesMediaId);
+    if (!pending) return null;
+    return startUpload(pending.file, pending.mediaType, pending.title, pending.replacesMediaId);
   }
 
   function reset() {

@@ -33,6 +33,18 @@ function buildContent(block: z.infer<typeof blockSchema>) {
   return { caption: block.caption ?? "" };
 }
 
+function blocksMissingMedia(blocks: z.infer<typeof blockSchema>[]) {
+  return blocks.some((block) => {
+    if (block.blockType === "video" || block.blockType === "pdf" || block.blockType === "image") {
+      return !block.mediaId;
+    }
+    if (block.blockType === "gallery") {
+      return !(block.galleryMediaIds ?? []).length;
+    }
+    return false;
+  });
+}
+
 // ── GET /api/courses/[courseId]/lessons/[lessonId] ────────────────────────────
 
 export async function GET(
@@ -126,6 +138,12 @@ export async function PATCH(
 
   const parsed = patchSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid lesson details." }, { status: 400 });
+  if (blocksMissingMedia(parsed.data.blocks)) {
+    return NextResponse.json(
+      { error: "Upload a file or choose one from the library for each video, PDF, or image block." },
+      { status: 400 },
+    );
+  }
 
   const { data: existing } = await context.supabase
     .from("lessons")

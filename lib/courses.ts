@@ -22,6 +22,27 @@ export interface LessonWithBlocksInput {
   blocks: LessonBlockInput[];
 }
 
+const FILE_BLOCK_TYPES = new Set(["video", "pdf", "image"]);
+
+export function lessonBlockNeedsMedia(block: LessonBlockInput): boolean {
+  if (FILE_BLOCK_TYPES.has(block.blockType)) return !block.mediaId;
+  if (block.blockType === "gallery") {
+    return !(block.galleryMediaIds ?? []).some((id) => Boolean(id));
+  }
+  return false;
+}
+
+export function serializeLessonBlocks(blocks: LessonBlockInput[]): LessonBlockInput[] {
+  return blocks.map((block) => {
+    const rest = { ...block };
+    delete rest._clientKey;
+    return {
+      ...rest,
+      galleryMediaIds: rest.galleryMediaIds?.filter(Boolean),
+    };
+  });
+}
+
 export function formatDuration(seconds: number | null) {
   if (!seconds) return "Duration not set";
   const minutes = Math.floor(seconds / 60);
