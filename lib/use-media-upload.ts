@@ -5,7 +5,11 @@ import {
   formatEta,
   resolveUploadContentType,
 } from "@/lib/media-limits";
-import { readVideoDuration, uploadDirectToStorage } from "@/lib/tus-direct-upload";
+import {
+  readVideoDuration,
+  storageUploadErrorMessage,
+  uploadDirectToStorage,
+} from "@/lib/tus-direct-upload";
 
 export type UploadState = "idle" | "uploading" | "ready" | "error";
 
@@ -92,9 +96,9 @@ export function useMediaUpload(): UseMediaUploadResult {
           setEta(formatEta(sent, total, startedAt));
         },
       });
-    } catch {
+    } catch (error) {
       setState("error");
-      setErrorMessage("Upload paused after a network drop. Retry to resume from where it stopped.");
+      setErrorMessage(storageUploadErrorMessage(error));
       return;
     }
 

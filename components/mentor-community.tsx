@@ -9,7 +9,7 @@ import {
   maxBytesForAcademyUpload,
   resolveUploadContentType,
 } from "@/lib/media-limits";
-import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
+import { storageUploadErrorMessage, uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-community.module.css";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
@@ -172,7 +172,7 @@ export function MentorCommunity({
           setUploadProgress(`${percent}%${eta ? ` · ${eta}` : ""}`);
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed. Try again.");
+        setError(storageUploadErrorMessage(err));
         setBusy(false);
         setUploadProgress(null);
         return;

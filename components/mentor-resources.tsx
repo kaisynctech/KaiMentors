@@ -11,7 +11,7 @@ import {
   maxBytesForAcademyFile,
   resolveUploadContentType,
 } from "@/lib/media-limits";
-import { uploadDirectToStorage } from "@/lib/tus-direct-upload";
+import { storageUploadErrorMessage, uploadDirectToStorage } from "@/lib/tus-direct-upload";
 import styles from "./mentor-resources.module.css";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
@@ -123,7 +123,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
         });
       }
       catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed. Try again.");
+        setError(storageUploadErrorMessage(err));
         setBusy(false);
         setUploadProgress(null);
         return;

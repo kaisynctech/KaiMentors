@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveMentorWorkspace } from "@/lib/entitlements";
-import { fileTooLargeMessage, maxBytesForAcademyUpload } from "@/lib/media-limits";
+import {
+  fileTooLargeMessage,
+  maxBytesForAcademyUpload,
+  resumableUploadUrl,
+} from "@/lib/media-limits";
 
 const schema = z.object({
   fileName:    z.string().min(1).max(200),
@@ -41,6 +45,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     storagePath,
     bucketName: "academy-media",
-    uploadUrl: `${supabaseUrl}/storage/v1/upload/resumable`,
+    uploadUrl: resumableUploadUrl(supabaseUrl),
   });
 }

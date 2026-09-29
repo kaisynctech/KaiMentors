@@ -33,6 +33,11 @@ export const ACADEMY_MEDIA_SIGNED_TTL_SECONDS = 4 * 60 * 60;
 export const TUS_CHUNK_SIZE = 6 * 1024 * 1024;
 export const TUS_RETRY_DELAYS = [0, 1000, 3000, 5000, 10000, 20000, 30000];
 
+export function resumableUploadUrl(supabaseUrl: string | null | undefined) {
+  if (!supabaseUrl) return "";
+  return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/upload/resumable`;
+}
+
 export const COURSE_MEDIA_RULES = {
   video: {
     types: ["video/mp4", "video/webm"] as const,

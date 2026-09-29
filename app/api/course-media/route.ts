@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { COURSE_MEDIA_RULES, fileExtension, requireMentorCourseContext } from "@/lib/course-access";
+import { resumableUploadUrl } from "@/lib/media-limits";
 
 const schema = z.object({
   title: z.string().trim().min(1).max(180),
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: "Upload could not be initialized." }, { status: 400 });
   return NextResponse.json({
     mediaId, storagePath,
-    uploadUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
+    uploadUrl: resumableUploadUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
     bucketName: "course-content",
   }, { status: 201 });
 }

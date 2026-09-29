@@ -60,8 +60,12 @@ test("uploads are resumable, direct-to-storage, signature checked, and lifecycle
   assert.match(uploader, /new Upload\(options\.file/);
   assert.match(uploader, /removeFingerprintOnSuccess: true/);
   assert.match(hook, /uploadDirectToStorage/);
-  assert.match(initializer, /uploadUrl:[\s\S]*storage\/v1\/upload\/resumable/);
+  assert.match(initializer, /resumableUploadUrl/);
   assert.match(limits, /COURSE_VIDEO_MAX_BYTES = 2 \* 1024 \* 1024 \* 1024/);
+  const tus = await read("lib", "tus-direct-upload.ts");
+  assert.match(tus, /uploadDataDuringCreation: true/);
+  assert.match(tus, /maximum size exceeded/);
+  assert.match(tus, /storageUploadErrorMessage/);
   assert.doesNotMatch(initializer, /arrayBuffer\(|formData\(/);
   assert.match(finalize, /Range: "bytes=0-31"/);
   assert.match(finalize, /signatureMatches/);

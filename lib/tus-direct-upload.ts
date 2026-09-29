@@ -6,6 +6,35 @@ import {
   resolveUploadContentType,
 } from "@/lib/media-limits";
 
+export function storageUploadErrorMessage(error: unknown) {
+  const text = error instanceof Error ? error.message : String(error);
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("413") ||
+    lower.includes("maximum size exceeded") ||
+    lower.includes("entity too large")
+  ) {
+    return "This video is larger than Storage currently allows. Set the Global file size limit to 2 GB in Supabase Storage Settings, then retry.";
+  }
+  if (
+    lower.includes("401") ||
+    lower.includes("jwt") ||
+    lower.includes("session expired")
+  ) {
+    return "Your session expired. Sign in and retry.";
+  }
+  if (lower.includes("403")) {
+    return "You do not have permission to upload to this academy.";
+  }
+  if (lower.includes("415") || lower.includes("mime")) {
+    return "This file type is not allowed. Export an H.264 MP4 and retry.";
+  }
+  if (lower.includes("409") || lower.includes("conflict")) {
+    return "This file is already being uploaded. Wait a moment and retry.";
+  }
+  return "Upload paused after a network drop. Retry to resume from where it stopped.";
+}
+
 export async function uploadDirectToStorage(options: {
   file: File;
   uploadUrl: string;
@@ -30,11 +59,12 @@ export async function uploadDirectToStorage(options: {
         authorization: `Bearer ${session.access_token}`,
         "x-upsert": options.upsert ? "true" : "false",
       },
+      uploadDataDuringCreation: true,
       metadata: {
         bucketName: options.bucketName,
         objectName: options.objectName,
         contentType: resolveUploadContentType(options.file),
-        cacheControl: "private, max-age=0",
+        cacheControl: "3600",
       },
       chunkSize: TUS_CHUNK_SIZE,
       removeFingerprintOnSuccess: true,
@@ -42,7 +72,7 @@ export async function uploadDirectToStorage(options: {
         options.onProgress?.(Math.round((sent / total) * 100), sent, total);
       },
       onError: (error) => {
-        reject(error instanceof Error ? error : new Error("Upload paused after repeated network failures. Retry to resume."));
+        reject(error instanceof Error ? error : new Error(String(error)));
       },
       onSuccess: () => resolve(),
     });
