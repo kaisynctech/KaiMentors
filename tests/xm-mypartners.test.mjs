@@ -125,5 +125,6 @@ test("XM academies ask for a required XM client ID number", async () => {
   assert.match(form, /XM client ID number/);
   assert.match(form, /cannot leave it blank/);
   assert.doesNotMatch(form, /Leave blank if unknown/);
-  assert.match(studentPage, /if \(membership\) redirect\("\/dashboard"\)/);
+  assert.match(studentPage, /is_trader_member/);
+  assert.match(studentPage, /if \(isStaff\) redirect\("\/dashboard"\)/);
 });

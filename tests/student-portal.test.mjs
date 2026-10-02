@@ -120,6 +120,28 @@ test("ContentGate maps manual_review to 'More information needed', not 'being re
   assert.doesNotMatch(gate, /being reviewed/);
 });
 
+test("mentors can play academy videos without student verification and students can see published resources", async () => {
+  const session = await read("lib", "student-access-server.ts");
+  const resources = await read("app", "student", "resources", "page.tsx");
+  const mentorResources = await read("components", "mentor-resources.tsx");
+  const migration = await read(
+    "supabase",
+    "migrations",
+    "20261002120000_staff_play_and_resource_access.sql",
+  );
+  assert.match(session, /is_trader_member/);
+  assert.match(session, /hasModuleAccess: true/);
+  assert.match(resources, /access_scope", "all_students"/);
+  assert.match(resources, /isAcademyStaff/);
+  assert.doesNotMatch(
+    resources,
+    /if \(!hasModuleAccess\) \{\s*return \(/,
+  );
+  assert.match(mentorResources, /defaultValue="all_students"/);
+  assert.match(migration, /is_trader_member\(target_trader_id\)/);
+  assert.match(migration, /is_trader_member\(c\.trader_id\)/);
+});
+
 test("verification-screenshot upload client never receives service-role key", async () => {
   const upload = await read("components", "verification-screenshot-upload.tsx");
   // Must use browser client, not admin

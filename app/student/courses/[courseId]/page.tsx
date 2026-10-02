@@ -117,9 +117,14 @@ export default async function StudentCoursePage({
     );
   const resumeLessonId = inProgressSorted[0]?.lesson_id ?? null;
 
-  // Compute which modules are accessible (sequential gating)
+  // Compute which modules are accessible (sequential gating).
+  // Academy staff can open every published lesson, including ones students have not unlocked yet.
   const accessibleModuleIds = new Set<string>();
+  if (ctx.isAcademyStaff) {
+    for (const module of modules ?? []) accessibleModuleIds.add(module.id);
+  }
   (modules ?? []).forEach((module, idx) => {
+    if (ctx.isAcademyStaff) return;
     if (!module.requires_previous_completion || idx === 0) {
       accessibleModuleIds.add(module.id);
       return;

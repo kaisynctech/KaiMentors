@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   ChevronRight,
@@ -8,6 +9,7 @@ import {
   Clock,
   Copy,
   Lock,
+  Play,
   Plus,
 } from "lucide-react";
 import { formatDuration } from "@/lib/courses";
@@ -229,6 +231,15 @@ export function CurriculumTab({
                         )}
                       </span>
                       <span className={styles.lessonTreeTitle}>{lesson.title}</span>
+                      <Link
+                        aria-label="Play lesson"
+                        className={styles.lessonDuplicateBtn}
+                        href={`/dashboard/courses/${course.id}/preview/lessons/${lesson.id}`}
+                        onClick={(event) => event.stopPropagation()}
+                        title="Play lesson"
+                      >
+                        <Play size={12} />
+                      </Link>
                       <span className={styles.lessonTreeDuration}>
                         <Clock size={10} />
                         {formatDuration(lesson.duration_seconds)}

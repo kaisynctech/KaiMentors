@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { type FormEvent, useRef, useState, KeyboardEvent } from "react";
-import { ExternalLink, FileText, Film, Loader2, Plus, Trash2, UploadCloud } from "lucide-react";
+import { ExternalLink, FileText, Film, Loader2, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import {
   ACADEMY_MEDIA_RULES,
   academyUploadMismatch,
@@ -90,6 +90,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
   const [itemType, setItemType]   = useState<ResourceType>("video");
   const [labels, setLabels]       = useState<string[]>([]);
   const [labelInput, setLabelInput] = useState("");
+  const [playing, setPlaying] = useState<ResourceItem | null>(null);
   const [busy, setBusy]   = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -167,6 +168,7 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
     };
     setResources((prev) => [newItem, ...prev]);
     setShowForm(false);
+    window.location.reload();
     setLabels([]);
     setLabelInput("");
     (e.target as HTMLFormElement).reset();
@@ -295,9 +297,9 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
 
           <label>
             Access
-            <select name="accessScope">
-              <option value="all_verified">Verified Students Only</option>
-              <option value="all_students">All Students</option>
+            <select defaultValue="all_students" name="accessScope">
+              <option value="all_students">All students</option>
+              <option value="all_verified">Verified students only</option>
             </select>
           </label>
 
@@ -341,13 +343,30 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
                 <Trash2 size={14} />
               </button>
 
-              <div className={styles.thumbnail}>
-                {r.thumbnailUrl ? (
-                  <Image alt="" fill sizes="280px" src={r.thumbnailUrl} unoptimized />
-                ) : (
-                  <TypeIcon type={r.type} />
-                )}
-              </div>
+              <button
+                className={styles.playArea}
+                disabled={r.type !== "link" && !r.mediaUrl && !r.externalUrl}
+                onClick={() => {
+                  if (r.type === "link" && r.externalUrl) {
+                    window.open(r.externalUrl, "_blank", "noopener,noreferrer");
+                    return;
+                  }
+                  if (r.type === "pdf" && r.mediaUrl) {
+                    window.open(r.mediaUrl, "_blank", "noopener,noreferrer");
+                    return;
+                  }
+                  if (r.type === "video" && r.mediaUrl) setPlaying(r);
+                }}
+                type="button"
+              >
+                <div className={styles.thumbnail}>
+                  {r.thumbnailUrl ? (
+                    <Image alt="" fill sizes="280px" src={r.thumbnailUrl} unoptimized />
+                  ) : (
+                    <TypeIcon type={r.type} />
+                  )}
+                </div>
+              </button>
 
               <div className={styles.badgeRow}>
                 <span className={styles.typeBadge}>{r.type.toUpperCase()}</span>
@@ -375,6 +394,30 @@ export function MentorResources({ resources: initial, traderId: _traderId }: Pro
           ))}
         </div>
       )}
+
+      {playing?.mediaUrl ? (
+        <div className={styles.lightboxOverlay} onClick={() => setPlaying(null)}>
+          <button
+            aria-label="Close"
+            className={styles.lightboxClose}
+            onClick={() => setPlaying(null)}
+            type="button"
+          >
+            <X size={22} />
+          </button>
+          <div className={styles.lightboxContent} onClick={(event) => event.stopPropagation()}>
+            <video
+              autoPlay
+              className={styles.lightboxVideo}
+              controls
+              playsInline
+              preload="metadata"
+              src={playing.mediaUrl}
+            />
+            <p className={styles.lightboxCaption}>{playing.title}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

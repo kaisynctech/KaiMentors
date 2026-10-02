@@ -11,12 +11,14 @@ export interface StudentAcademyContext {
   joinAcademyPath: string;
   portalId: string | null;
   portalSlug: string | null;
+  traderId: string | null;
   querySuffix: string;
   accessModel: "verification" | "subscription";
   studentPortalFeatures: Record<string, boolean>;
 }
 
 interface PortalAccessRow {
+  trader_id: string;
   access_model: "verification" | "subscription";
   student_portal_features: Record<string, boolean> | null;
 }
@@ -31,8 +33,16 @@ interface PortalAccessRow {
 async function getPortalAccess(
   portalId: string | null,
   portalSlug: string | null,
-): Promise<{ accessModel: "verification" | "subscription"; studentPortalFeatures: Record<string, boolean> }> {
-  const fallback = { accessModel: "verification" as const, studentPortalFeatures: {} };
+): Promise<{
+  accessModel: "verification" | "subscription";
+  studentPortalFeatures: Record<string, boolean>;
+  traderId: string | null;
+}> {
+  const fallback = {
+    accessModel: "verification" as const,
+    studentPortalFeatures: {},
+    traderId: null as string | null,
+  };
   if (!portalId && !portalSlug) return fallback;
 
   const supabase = await createClient();
@@ -40,7 +50,7 @@ async function getPortalAccess(
 
   let query = supabase
     .from("portals")
-    .select("access_model, student_portal_features")
+    .select("trader_id, access_model, student_portal_features")
     .abortSignal(AbortSignal.timeout(10000));
   query = portalId ? query.eq("id", portalId) : query.eq("slug", portalSlug as string);
 
@@ -51,6 +61,7 @@ async function getPortalAccess(
   return {
     accessModel: row.access_model,
     studentPortalFeatures: row.student_portal_features ?? {},
+    traderId: row.trader_id ?? null,
   };
 }
 
@@ -67,7 +78,7 @@ export async function getStudentAcademyContext(
     const resolution = await resolveWebsiteDomain(hostname);
     const portalId = resolution?.portal_id ?? null;
     const portalSlug = resolution?.portal_slug ?? null;
-    const { accessModel, studentPortalFeatures } = await getPortalAccess(
+    const { accessModel, studentPortalFeatures, traderId } = await getPortalAccess(
       portalId,
       portalSlug,
     );
@@ -76,6 +87,7 @@ export async function getStudentAcademyContext(
       joinAcademyPath: "/join-academy",
       portalId,
       portalSlug,
+      traderId: resolution?.trader_id ?? traderId,
       querySuffix: "",
       accessModel,
       studentPortalFeatures,
@@ -83,7 +95,7 @@ export async function getStudentAcademyContext(
   }
 
   const portalSlug = requestedPortalSlug?.trim() || null;
-  const { accessModel, studentPortalFeatures } = await getPortalAccess(
+  const { accessModel, studentPortalFeatures, traderId } = await getPortalAccess(
     null,
     portalSlug,
   );
@@ -94,6 +106,7 @@ export async function getStudentAcademyContext(
       : "/login",
     portalId: null,
     portalSlug,
+    traderId,
     querySuffix: portalSlug ? `?portal=${encodeURIComponent(portalSlug)}` : "",
     accessModel,
     studentPortalFeatures,

@@ -39,7 +39,7 @@ export default async function StudentResourcesPage({
   const ctx = await loadStudentSessionContext(supabase, user.id, academy);
   if (!ctx) redirect(joinAcademyPath);
 
-  const { application: app, portal, hasModuleAccess } = ctx;
+  const { application: app, portal, hasModuleAccess, isAcademyStaff } = ctx;
   const academyName = portal.portal_name;
   const displayName = ctx.fullName?.trim() || user.email?.split("@")[0] || "Student";
   const traderId = app.trader_id;
@@ -61,7 +61,7 @@ export default async function StudentResourcesPage({
     );
   }
 
-  if (!hasModuleAccess) {
+  if (!hasModuleAccess && !isAcademyStaff && app.status === "rejected") {
     return (
       <Shell>
         <div style={{ padding: "36px 40px 60px", maxWidth: 900 }}>
@@ -78,15 +78,11 @@ export default async function StudentResourcesPage({
     );
   }
 
-  // hasModuleAccess === true is already guaranteed here (the block above returns early
-  // otherwise), and the "students_select_resource_items" RLS policy independently enforces
-  // this exact access_scope logic for this session-scoped client either way — this filter
-  // is a harmless, forward-compatible no-op today, kept in sync with the brief's intent in
-  // case that early-return gate is ever loosened.
   let resourceQuery = supabase
     .from("resource_items")
     .select("id,title,description,type,storage_path,external_url,thumbnail_path,labels,access_scope")
     .eq("trader_id", traderId)
+    .eq("status", "published")
     .order("sort_order")
     .order("created_at", { ascending: false });
   if (!hasModuleAccess) {

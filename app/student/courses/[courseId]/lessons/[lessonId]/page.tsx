@@ -99,7 +99,7 @@ export default async function LessonPage({
   const lessonModule = Array.isArray(lesson.module) ? lesson.module[0] : lesson.module;
 
   // ── Sequential gate check ────────────────────────────────────────────────────
-  if (lessonModule?.requires_previous_completion) {
+  if (!ctx.isAcademyStaff && lessonModule?.requires_previous_completion) {
     const { data: prevMod } = await supabase
       .from("course_modules")
       .select("id")

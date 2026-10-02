@@ -184,8 +184,9 @@ test("a mentor of one academy can join another academy as a student", async () =
   assert.match(middleware, /academyTraderId/);
   assert.match(middleware, /studentApp \? "\/academy" : "\/join-academy"/);
   assert.match(verify, /profile\.role !== "student" && profile\.role !== "trader"/);
-  assert.match(studentPage, /if \(membership\) redirect\("\/dashboard"\)/);
-  assert.match(studentPage, /\.eq\("trader_id", academyTraderId\)/);
+  assert.match(studentPage, /is_trader_member/);
+  assert.match(studentPage, /if \(isStaff\) redirect\("\/dashboard"\)/);
+  assert.match(studentPage, /academy\.traderId/);
 });
 
 test("KaiTrades package has independent assets and no client-specific content", async () => {
