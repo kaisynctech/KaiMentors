@@ -321,7 +321,7 @@
       </div>
       <div class="plan reveal delay-2">
         <div class="plan-name">Studio</div>
-        <div class="plan-price">R250<span>/month</span></div>
+        <div class="plan-price">R249<span>/month</span></div>
         <p class="plan-tagline">Build with feedback</p>
         <ul class="plan-features">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Everything in Scholar</li>
@@ -686,7 +686,7 @@
     if (current >= QUESTIONS.length) {
       var score = answers.reduce(function(s,a){ return s+a; }, 0);
       var plan = score <= 3 ? 'Library' : score <= 6 ? 'Scholar' : 'Studio';
-      var price = plan === 'Library' ? 'R99' : plan === 'Scholar' ? 'R149' : 'R250';
+      var price = plan === 'Library' ? 'R99' : plan === 'Scholar' ? 'R149' : 'R249';
       container.innerHTML = '<div class="quiz-result"><div class="quiz-result-plan">We recommend: <strong>' + plan + '</strong></div><div class="quiz-result-price">' + price + '/month</div><p class="quiz-result-note">Based on your answers, ' + plan + ' is the best fit to get started. You can always upgrade as you grow.</p><a class="btn primary" href="signup.html" style="margin-top:16px;">Start ' + plan + ' →</a><button class="btn ghost" id="quiz-restart" style="margin-top:8px;margin-left:8px;">Retake quiz</button></div>';
       document.getElementById('quiz-restart').addEventListener('click', function(){ answers=[]; current=0; render(); });
       return;

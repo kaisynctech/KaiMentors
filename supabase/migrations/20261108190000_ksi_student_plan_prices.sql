@@ -1,4 +1,4 @@
--- KSI student plans: Library R99, Scholar R149, Studio R250.
+-- KSI student plans: Library R99, Scholar R149, Studio R249.
 -- Zero live student_subscriptions rows at apply time, so plan_id values can change.
 
 alter table public.student_subscriptions
@@ -42,7 +42,7 @@ from (
       'Studio',
       'studio',
       'Everything in Scholar plus two live labs and three project clinic reports each month.',
-      25000,
+      24900,
       '{"courses": true, "ai_tools": true, "community": true, "resources": true, "live_classes": true, "live_seats_per_month": 2, "clinic_reports_per_month": 3}'::jsonb,
       3
     )

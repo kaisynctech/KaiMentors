@@ -35,8 +35,8 @@ export const SUBSCRIPTION_PLANS = [
   {
     id: "studio" as const,
     label: "Studio",
-    amountZAR: 250,
-    amountCents: 25000,
+    amountZAR: 249,
+    amountCents: 24900,
     description: "Everything in Scholar plus two live labs and three project clinic reports each month.",
     features: [
       "Everything in Scholar",
