@@ -917,4 +917,19 @@ p { margin: 0; line-height: 1.6; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .ksi-footer-cols { grid-template-columns: 1fr; }
   .social-strip-inner { flex-direction: column; align-items: flex-start; }
+  .stats-band-inner { flex-wrap: wrap; }
+  .stat-divider { display: none; }
 }
+
+/* Stats band (also in styles-additions.css for static preview) */
+.stats-band { background: var(--surface); border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.stats-band-inner { max-width: 1000px; margin: 0 auto; padding: 40px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.stat-item { text-align: center; flex: 1; }
+.stat-num { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: var(--cyan); line-height: 1; }
+.stat-prefix,
+.stat-suffix { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: var(--cyan); vertical-align: baseline; }
+.stat-label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.02em; }
+.stat-divider { width: 1px; height: 48px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+[data-theme="light"] .stats-band { background: linear-gradient(135deg, #E8EAF8, #F0F1FB); border-color: rgba(13,13,43,0.07); }
+[data-theme="light"] .stat-label { color: #5A5A80; }
+[data-theme="light"] .stat-divider { background: rgba(13,13,43,0.08); }

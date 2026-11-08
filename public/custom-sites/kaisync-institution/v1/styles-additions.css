@@ -4,7 +4,8 @@
 .stats-band-inner { max-width: 1000px; margin: 0 auto; padding: 40px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .stat-item { text-align: center; flex: 1; }
 .stat-num { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: var(--cyan); line-height: 1; }
-.stat-suffix { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: var(--cyan); }
+.stat-prefix,
+.stat-suffix { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: var(--cyan); vertical-align: baseline; }
 .stat-label { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 6px; letter-spacing: 0.02em; }
 .stat-divider { width: 1px; height: 48px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
 

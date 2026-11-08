@@ -140,12 +140,12 @@
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item reveal delay-2">
-      <span class="stat-num" data-count="99">0</span><span class="stat-suffix">R</span>
+      <span class="stat-prefix">R</span><span class="stat-num" data-count="99">0</span>
       <span class="stat-label">Library starts at</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item reveal delay-3">
-      <span class="stat-num" data-count="300">0</span><span class="stat-suffix">+</span>
+      <span class="stat-num" data-count="100">0</span><span class="stat-suffix">+</span>
       <span class="stat-label">Projects sold</span>
     </div>
   </div>
@@ -555,28 +555,6 @@
 </script>
 
 <script>
-/* ── Count-up animations ── */
-(function(){
-  function countUp(el, target, duration) {
-    var start = 0, step = target / (duration / 16);
-    var timer = setInterval(function(){
-      start += step;
-      if (start >= target) { start = target; clearInterval(timer); }
-      el.textContent = Math.floor(start).toLocaleString();
-    }, 16);
-  }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if (!e.isIntersecting) return;
-      var el = e.target;
-      var target = parseInt(el.dataset.count, 10);
-      countUp(el, target, 1200);
-      io.unobserve(el);
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll('[data-count]').forEach(function(el){ io.observe(el); });
-})();
-
 /* ── Sticky CTA bar ── */
 (function(){
   var bar = document.getElementById('sticky-cta');
