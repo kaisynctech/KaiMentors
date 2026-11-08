@@ -130,8 +130,10 @@ test("KSI student plans are Library R99, Scholar R149, and Studio R249", async (
   assert.match(plans, /amountZAR: 149/);
   assert.match(plans, /id: "studio"/);
   assert.match(plans, /amountZAR: 249/);
-  assert.match(plans, /liveSeatsPerMonth: 2/);
-  assert.match(plans, /clinicReportsPerMonth: 3/);
+  assert.match(plans, /freeOneToOnePerMonth: 1/);
+  assert.match(plans, /oneToOnePriceZAR: 49/);
+  assert.match(plans, /sundayBusinessSeminar: true/);
+  assert.match(plans, /2 AI seminars a week/);
   assert.doesNotMatch(plans, /id: "basic"/);
   assert.match(subscribe, /PLAN_IDS/);
   assert.match(pricing, /R99/);
@@ -143,6 +145,11 @@ test("KSI student plans are Library R99, Scholar R149, and Studio R249", async (
   assert.doesNotMatch(pricing, /countdown/);
   assert.match(pricing, /All five recorded courses/);
   assert.match(pricing, /builder keeps 90%/);
+  assert.match(pricing, /2 AI seminars a week/);
+  assert.match(pricing, /Sunday business seminar/);
+  assert.match(pricing, /R49 \/ 45 min/);
+  assert.doesNotMatch(pricing, /live lab/);
+  assert.doesNotMatch(pricing, /clinic/);
 });
 
 test("KaiSync Institution public site describes the open catalog", async () => {
