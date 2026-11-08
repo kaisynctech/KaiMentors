@@ -148,6 +148,8 @@ test("KSI student plans are Library R99, Scholar R149, and Studio R249", async (
   assert.match(pricing, /2 AI seminars a week/);
   assert.match(pricing, /Sunday business seminar/);
   assert.match(pricing, /R49 \/ 45 min/);
+  assert.match(pricing, /one on one session/);
+  assert.doesNotMatch(pricing, /1:1/);
   assert.doesNotMatch(pricing, /live lab/);
   assert.doesNotMatch(pricing, /clinic/);
 });

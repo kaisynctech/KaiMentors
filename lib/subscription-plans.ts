@@ -7,13 +7,13 @@ export const SUBSCRIPTION_PLANS = [
     amountZAR: 99,
     amountCents: 9900,
     description:
-      "All recorded courses, two AI seminars a week, AI tools, and community. Extra 1:1 is R49 per 45 minutes.",
+      "All recorded courses, two AI seminars a week, AI tools, and community. Extra one on one sessions are R49 per 45 minutes.",
     features: [
       "Full access to all recorded courses",
       "2 AI seminars a week",
       "AI Tools directory",
       "Community and resources",
-      "1:1 at R49 / 45 min — submit your problem when you book",
+      "One on one session at R49 / 45 min — submit your problem when you book",
     ],
     freeOneToOnePerMonth: 0,
     oneToOnePriceZAR: 49,
@@ -41,12 +41,12 @@ export const SUBSCRIPTION_PLANS = [
     amountZAR: 249,
     amountCents: 24900,
     description:
-      "Everything in Scholar plus the Sunday business seminar, one free 45-minute 1:1 each month, and eligibility for the public showcase.",
+      "Everything in Scholar plus the Sunday business seminar, one free 45-minute one on one session each month, and eligibility for the public showcase.",
     features: [
       "Everything in Scholar",
       "Sunday business seminar",
-      "1 free 45-min 1:1 per month",
-      "Extra 1:1 at R49 / 45 min",
+      "1 free 45-min one on one session per month",
+      "Extra one on one session at R49 / 45 min",
       "Eligible for the public showcase — up to 2 featured projects a month",
     ],
     freeOneToOnePerMonth: 1,
