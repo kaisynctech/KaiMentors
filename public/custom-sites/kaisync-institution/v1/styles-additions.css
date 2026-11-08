@@ -138,6 +138,18 @@
 }
 [data-theme="light"] .ksi-nav a { color: #2D2D50; }
 [data-theme="light"] .ksi-nav a:hover { color: #0097B2; }
+[data-theme="light"] .nav-dropdown-toggle { color: #2D2D50; }
+[data-theme="light"] .nav-dropdown-toggle:hover,
+[data-theme="light"] .nav-dropdown.is-open > .nav-dropdown-toggle,
+[data-theme="light"] .nav-dropdown.is-current > .nav-dropdown-toggle { color: #0097B2; }
+[data-theme="light"] .nav-dropdown-menu {
+  background: #fff;
+  border-color: rgba(13,13,43,0.1);
+  box-shadow: 0 16px 36px rgba(13,13,43,0.12);
+}
+[data-theme="light"] .listing-switch a { border-color: rgba(13,13,43,0.18); color: #2D2D50; }
+[data-theme="light"] .listing-switch a:hover { border-color: #0097B2; color: #0097B2; }
+[data-theme="light"] .listing-switch a.is-active { background: #0097B2; border-color: #0097B2; color: #fff; }
 [data-theme="light"] .brand-name { color: #0D0D2B; }
 
 /* Hero copy side */

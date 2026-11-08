@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sub projects | KaiSync Institution</title>
+<meta name="description" content="In-progress KaiSync Institution projects you can view and enquire to buy — they still need to be finished off.">
+<link href="styles.css" rel="stylesheet">
+<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
+<link href="styles-additions.css" rel="stylesheet">
+<style>
+.projects-hero { padding: 7rem 0 3rem; text-align: center; }
+.projects-hero h1 { margin-bottom: 0.5rem; }
+.projects-hero .lead { max-width: 560px; margin: 0 auto 1.5rem; }
+.filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem; }
+.filter-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--text, #fff);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn:hover { border-color: var(--cyan, #00C4D8); color: var(--cyan, #00C4D8); }
+.filter-btn.active { background: var(--cyan, #00C4D8); border-color: var(--cyan, #00C4D8); color: #000; font-weight: 600; }
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.project-card {
+  background: var(--surface, #0E1630);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.project-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); border-color: rgba(0,196,216,0.35); }
+.project-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+  background: linear-gradient(135deg, rgba(0,196,216,0.15), rgba(109,40,217,0.15));
+}
+.project-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, rgba(0,196,216,0.12), rgba(109,40,217,0.12));
+}
+.project-body { padding: 1.1rem 1.25rem 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+.project-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.project-cat { font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(0,196,216,0.12); color: var(--cyan, #00C4D8); border: 1px solid rgba(0,196,216,0.2); }
+.project-featured { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.project-title { font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: var(--text, #fff); margin: 0; }
+.project-student { font-size: 0.82rem; color: var(--muted, #8899AA); }
+.project-desc { font-size: 0.86rem; color: var(--muted, #8899AA); line-height: 1.5; flex: 1; margin: 0; }
+.project-tools { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.project-tool { font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; background: var(--surface-2, #151F3A); color: var(--muted, #8899AA); border: 1px solid rgba(255,255,255,0.06); }
+.project-links { display: flex; gap: 0.75rem; margin-top: auto; }
+.project-link-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: var(--text, #fff);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: block;
+}
+.project-link-btn.primary { background: var(--cyan, #00C4D8); border-color: var(--cyan, #00C4D8); color: #000; }
+.project-link-btn:hover:not(.primary) { border-color: rgba(255,255,255,0.35); }
+.projects-empty { text-align: center; padding: 4rem 1rem; color: var(--muted, #8899AA); }
+.projects-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.projects-count { text-align: center; color: var(--muted, #8899AA); font-size: 0.88rem; margin-bottom: 1.25rem; }
+.skeleton { background: linear-gradient(90deg, var(--surface, #0E1630) 25%, rgba(255,255,255,0.04) 50%, var(--surface, #0E1630) 75%); background-size: 200%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+[data-theme="light"] .filter-btn { border-color: rgba(13,13,43,0.18); color: #2D2D50; }
+[data-theme="light"] .filter-btn:hover { border-color: #0097B2; color: #0097B2; }
+[data-theme="light"] .filter-btn.active { background: #0097B2; border-color: #0097B2; color: #fff; }
+[data-theme="light"] .project-card { background: #fff; border-color: rgba(13,13,43,0.08); }
+[data-theme="light"] .project-card:hover { box-shadow: 0 8px 24px rgba(13,13,43,0.12); border-color: rgba(0,151,178,0.35); }
+[data-theme="light"] .project-title { color: #0D0D2B; }
+[data-theme="light"] .project-student, [data-theme="light"] .project-desc { color: #5A5A80; }
+[data-theme="light"] .project-tool { background: #F0F1FB; color: #5A5A80; border-color: rgba(13,13,43,0.06); }
+[data-theme="light"] .project-cat { background: rgba(0,151,178,0.08); color: #0097B2; border-color: rgba(0,151,178,0.2); }
+[data-theme="light"] .project-thumb-placeholder { background: linear-gradient(135deg, rgba(0,151,178,0.1), rgba(109,40,217,0.1)); }
+[data-theme="light"] .project-link-btn { border-color: rgba(13,13,43,0.15); color: #0D0D2B; }
+[data-theme="light"] .project-link-btn.primary { color: #fff; }
+</style>
+</head>
+<body data-project-kind="sub">
+
+<header class="ksi-header" data-header>
+  <a class="brand" href="index.html" aria-label="KaiSync Institution home">
+    <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96">
+    <span class="brand-name">KaiSync Institution</span>
+  </a>
+  <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="ksi-nav" data-nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="courses.html">Courses</a>
+    <a href="tools.html">AI Tools</a>
+    <div class="nav-dropdown is-current" data-dropdown>
+      <button type="button" class="nav-dropdown-toggle" data-dropdown-toggle aria-expanded="false" aria-haspopup="true">Projects <span class="nav-caret" aria-hidden="true">▾</span></button>
+      <div class="nav-dropdown-menu" data-dropdown-menu>
+        <a href="projects.html">Main projects</a>
+        <a href="sub-projects.html" aria-current="page">Sub projects</a>
+      </div>
+    </div>
+    <a href="refer.html">Refer a friend</a>
+    <a href="pricing.html">Pricing</a>
+    <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
+    <a class="nav-login" href="login.html">Login</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+  </nav>
+</header>
+
+<section class="projects-hero">
+  <div class="wrap reveal">
+    <p class="eyebrow">Sub projects</p>
+    <h1>Work in progress. You can still enquire.</h1>
+    <p class="lead">These builds are not finished yet. You can view them and enquire to buy — they still need to be finished off before they ship. If a company buys, the builder keeps 90% and the academy keeps 10%.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="wrap">
+    <div class="listing-switch">
+      <a href="projects.html">Main projects</a>
+      <a class="is-active" href="sub-projects.html">Sub projects</a>
+    </div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="web-app">Website</button>
+      <button class="filter-btn" data-cat="automation">Automation</button>
+      <button class="filter-btn" data-cat="mobile-app">Applications</button>
+      <button class="filter-btn" data-cat="other">Other</button>
+    </div>
+    <p class="projects-count" id="projects-count"></p>
+    <div class="projects-grid" id="projects-grid" data-project-kind="sub">
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+      <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section cta-section">
+  <div class="cta reveal">
+    <p class="eyebrow" style="justify-content:center;">Your turn</p>
+    <h2>Want a finished build instead?</h2>
+    <p>Main projects are the ones KaiSync Institution is definitely selling. Sub projects are still being finished off.</p>
+    <div class="btn-row" style="justify-content:center;">
+      <a class="btn primary" href="projects.html">See main projects</a>
+      <a class="btn ghost" href="signup.html">Enrol Now</a>
+    </div>
+  </div>
+</section>
+
+<footer class="ksi-footer">
+  <div class="ksi-footer-wrap">
+    <div class="ksi-footer-brand">
+      <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96">
+      <p>Learn AI. Build Products. Change Your Future.</p>
+    </div>
+    <div class="ksi-footer-cols">
+      <div>
+        <h4>Platform</h4>
+        <a href="about.html">About</a>
+        <a href="courses.html">Courses</a>
+        <a href="tools.html">AI Tools</a>
+        <a href="projects.html">Main projects</a>
+        <a href="sub-projects.html">Sub projects</a>
+        <a href="refer.html">Refer a friend</a>
+        <a href="pricing.html">Pricing</a>
+      </div>
+      <div>
+        <h4>Enrol</h4>
+        <a href="signup.html">Get started</a>
+        <a href="login.html">Student login</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#" data-footer-whatsapp>WhatsApp</a>
+        <a href="#" data-footer-instagram>Instagram</a>
+        <a href="#" data-footer-tiktok>TikTok</a>
+        <a href="#" data-footer-discord>Discord</a>
+      </div>
+    </div>
+  </div>
+  <div class="ksi-footer-bar">
+    <span>© 2026 KaiSync Institution. All rights reserved.</span>
+    <span>AI education for the next generation of builders.</span>
+  </div>
+</footer>
+
+<link href="styles-additions.css" rel="stylesheet">
+<script src="app.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById("theme-toggle");
+  var t = localStorage.getItem("ksi-theme") || "dark";
+  if (btn) { btn.textContent = t === "dark" ? "🌙" : "☀️"; }
+  if (btn) btn.addEventListener("click", function(){
+    var n = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", n);
+    btn.textContent = n === "dark" ? "🌙" : "☀️";
+    localStorage.setItem("ksi-theme", n);
+  });
+})();
+</script>
+</body>
+</html>

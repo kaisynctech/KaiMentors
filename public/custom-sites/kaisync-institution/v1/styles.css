@@ -213,6 +213,82 @@ p { margin: 0; line-height: 1.6; }
 .ksi-nav a.nav-cta { color: #fff; }
 .ksi-nav a.nav-login { color: var(--text-muted); }
 
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.nav-dropdown-toggle:hover,
+.nav-dropdown.is-open > .nav-dropdown-toggle,
+.nav-dropdown.is-current > .nav-dropdown-toggle {
+  color: var(--cyan);
+}
+.nav-caret {
+  display: inline-block;
+  font-size: 0.7em;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+.nav-dropdown.is-open .nav-caret { transform: rotate(180deg); }
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 210px;
+  padding: 8px;
+  background: #0F0F18;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+  z-index: 120;
+}
+.nav-dropdown.is-open .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a[aria-current="page"] {
+  background: rgba(0,196,216,0.1);
+  color: var(--cyan);
+}
+
+.listing-switch {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 auto 2rem;
+}
+.listing-switch a {
+  padding: 0.45rem 1.15rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.listing-switch a:hover { border-color: var(--cyan); color: var(--cyan); }
+.listing-switch a.is-active {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #000;
+}
+
 .nav-toggle {
   display: none;
   flex-direction: column;
@@ -822,6 +898,21 @@ p { margin: 0; line-height: 1.6; }
   .ksi-nav.is-open { transform: none; opacity: 1; pointer-events: auto; }
   .ksi-nav a { padding: 10px 10px; border-radius: 8px; }
   .ksi-nav a.nav-cta { text-align: center; }
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  .nav-dropdown-menu {
+    position: static;
+    left: auto;
+    transform: none;
+    min-width: 0;
+    margin: 0 0 6px;
+    box-shadow: none;
+  }
   .grid-3 { grid-template-columns: 1fr; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .ksi-footer-cols { grid-template-columns: 1fr; }

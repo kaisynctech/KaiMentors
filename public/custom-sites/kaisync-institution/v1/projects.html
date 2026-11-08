@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Student Projects | KaiSync Institution</title>
-<meta name="description" content="Studio showcase at KaiSync Institution — up to two student projects featured a month. Companies can enquire. Builder 90%, academy 10%.">
+<title>Main projects | KaiSync Institution</title>
+<meta name="description" content="Finished KaiSync Institution projects for sale. Companies can enquire. Builder 90%, academy 10%.">
 <link href="styles.css" rel="stylesheet">
 <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
 <link href="styles-additions.css" rel="stylesheet">
@@ -118,7 +118,7 @@
 [data-theme="light"] .project-link-btn.primary { color: #fff; }
 </style>
 </head>
-<body>
+<body data-project-kind="main">
 
 <header class="ksi-header" data-header>
   <a class="brand" href="index.html" aria-label="KaiSync Institution home">
@@ -133,7 +133,14 @@
     <a href="about.html">About</a>
     <a href="courses.html">Courses</a>
     <a href="tools.html">AI Tools</a>
-    <a href="projects.html" aria-current="page">Projects</a>
+    <div class="nav-dropdown is-current" data-dropdown>
+      <button type="button" class="nav-dropdown-toggle" data-dropdown-toggle aria-expanded="false" aria-haspopup="true">Projects <span class="nav-caret" aria-hidden="true">▾</span></button>
+      <div class="nav-dropdown-menu" data-dropdown-menu>
+        <a href="projects.html" aria-current="page">Main projects</a>
+        <a href="sub-projects.html">Sub projects</a>
+      </div>
+    </div>
+    <a href="refer.html">Refer a friend</a>
     <a href="pricing.html">Pricing</a>
     <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
     <a class="nav-login" href="login.html">Login</a>
@@ -143,14 +150,18 @@
 
 <section class="projects-hero">
   <div class="wrap reveal">
-    <p class="eyebrow">Studio showcase</p>
-    <h1>Featured work from Studio students.</h1>
-    <p class="lead">KaiSync Institution features up to two Studio projects a month. Companies can enquire from this page. If they buy, the builder keeps 90% and the academy keeps 10%.</p>
+    <p class="eyebrow">Main projects</p>
+    <h1>Finished work. Ready to sell.</h1>
+    <p class="lead">These are the KaiSync Institution projects we are definitely selling. Companies can enquire from this page. If they buy, the builder keeps 90% and the academy keeps 10%.</p>
   </div>
 </section>
 
 <section class="section" style="padding-top:0;">
   <div class="wrap">
+    <div class="listing-switch">
+      <a class="is-active" href="projects.html">Main projects</a>
+      <a href="sub-projects.html">Sub projects</a>
+    </div>
     <!-- Filter bar -->
     <div class="filter-bar" id="filter-bar">
       <button class="filter-btn active" data-cat="all">All</button>
@@ -163,7 +174,7 @@
     <p class="projects-count" id="projects-count"></p>
 
     <!-- Projects grid -->
-    <div class="projects-grid" id="projects-grid">
+    <div class="projects-grid" id="projects-grid" data-project-kind="main">
       <!-- Loading skeletons -->
       <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
       <div class="project-card"><div class="skeleton" style="aspect-ratio:16/9;"></div><div class="project-body"><div class="skeleton" style="height:14px;width:60%;border-radius:4px;"></div><div class="skeleton" style="height:20px;width:90%;border-radius:4px;margin-top:6px;"></div><div class="skeleton" style="height:40px;width:100%;border-radius:4px;margin-top:6px;"></div></div></div>
@@ -176,7 +187,7 @@
   <div class="cta reveal">
     <p class="eyebrow" style="justify-content:center;">Your turn</p>
     <h2>Build something that matters.</h2>
-    <p>Studio (R249) is the plan that can be featured here. Library and Scholar still include the full catalog.</p>
+    <p>Studio (R249) students can have finished work listed here for sale. Sub projects are the builds that still need to be finished off.</p>
     <div class="btn-row" style="justify-content:center;">
       <a class="btn primary" href="signup.html">Enrol Now</a>
       <a class="btn ghost" href="courses.html">See the courses</a>
@@ -196,7 +207,9 @@
         <a href="about.html">About</a>
         <a href="courses.html">Courses</a>
         <a href="tools.html">AI Tools</a>
-        <a href="projects.html">Projects</a>
+        <a href="projects.html">Main projects</a>
+        <a href="sub-projects.html">Sub projects</a>
+        <a href="refer.html">Refer a friend</a>
         <a href="pricing.html">Pricing</a>
       </div>
       <div>
@@ -221,9 +234,7 @@
 
 <link href="styles-additions.css" rel="stylesheet">
 <script src="app.js"></script>
-
 <script>
-/* ── Theme toggle ── */
 (function(){
   var btn = document.getElementById("theme-toggle");
   var t = localStorage.getItem("ksi-theme") || "dark";
@@ -233,84 +244,6 @@
     document.documentElement.setAttribute("data-theme", n);
     btn.textContent = n === "dark" ? "🌙" : "☀️";
     localStorage.setItem("ksi-theme", n);
-  });
-})();
-
-/* ── Projects: fetch from Supabase & render ── */
-(function(){
-  var CATEGORY_LABELS = { "web-app": "Web App", "ai-agent": "AI Agent", "automation": "Automation", "mobile-app": "Mobile App", "other": "Other" };
-  var CATEGORY_ICONS = { "web-app": "🌐", "ai-agent": "🤖", "automation": "⚡", "mobile-app": "📱", "other": "🛠️" };
-
-  var allProjects = [];
-  var activeFilter = "all";
-
-  function catLabel(v) { return CATEGORY_LABELS[v] || v; }
-  function catIcon(v) { return CATEGORY_ICONS[v] || "🛠️"; }
-
-  function renderProjects(projects) {
-    var grid = document.getElementById("projects-grid");
-    var count = document.getElementById("projects-count");
-    if (!projects.length) {
-      grid.innerHTML = '<div class="projects-empty"><div class="empty-icon">🚧</div><p>No Studio projects in this category yet. Up to two are featured each month — check back soon.</p></div>';
-      count.textContent = "";
-      return;
-    }
-    count.textContent = projects.length + " project" + (projects.length !== 1 ? "s" : "");
-    grid.innerHTML = projects.map(function(p) {
-      var thumb = p.thumbnail_url
-        ? '<img class="project-thumb" src="' + p.thumbnail_url + '" alt="' + esc(p.title) + '" loading="lazy">'
-        : '<div class="project-thumb-placeholder">' + catIcon(p.category) + '</div>';
-      var tools = (p.tools || []).map(function(t){ return '<span class="project-tool">' + esc(t) + '</span>'; }).join("");
-      var links = "";
-      if (p.live_url) links += '<a class="project-link-btn primary" href="' + esc(p.live_url) + '" target="_blank" rel="noopener">View project ↗</a>';
-      if (p.github_url) links += '<a class="project-link-btn" href="' + esc(p.github_url) + '" target="_blank" rel="noopener">GitHub ↗</a>';
-      return [
-        '<div class="project-card reveal">',
-          thumb,
-          '<div class="project-body">',
-            '<div class="project-meta">',
-              '<span class="project-cat">' + catLabel(p.category) + '</span>',
-              (p.featured ? '<span class="project-featured">⭐ Featured</span>' : ""),
-            '</div>',
-            '<h3 class="project-title">' + esc(p.title) + '</h3>',
-            '<div class="project-student">by ' + esc(p.student_name) + '</div>',
-            (p.description ? '<p class="project-desc">' + esc(p.description) + '</p>' : ""),
-            (tools ? '<div class="project-tools">' + tools + '</div>' : ""),
-            (links ? '<div class="project-links">' + links + '</div>' : ""),
-          '</div>',
-        '</div>'
-      ].join("");
-    }).join("");
-  }
-
-  function applyFilter() {
-    var filtered = activeFilter === "all" ? allProjects : allProjects.filter(function(p){ return p.category === activeFilter; });
-    // Featured first, then by date
-    filtered = filtered.slice().sort(function(a,b){ return (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || new Date(b.created_at) - new Date(a.created_at); });
-    renderProjects(filtered);
-  }
-
-  function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
-
-  // Fetch
-  fetch("/api/public/student-projects?portal=kaisync-institution")
-  .then(function(r){ return r.json(); })
-  .then(function(data) {
-    allProjects = data;
-    applyFilter();
-  })
-  .catch(function() {
-    document.getElementById("projects-grid").innerHTML = '<div class="projects-empty"><p>Could not load projects. Please try again later.</p></div>';
-  });
-
-  // Filter buttons
-  document.getElementById("filter-bar").addEventListener("click", function(e){
-    var btn = e.target.closest(".filter-btn");
-    if (!btn) return;
-    document.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.remove("active"); });
-    btn.classList.add("active");
-    activeFilter = btn.dataset.cat;
-    applyFilter();
   });
 })();
 </script>

@@ -165,6 +165,25 @@ test("KaiSync Institution public site describes the open catalog", async () => {
   assert.match(about, /Studio showcase/);
 });
 
+test("KaiSync Institution nav has Projects dropdown and Refer a friend", async () => {
+  const index = await read("public", "custom-sites", "kaisync-institution", "v1", "index.html");
+  const main = await read("public", "custom-sites", "kaisync-institution", "v1", "projects.html");
+  const sub = await read("public", "custom-sites", "kaisync-institution", "v1", "sub-projects.html");
+  const refer = await read("public", "custom-sites", "kaisync-institution", "v1", "refer.html");
+  const appJs = await read("public", "custom-sites", "kaisync-institution", "v1", "app.js");
+  assert.match(index, /nav-dropdown/);
+  assert.match(index, /Main projects/);
+  assert.match(index, /Sub projects/);
+  assert.match(index, /Refer a friend/);
+  assert.match(main, /data-project-kind="main"/);
+  assert.match(main, /Finished work. Ready to sell/);
+  assert.match(sub, /data-project-kind="sub"/);
+  assert.match(sub, /still need to be finished off/);
+  assert.match(refer, /Refer a client/);
+  assert.match(appJs, /data-dropdown-toggle/);
+  assert.match(appJs, /Enquire to buy/);
+});
+
 test("mentors can play academy videos without student verification and students can see published resources", async () => {
   const session = await read("lib", "student-access-server.ts");
   const resources = await read("app", "student", "resources", "page.tsx");

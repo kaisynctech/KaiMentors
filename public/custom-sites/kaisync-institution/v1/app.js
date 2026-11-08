@@ -30,15 +30,43 @@
       link.addEventListener("click", () => {
         nav.classList.remove("is-open");
         navToggle.setAttribute("aria-expanded", "false");
+        closeAllDropdowns();
       });
     });
     document.addEventListener("click", (event) => {
       if (!nav.contains(event.target) && !navToggle.contains(event.target)) {
         nav.classList.remove("is-open");
         navToggle.setAttribute("aria-expanded", "false");
+        closeAllDropdowns();
       }
     });
   }
+
+  function closeAllDropdowns(except) {
+    document.querySelectorAll("[data-dropdown].is-open").forEach((drop) => {
+      if (drop === except) return;
+      drop.classList.remove("is-open");
+      const t = drop.querySelector("[data-dropdown-toggle]");
+      if (t) t.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  document.querySelectorAll("[data-dropdown]").forEach((drop) => {
+    const toggle = drop.querySelector("[data-dropdown-toggle]");
+    if (!toggle) return;
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = !drop.classList.contains("is-open");
+      closeAllDropdowns(willOpen ? drop : null);
+      drop.classList.toggle("is-open", willOpen);
+      toggle.setAttribute("aria-expanded", String(willOpen));
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    closeAllDropdowns();
+  });
 
   // 2. Scroll header state
   const header = document.querySelector("[data-header]");
@@ -67,3 +95,151 @@
     revealEls.forEach((el) => el.classList.add("is-visible"));
   }
 })();
+
+(function () {
+  "use strict";
+  var grid = document.getElementById("projects-grid");
+  if (!grid) return;
+
+  var KIND =
+    grid.getAttribute("data-project-kind") ||
+    document.body.getAttribute("data-project-kind") ||
+    "main";
+  var EMPTY =
+    KIND === "main"
+      ? "No finished projects for sale yet. When a project is ready to sell, it will appear here."
+      : "No in-progress projects to view yet. Sub projects are work you can enquire about before they are finished.";
+  var BADGE = KIND === "main" ? "For sale" : "In progress";
+  var CATEGORY_LABELS = {
+    "web-app": "Website",
+    "ai-agent": "AI Agent",
+    automation: "Automation",
+    "mobile-app": "Applications",
+    other: "Other",
+  };
+  var CATEGORY_ICONS = {
+    "web-app": "🌐",
+    "ai-agent": "🤖",
+    automation: "⚡",
+    "mobile-app": "📱",
+    other: "🛠️",
+  };
+  var allProjects = [];
+  var activeFilter = "all";
+
+  function catLabel(v) {
+    return CATEGORY_LABELS[v] || v;
+  }
+  function catIcon(v) {
+    return CATEGORY_ICONS[v] || "🛠️";
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function enquireHref(title) {
+    return (
+      "mailto:kaisynctech@gmail.com?subject=" +
+      encodeURIComponent("KaiSync Institution project: " + title)
+    );
+  }
+
+  function renderProjects(projects) {
+    var count = document.getElementById("projects-count");
+    if (!projects.length) {
+      grid.innerHTML =
+        '<div class="projects-empty"><div class="empty-icon">🚧</div><p>' + EMPTY + "</p></div>";
+      if (count) count.textContent = "";
+      return;
+    }
+    if (count) {
+      count.textContent = projects.length + " project" + (projects.length !== 1 ? "s" : "");
+    }
+    grid.innerHTML = projects
+      .map(function (p) {
+        var thumb = p.thumbnail_url
+          ? '<img class="project-thumb" src="' +
+            p.thumbnail_url +
+            '" alt="' +
+            esc(p.title) +
+            '" loading="lazy">'
+          : '<div class="project-thumb-placeholder">' + catIcon(p.category) + "</div>";
+        var tools = (p.tools || [])
+          .map(function (t) {
+            return '<span class="project-tool">' + esc(t) + "</span>";
+          })
+          .join("");
+        var links =
+          '<a class="project-link-btn primary" href="' +
+          enquireHref(p.title) +
+          '">' +
+          (KIND === "main" ? "Enquire to buy" : "Enquire about this build") +
+          "</a>";
+        if (p.live_url) {
+          links +=
+            '<a class="project-link-btn" href="' +
+            esc(p.live_url) +
+            '" target="_blank" rel="noopener">View ↗</a>';
+        }
+        return [
+          '<div class="project-card reveal is-visible">',
+          thumb,
+          '<div class="project-body">',
+          '<div class="project-meta">',
+          '<span class="project-cat">' + catLabel(p.category) + "</span>",
+          '<span class="project-featured">' + BADGE + "</span>",
+          "</div>",
+          '<h3 class="project-title">' + esc(p.title) + "</h3>",
+          '<div class="project-student">by ' + esc(p.student_name) + "</div>",
+          p.description ? '<p class="project-desc">' + esc(p.description) + "</p>" : "",
+          tools ? '<div class="project-tools">' + tools + "</div>" : "",
+          '<div class="project-links">' + links + "</div>",
+          "</div>",
+          "</div>",
+        ].join("");
+      })
+      .join("");
+  }
+
+  function applyFilter() {
+    var filtered =
+      activeFilter === "all"
+        ? allProjects
+        : allProjects.filter(function (p) {
+            return p.category === activeFilter;
+          });
+    renderProjects(filtered);
+  }
+
+  fetch("/api/public/student-projects?portal=kaisync-institution")
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (data) {
+      if (!Array.isArray(data)) throw new Error("bad payload");
+      allProjects = data.filter(function (p) {
+        return KIND === "main" ? !!p.featured : !p.featured;
+      });
+      applyFilter();
+    })
+    .catch(function () {
+      grid.innerHTML =
+        '<div class="projects-empty"><p>Could not load projects. Please try again later.</p></div>';
+    });
+
+  var filterBar = document.getElementById("filter-bar");
+  if (filterBar) {
+    filterBar.addEventListener("click", function (e) {
+      var btn = e.target.closest(".filter-btn");
+      if (!btn) return;
+      document.querySelectorAll(".filter-btn").forEach(function (b) {
+        b.classList.remove("active");
+      });
+      btn.classList.add("active");
+      activeFilter = btn.dataset.cat;
+      applyFilter();
+    });
+  }
+})();
+
