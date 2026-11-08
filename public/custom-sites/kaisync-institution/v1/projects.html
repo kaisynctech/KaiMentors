@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Student Projects | KaiSync Institution</title>
-<meta name="description" content="Browse real projects built by KaiSync Institution students — web apps, AI agents, automations and more.">
+<meta name="description" content="Studio showcase at KaiSync Institution — up to two student projects featured a month. Companies can enquire. Builder 90%, academy 10%.">
 <link href="styles.css" rel="stylesheet">
 <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
 <link href="styles-additions.css" rel="stylesheet">
@@ -143,9 +143,9 @@
 
 <section class="projects-hero">
   <div class="wrap reveal">
-    <p class="eyebrow">Built by our students</p>
-    <h1>Real projects. Real builders.</h1>
-    <p class="lead">Every project here was built by a KaiSync Institution student — using AI, code, and creativity to solve real problems.</p>
+    <p class="eyebrow">Studio showcase</p>
+    <h1>Featured work from Studio students.</h1>
+    <p class="lead">KaiSync Institution features up to two Studio projects a month. Companies can enquire from this page. If they buy, the builder keeps 90% and the academy keeps 10%.</p>
   </div>
 </section>
 
@@ -154,10 +154,9 @@
     <!-- Filter bar -->
     <div class="filter-bar" id="filter-bar">
       <button class="filter-btn active" data-cat="all">All</button>
-      <button class="filter-btn" data-cat="web-app">Web App</button>
-      <button class="filter-btn" data-cat="ai-agent">AI Agent</button>
+      <button class="filter-btn" data-cat="web-app">Website</button>
       <button class="filter-btn" data-cat="automation">Automation</button>
-      <button class="filter-btn" data-cat="mobile-app">Mobile App</button>
+      <button class="filter-btn" data-cat="mobile-app">Applications</button>
       <button class="filter-btn" data-cat="other">Other</button>
     </div>
 
@@ -177,7 +176,7 @@
   <div class="cta reveal">
     <p class="eyebrow" style="justify-content:center;">Your turn</p>
     <h2>Build something that matters.</h2>
-    <p>Join KaiSync Institution and start creating real projects you can be proud of.</p>
+    <p>Studio (R249) is the plan that can be featured here. Library and Scholar still include the full catalog.</p>
     <div class="btn-row" style="justify-content:center;">
       <a class="btn primary" href="signup.html">Enrol Now</a>
       <a class="btn ghost" href="courses.html">See the courses</a>
@@ -252,7 +251,7 @@
     var grid = document.getElementById("projects-grid");
     var count = document.getElementById("projects-count");
     if (!projects.length) {
-      grid.innerHTML = '<div class="projects-empty"><div class="empty-icon">🚧</div><p>No projects in this category yet — check back soon!</p></div>';
+      grid.innerHTML = '<div class="projects-empty"><div class="empty-icon">🚧</div><p>No Studio projects in this category yet. Up to two are featured each month — check back soon.</p></div>';
       count.textContent = "";
       return;
     }

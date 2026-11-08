@@ -140,6 +140,29 @@ test("KSI student plans are Library R99, Scholar R149, and Studio R249", async (
   assert.match(pricing, />Studio</);
   assert.doesNotMatch(pricing, /R700/);
   assert.doesNotMatch(pricing, /R250/);
+  assert.doesNotMatch(pricing, /countdown/);
+  assert.match(pricing, /All five recorded courses/);
+  assert.match(pricing, /builder keeps 90%/);
+});
+
+test("KaiSync Institution public site describes the open catalog", async () => {
+  const index = await read("public", "custom-sites", "kaisync-institution", "v1", "index.html");
+  const courses = await read("public", "custom-sites", "kaisync-institution", "v1", "courses.html");
+  const about = await read("public", "custom-sites", "kaisync-institution", "v1", "about.html");
+  assert.match(index, /KaiSync Institution/);
+  assert.match(index, /Basic AI/);
+  assert.match(index, /Build a website, beginning to end/);
+  assert.match(index, /Automation/);
+  assert.match(index, /Marketing with AI/);
+  assert.match(index, /Applications/);
+  assert.match(index, /Join more than one/);
+  assert.doesNotMatch(index, /live-count/);
+  assert.doesNotMatch(index, /Websites with AI/);
+  assert.doesNotMatch(index, /Basic Gaming/);
+  assert.match(courses, /A catalog of recordings/);
+  assert.match(courses, /Nothing is locked behind another course/);
+  assert.match(about, /KaiSync Institution/);
+  assert.match(about, /Studio showcase/);
 });
 
 test("mentors can play academy videos without student verification and students can see published resources", async () => {
