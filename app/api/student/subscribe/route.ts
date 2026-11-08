@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildPayFastFormFields, getProcessUrl } from "@/lib/payfast";
-import { getPlanById } from "@/lib/subscription-plans";
+import { PLAN_IDS, getPlanById } from "@/lib/subscription-plans";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 
 const subscribeSchema = z.object({
-  planId: z.enum(["basic", "intermediate", "pro"]),
+  planId: z.enum(PLAN_IDS),
   portalSlug: z.string().min(1),
 });
 

@@ -120,6 +120,26 @@ test("ContentGate maps manual_review to 'More information needed', not 'being re
   assert.doesNotMatch(gate, /being reviewed/);
 });
 
+test("KSI student plans are Library R99, Scholar R149, and Studio R250", async () => {
+  const plans = await read("lib", "subscription-plans.ts");
+  const subscribe = await read("app", "api", "student", "subscribe", "route.ts");
+  const pricing = await read("public", "custom-sites", "kaisync-institution", "v1", "pricing.html");
+  assert.match(plans, /id: "library"/);
+  assert.match(plans, /amountZAR: 99/);
+  assert.match(plans, /id: "scholar"/);
+  assert.match(plans, /amountZAR: 149/);
+  assert.match(plans, /id: "studio"/);
+  assert.match(plans, /amountZAR: 250/);
+  assert.match(plans, /liveSeatsPerMonth: 2/);
+  assert.match(plans, /clinicReportsPerMonth: 3/);
+  assert.doesNotMatch(plans, /id: "basic"/);
+  assert.match(subscribe, /PLAN_IDS/);
+  assert.match(pricing, /R99/);
+  assert.match(pricing, /R149/);
+  assert.match(pricing, />Studio</);
+  assert.doesNotMatch(pricing, /R700/);
+});
+
 test("mentors can play academy videos without student verification and students can see published resources", async () => {
   const session = await read("lib", "student-access-server.ts");
   const resources = await read("app", "student", "resources", "page.tsx");
