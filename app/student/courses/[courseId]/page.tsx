@@ -121,7 +121,7 @@ export default async function StudentCoursePage({
   // Academy staff can open every published lesson, including ones students have not unlocked yet.
   const accessibleModuleIds = new Set<string>();
   if (ctx.isAcademyStaff) {
-    for (const module of modules ?? []) accessibleModuleIds.add(module.id);
+    for (const courseModule of modules ?? []) accessibleModuleIds.add(courseModule.id);
   }
   (modules ?? []).forEach((module, idx) => {
     if (ctx.isAcademyStaff) return;
