@@ -23,8 +23,8 @@ export const SUBSCRIPTION_PLANS = [
   {
     id: "scholar" as const,
     label: "Scholar",
-    amountZAR: 149,
-    amountCents: 14900,
+    amountZAR: 249,
+    amountCents: 24900,
     description: "Everything in Library plus one marked assignment each month.",
     features: [
       "Everything in Library",
@@ -38,8 +38,8 @@ export const SUBSCRIPTION_PLANS = [
   {
     id: "studio" as const,
     label: "Studio",
-    amountZAR: 249,
-    amountCents: 24900,
+    amountZAR: 499,
+    amountCents: 49900,
     description:
       "Everything in Scholar plus the Sunday business seminar, one free 45-minute one on one session each month, and eligibility for the public showcase.",
     features: [

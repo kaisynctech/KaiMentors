@@ -96,7 +96,7 @@
         <span class="hero-stats-sep">·</span>
         <span><b>Open</b> catalog</span>
       </div>
-      <p class="hero-note">Library R99 · Scholar R149 · Studio R249 · Cancel anytime</p>
+      <p class="hero-note">Library R99 · Scholar R249 · Studio R499 · Cancel anytime</p>
     </div>
     <div class="hero-visual reveal delay-2" aria-hidden="true"></div>
   </div>
@@ -111,10 +111,10 @@
   <div class="ticker-track">
     <span>KaiSync Institution</span><span>Basic AI</span><span>Build a website</span><span>Automation</span>
     <span>Marketing with AI</span><span>Applications</span><span>Pick any course</span><span>Join more than one</span>
-    <span>Library R99</span><span>Scholar R149</span><span>Studio R249</span><span>Studio showcase</span>
+    <span>Library R99</span><span>Scholar R249</span><span>Studio R499</span><span>Studio showcase</span>
     <span>KaiSync Institution</span><span>Basic AI</span><span>Build a website</span><span>Automation</span>
     <span>Marketing with AI</span><span>Applications</span><span>Pick any course</span><span>Join more than one</span>
-    <span>Library R99</span><span>Scholar R149</span><span>Studio R249</span><span>Studio showcase</span>
+    <span>Library R99</span><span>Scholar R249</span><span>Studio R499</span><span>Studio showcase</span>
   </div>
 </div>
 
@@ -289,7 +289,7 @@
       <div class="plan featured reveal delay-1">
         <span class="plan-badge">Most Popular</span>
         <div class="plan-name">Scholar</div>
-        <div class="plan-price">R149<span>/month</span></div>
+        <div class="plan-price">R249<span>/month</span></div>
         <p class="plan-tagline">Learn with a weekly rhythm</p>
         <ul class="plan-features">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Everything in Library</li>
@@ -299,7 +299,7 @@
       </div>
       <div class="plan reveal delay-2">
         <div class="plan-name">Studio</div>
-        <div class="plan-price">R249<span>/month</span></div>
+        <div class="plan-price">R499<span>/month</span></div>
         <p class="plan-tagline">Build with feedback</p>
         <ul class="plan-features">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Everything in Scholar</li>
@@ -365,7 +365,7 @@
   <div class="wrap">
     <div class="section-head center reveal">
       <p class="eyebrow">Studio showcase</p>
-      <h2>R249 students can be featured here.</h2>
+      <h2>R499 students can be featured here.</h2>
       <p class="lead">Library and Scholar keep the catalog. Studio is the plan that can go public.</p>
     </div>
     <div class="testimonials-grid">
@@ -428,7 +428,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">What's the difference between the plans?</button>
-        <div class="faq-a"><p>Library (R99) is recordings plus two AI seminars a week. Scholar (R149) adds one marked assignment a month. Studio (R249) adds the Sunday business seminar, one free 45-minute one on one session a month, and eligibility for the public showcase. Extra one on one sessions are R49 per 45 minutes on every plan — submit your problem when you book.</p></div>
+        <div class="faq-a"><p>Library (R99) is recordings plus two AI seminars a week. Scholar (R249) adds one marked assignment a month. Studio (R499) adds the Sunday business seminar, one free 45-minute one on one session a month, and eligibility for the public showcase. Extra one on one sessions are R49 per 45 minutes on every plan — submit your problem when you book.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">How do one on one sessions work?</button>
@@ -444,7 +444,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">Can a company train a team here?</button>
-        <div class="faq-a"><p>Yes. Email <a href="mailto:kaisynctech@gmail.com">kaisynctech@gmail.com</a> about group seats or an on-site AI workshop. Student plans stay at R99 / R149 / R249.</p></div>
+        <div class="faq-a"><p>Yes. Email <a href="mailto:kaisynctech@gmail.com">kaisynctech@gmail.com</a> about group seats or an on-site AI workshop. Student plans stay at R99 / R249 / R499.</p></div>
       </div>
     </div>
   </div>
@@ -644,7 +644,7 @@
     if (current >= QUESTIONS.length) {
       var score = answers.reduce(function(s,a){ return s+a; }, 0);
       var plan = score <= 3 ? 'Library' : score <= 6 ? 'Scholar' : 'Studio';
-      var price = plan === 'Library' ? 'R99' : plan === 'Scholar' ? 'R149' : 'R249';
+      var price = plan === 'Library' ? 'R99' : plan === 'Scholar' ? 'R249' : 'R499';
       container.innerHTML = '<div class="quiz-result"><div class="quiz-result-plan">We recommend: <strong>' + plan + '</strong></div><div class="quiz-result-price">' + price + '/month</div><p class="quiz-result-note">Based on your answers, ' + plan + ' is the best fit to get started. You can always upgrade as you grow.</p><a class="btn primary" href="signup.html" style="margin-top:16px;">Start ' + plan + ' →</a><button class="btn ghost" id="quiz-restart" style="margin-top:8px;margin-left:8px;">Retake quiz</button></div>';
       document.getElementById('quiz-restart').addEventListener('click', function(){ answers=[]; current=0; render(); });
       return;
