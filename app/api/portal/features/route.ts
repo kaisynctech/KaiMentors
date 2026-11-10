@@ -26,9 +26,16 @@ export async function PATCH(request: Request) {
     );
   }
 
+  const preservedExtras: Record<string, boolean> = {};
+  for (const [key, value] of Object.entries(workspace.studentPortalFeatures ?? {})) {
+    if (typeof value === "boolean" && !(key in features)) {
+      preservedExtras[key] = value;
+    }
+  }
+
   const { data: portal, error } = await workspace.supabase
     .from("portals")
-    .update({ student_portal_features: features })
+    .update({ student_portal_features: { ...preservedExtras, ...features } })
     .eq("trader_id", workspace.traderId)
     .select("id, student_portal_features")
     .single();

@@ -9,9 +9,11 @@ import styles from "./academy-entry.module.css";
 export function AcademyJoinPage({
   customDomain = false,
   data,
+  referralCode = "",
 }: {
   customDomain?: boolean;
   data: AcademyEntryContext;
+  referralCode?: string;
 }) {
   const logo = getPortalBrandingUrl(data.portal.logo_path);
   const routeContext = { portalSlug: data.portal.slug, customDomain };
@@ -72,6 +74,7 @@ export function AcademyJoinPage({
             loginPath={loginHref}
             portalSlug={data.portal.slug}
             primaryColor={data.portal.primary_color}
+            referralCode={referralCode}
             studentDestination={studentPortalPath}
           />
           {!isSubscription && (

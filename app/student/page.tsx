@@ -80,7 +80,12 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     liveClasses: isPortalFeatureEnabled(academy.studentPortalFeatures, "live_classes", academy.accessModel),
     messages: isPortalFeatureEnabled(academy.studentPortalFeatures, "messages", academy.accessModel),
     broker: isPortalFeatureEnabled(academy.studentPortalFeatures, "broker", academy.accessModel),
+    referrals: isPortalFeatureEnabled(academy.studentPortalFeatures, "referrals", academy.accessModel),
   };
+  const referralsHref =
+    basePath === "/academy"
+      ? "/referrals"
+      : `/portal/${portal.slug}/referrals`;
 
   // Fetch broker guides via SECURITY DEFINER RPC — now returns all active connections
   const { data: guideRows } = await supabase.rpc("get_student_broker_guide", {
@@ -332,6 +337,13 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
           <p className="eyebrow">{portal?.portal_name ?? "Mentor academy"}</p>
           <h1>Dashboard</h1>
         </div>
+
+        {featuresOn.referrals ? (
+          <p className={styles.progressLabel}>
+            <Link href={referralsHref}>Referral programme</Link>
+            {" — earn 10% of every subscription payment from people who use your code."}
+          </p>
+        ) : null}
 
         {/* Status card — verification portals only; subscription portals show the
             paywall or the My Subscription card instead (see below). */}

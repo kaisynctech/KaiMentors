@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Refer a friend | KaiSync Institution</title>
-<meta name="description" content="Refer a client to KaiSync Institution. Programme details coming soon.">
+<meta name="description" content="Refer a student to KaiSync Institution and earn 10% of every subscription payment they make.">
 <link href="styles.css" rel="stylesheet">
 <link href="styles-additions.css" rel="stylesheet">
 <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
@@ -41,23 +41,39 @@
 <section class="page-hero">
   <div class="wrap reveal">
     <p class="eyebrow">Refer a friend</p>
-    <h1>Refer a client to KaiSync Institution.</h1>
-    <p class="lead">This page is for referring clients. The full details — how it works, and what you get — will be written here next.</p>
+    <h1>Refer someone. Earn 10% of what they pay.</h1>
+    <p class="lead">Share your code. When they enrol and Payfast confirms a subscription, you earn 10% of that payment every month they stay subscribed.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="wrap" style="max-width: 760px;">
     <div class="reveal">
-      <p class="eyebrow">Coming next</p>
-      <h2>Programme details are on the way.</h2>
+      <p class="eyebrow">The commission</p>
+      <h2>Library R9.90. Scholar R24.90. Studio R49.90.</h2>
       <p class="lead" style="max-width: none; margin-top: 18px;">
-        You will be able to refer a company or a client who wants AI training, a workshop, or a student project.
-        Until those rules are published, send the person to
-        <a href="mailto:kaisynctech@gmail.com">kaisynctech@gmail.com</a>
-        and mention that you referred them.
+        That is 10% of R99, R249, and R499. It is earned again on each monthly renewal.
+        KaiSync Institution pays the balance to you. It is not deposited automatically.
+        You cannot use your own code.
       </p>
     </div>
+    <form class="reveal" data-refer-join data-portal="kaisync-institution" style="margin-top: 28px; display: grid; gap: 14px; max-width: 480px;">
+      <label>Full name
+        <input name="fullName" required minlength="2" autocomplete="name" style="display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;">
+      </label>
+      <label>Email
+        <input name="email" type="email" required autocomplete="email" style="display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;">
+      </label>
+      <label>Password
+        <input name="password" type="password" required minlength="10" autocomplete="new-password" style="display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;">
+      </label>
+      <label>Confirm password
+        <input name="passwordConfirm" type="password" required minlength="10" autocomplete="new-password" style="display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;">
+      </label>
+      <button class="btn primary" type="submit">Get my referral code</button>
+      <p>Already joined? <a href="login.html">Sign in</a> and open your referral balance.</p>
+    </form>
+    <p data-refer-message style="min-height: 1.4em; margin-top: 14px;"></p>
   </div>
 </section>
 

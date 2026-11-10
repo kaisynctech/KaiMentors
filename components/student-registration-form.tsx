@@ -13,6 +13,7 @@ interface RegistrationFormProps {
   academyName?: string;
   studentDestination?: string;
   accessModel?: "verification" | "subscription";
+  referralCode?: string;
 }
 
 const TRADING_LEVELS = [
@@ -34,6 +35,7 @@ export function StudentRegistrationForm({
   academyName,
   studentDestination,
   accessModel = "verification",
+  referralCode: initialReferralCode = "",
 }: RegistrationFormProps) {
   const destination = studentDestination ?? studentHomeHref(portalSlug);
   const isSubscription = accessModel === "subscription";
@@ -68,6 +70,7 @@ export function StudentRegistrationForm({
 
   // Step 3 — Review
   const [consentChecked, setConsentChecked] = useState(false);
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
 
   const step1Valid =
     fullName.trim().length >= 2 &&
@@ -87,6 +90,7 @@ export function StudentRegistrationForm({
       formData.set("province", province);
       formData.set("country", country);
       formData.set("notificationsOptIn", notificationsOptIn ? "on" : "off");
+      formData.set("referralCode", referralCode);
     }
     try {
       const response = await fetch("/api/student/register", { method: "POST", body: formData });
@@ -264,6 +268,17 @@ export function StudentRegistrationForm({
                   onChange={(e) => setCountry(e.target.value)}
                   placeholder="e.g. South Africa"
                   value={country}
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="srf_referral">Referral code</label>
+                <input
+                  autoCapitalize="characters"
+                  id="srf_referral"
+                  maxLength={16}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="Optional"
+                  value={referralCode}
                 />
               </div>
             </>

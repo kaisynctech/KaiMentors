@@ -6,6 +6,7 @@ import { portalTitle } from "@/lib/metadata";
 
 interface CustomDomainJoinPageProps {
   params: Promise<{ hostname: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }
 
 export async function generateMetadata({
@@ -24,12 +25,16 @@ export async function generateMetadata({
 
 export default async function CustomDomainJoinPage({
   params,
+  searchParams,
 }: CustomDomainJoinPageProps) {
   const { hostname } = await params;
+  const { ref } = await searchParams;
   const data = await loadAcademyEntryByHostname(hostname);
   if (!data) notFound();
+  const referralCode = (ref ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
   if (data.shouldRedirect && data.canonicalHostname) {
-    redirect(`https://${data.canonicalHostname}/join-academy`);
+    const suffix = referralCode ? `?ref=${referralCode}` : "";
+    redirect(`https://${data.canonicalHostname}/join-academy${suffix}`);
   }
-  return <AcademyJoinPage customDomain data={data} />;
+  return <AcademyJoinPage customDomain data={data} referralCode={referralCode} />;
 }

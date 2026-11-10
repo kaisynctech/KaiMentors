@@ -129,6 +129,19 @@ export function LoginForm({
           return;
         }
 
+        const { data: referralPartner } = await supabase
+          .from("referral_partners")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .eq("trader_id", academyContext.traderId)
+          .maybeSingle();
+        if (referralPartner) {
+          window.location.href = academyContext.customDomain
+            ? "/referrals"
+            : `/portal/${academyContext.portalSlug}/referrals`;
+          return;
+        }
+
         await supabase.auth.signOut();
         throw new Error("No account was found for this academy.");
       }

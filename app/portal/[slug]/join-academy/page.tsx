@@ -6,6 +6,7 @@ import { portalTitle } from "@/lib/metadata";
 
 interface PortalJoinPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }
 
 export async function generateMetadata({
@@ -19,9 +20,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function PortalJoinPage({ params }: PortalJoinPageProps) {
+export default async function PortalJoinPage({ params, searchParams }: PortalJoinPageProps) {
   const { slug } = await params;
+  const { ref } = await searchParams;
   const data = await loadAcademyEntryBySlug(slug);
   if (!data) notFound();
-  return <AcademyJoinPage data={data} />;
+  const referralCode = (ref ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+  return <AcademyJoinPage data={data} referralCode={referralCode} />;
 }

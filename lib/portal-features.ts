@@ -7,6 +7,7 @@ export const PORTAL_FEATURE_KEYS = [
   "messages",
   "resources",
   "projects",
+  "referrals",
   "broker",
 ] as const;
 
@@ -97,6 +98,14 @@ export const PORTAL_FEATURE_CATALOG: readonly PortalFeatureDefinition[] = [
     studentNav: [{ hrefSuffix: "/projects", label: "Projects" }],
   },
   {
+    key: "referrals",
+    label: "Referrals",
+    description:
+      "Referral codes. A referrer earns 10% of each successful student subscription payment, including renewals.",
+    defaultEnabled: false,
+    mentorHref: "/dashboard/referrals",
+  },
+  {
     key: "broker",
     label: "Broker / Open account",
     description:
@@ -114,6 +123,7 @@ export const MENTOR_NAV_FEATURE_BY_HREF: Record<string, PortalFeatureKey> = {
   "/dashboard/progress": "courses",
   "/dashboard/resources": "resources",
   "/dashboard/projects": "projects",
+  "/dashboard/referrals": "referrals",
   "/dashboard/live-classes": "live_classes",
   "/dashboard/bookings": "bookings",
 };

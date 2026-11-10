@@ -7,6 +7,11 @@ import {
   normalizeRequestHostname,
 } from "@/lib/domains/hostnames";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  attachReferralAttribution,
+  loadReferralPortal,
+  resolveReferralPartner,
+} from "@/lib/referrals";
 
 const VALID_TRADING_LEVELS = new Set(["beginner", "intermediate", "advanced", "funded"]);
 const VALID_YEARS_TRADING = new Set(["less_than_1", "1_to_3", "3_to_5", "5_plus"]);
@@ -29,6 +34,7 @@ const registrationSchema = z.object({
   province: z.string().max(80).nullable().optional(),
   country: z.string().max(80).nullable().optional(),
   notificationsOptIn: z.enum(["on", "off"]).optional(),
+  referralCode: z.string().trim().max(32).optional(),
 });
 
 async function resolveRegistrationPortal(
@@ -93,6 +99,7 @@ export async function POST(request: Request) {
     province: formData.get("province")?.toString() || null,
     country: formData.get("country")?.toString() || null,
     notificationsOptIn: (formData.get("notificationsOptIn")?.toString() as "on" | "off") ?? "off",
+    referralCode: formData.get("referralCode")?.toString() || undefined,
   });
   if (!parsed.success) {
     return NextResponse.json(
@@ -120,6 +127,19 @@ export async function POST(request: Request) {
       { error: "This academy is not accepting applications right now." },
       { status: 400 },
     );
+  }
+
+  const referralPortal = await loadReferralPortal(admin, validPortal.slug);
+  const referral = referralPortal
+    ? await resolveReferralPartner(
+        admin,
+        referralPortal,
+        input.referralCode,
+        input.email,
+      )
+    : { ok: true as const, partner: null };
+  if (!referral.ok) {
+    return NextResponse.json({ error: referral.error }, { status: 400 });
   }
 
   const { data: created, error: createError } =
@@ -159,27 +179,38 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (!existingApp) {
-      await admin.from("student_applications").insert({
-        id: crypto.randomUUID(),
-        trader_id: validPortal.trader_id,
-        portal_id: validPortal.id,
-        student_user_id: existingUserId,
-        trader_broker_account_id: null,
-        broker_account_identifier: null,
-        trading_account_number: null,
-        platform_account_number: null,
-        phone_number: input.phoneNumber,
-        full_name: input.fullName,
-        status: "pending",
-        consented_at: new Date().toISOString(),
-        trading_level: input.tradingLevel ?? null,
-        years_trading: input.yearsTrading ?? null,
-        trading_challenge: input.tradingChallenge ?? null,
-        province: input.province ?? null,
-        country: input.country ?? null,
-        notifications_opt_in: input.notificationsOptIn === "on",
-      });
-      // Ignore insert error — existing user keeps their account regardless.
+      const { data: createdApp, error: existingInsertError } = await admin
+        .from("student_applications")
+        .insert({
+          id: crypto.randomUUID(),
+          trader_id: validPortal.trader_id,
+          portal_id: validPortal.id,
+          student_user_id: existingUserId,
+          trader_broker_account_id: null,
+          broker_account_identifier: null,
+          trading_account_number: null,
+          platform_account_number: null,
+          phone_number: input.phoneNumber,
+          full_name: input.fullName,
+          status: "pending",
+          consented_at: new Date().toISOString(),
+          trading_level: input.tradingLevel ?? null,
+          years_trading: input.yearsTrading ?? null,
+          trading_challenge: input.tradingChallenge ?? null,
+          province: input.province ?? null,
+          country: input.country ?? null,
+          notifications_opt_in: input.notificationsOptIn === "on",
+        })
+        .select("id")
+        .single();
+      if (!existingInsertError && createdApp && referral.partner && referralPortal) {
+        await attachReferralAttribution(admin, referralPortal, {
+          partnerId: referral.partner.id,
+          applicationId: createdApp.id,
+          studentUserId: existingUserId,
+          code: referral.partner.code,
+        });
+      }
     }
 
     // Send OTP — same delivery gate as new-user path.
@@ -244,6 +275,23 @@ export async function POST(request: Request) {
       { error: "Your application could not be saved." },
       { status: 400 },
     );
+  }
+
+  if (referral.partner && referralPortal) {
+    try {
+      await attachReferralAttribution(admin, referralPortal, {
+        partnerId: referral.partner.id,
+        applicationId,
+        studentUserId: created.user.id,
+        code: referral.partner.code,
+      });
+    } catch {
+      await admin.auth.admin.deleteUser(created.user.id);
+      return NextResponse.json(
+        { error: "The referral could not be saved." },
+        { status: 400 },
+      );
+    }
   }
 
   const { error: profileError } = await admin

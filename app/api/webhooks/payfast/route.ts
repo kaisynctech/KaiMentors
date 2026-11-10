@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateITN } from "@/lib/payfast";
+import { recordReferralCommission } from "@/lib/referrals";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // PayFast ITN webhook. Public endpoint — no session auth, trust is established entirely
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 
   const { data: subscription } = await admin
     .from("student_subscriptions")
-    .select("id,student_application_id,amount_cents,status")
+    .select("id,student_application_id,amount_cents,plan_id,status")
     .eq("id", paymentId)
     .abortSignal(AbortSignal.timeout(6000))
     .maybeSingle();
@@ -96,6 +97,12 @@ export async function POST(request: Request) {
       .from("student_applications")
       .update({ status: "verified" })
       .eq("id", subscription.student_application_id);
+
+    await recordReferralCommission(
+      admin,
+      subscription,
+      body.pf_payment_id,
+    );
 
     return NextResponse.json({ received: true }, { status: 200 });
   }

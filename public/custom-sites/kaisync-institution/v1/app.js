@@ -297,3 +297,59 @@
   }
 })();
 
+(function () {
+  var form = document.querySelector("[data-refer-join]");
+  if (!form) return;
+  var message = document.querySelector("[data-refer-message]");
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    var data = new FormData(form);
+    var password = String(data.get("password") || "");
+    var confirm = String(data.get("passwordConfirm") || "");
+    if (password !== confirm) {
+      if (message) message.textContent = "The passwords do not match.";
+      return;
+    }
+    var button = form.querySelector("button[type=submit]");
+    if (button) button.disabled = true;
+    if (message) message.textContent = "Creating your code…";
+    fetch("/api/referrals/join", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        portalSlug: form.getAttribute("data-portal"),
+        fullName: String(data.get("fullName") || ""),
+        email: String(data.get("email") || ""),
+        password: password,
+      }),
+    })
+      .then(function (response) {
+        return response.json().then(function (payload) {
+          return { ok: response.ok, payload: payload };
+        });
+      })
+      .then(function (result) {
+        if (!result.ok) throw new Error(result.payload.error || "Could not create a code.");
+        form.hidden = true;
+        if (message) {
+          var shareUrl = result.payload.shareUrl;
+          try {
+            var parsed = new URL(shareUrl, window.location.origin);
+            shareUrl = window.location.origin + parsed.pathname + parsed.search;
+          } catch (ignore) {}
+          message.replaceChildren();
+          var strong = document.createElement("strong");
+          strong.textContent = "Your code is " + result.payload.code + ".";
+          var link = document.createElement("a");
+          link.href = shareUrl;
+          link.textContent = shareUrl;
+          message.append(strong, " Share this link: ", link, ". Sign in later to see what you are owed.");
+        }
+      })
+      .catch(function (error) {
+        if (message) message.textContent = error.message || "Could not create a code.";
+        if (button) button.disabled = false;
+      });
+  });
+})();
+
