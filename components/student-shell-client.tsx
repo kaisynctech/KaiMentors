@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   Menu,
   MessageSquare,
+  Newspaper,
   Sparkles,
   Users,
   Video,
@@ -133,6 +134,13 @@ export function StudentShellClient({
       icon: FolderKanban,
       locked: false,
       featureKey: "projects",
+    },
+    {
+      href: `${basePath}/articles${querySuffix}`,
+      label: "Articles",
+      icon: Newspaper,
+      locked: false,
+      featureKey: "articles",
     },
     {
       href: `${basePath}/broker${querySuffix}`,

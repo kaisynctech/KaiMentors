@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Articles | KaiSync Institution</title>
+<meta name="description" content="Morning notes from KaiSync Institution, and a news tab for what FXStreet is reporting on gold.">
+<link href="styles.css" rel="stylesheet">
+<link href="styles-additions.css" rel="stylesheet">
+<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
+</head>
+<body>
+
+<header class="ksi-header" data-header>
+  <a class="brand" href="index.html" aria-label="KaiSync Institution home">
+    <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96"><span class="brand-name">KaiSync Institution</span>
+  </a>
+  <button class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="ksi-nav" data-nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="courses.html">Courses</a>
+    <a href="tools.html">AI Tools</a>
+    <a href="articles.html" aria-current="page">Articles</a>
+    <div class="nav-dropdown" data-dropdown>
+      <button type="button" class="nav-dropdown-toggle" data-dropdown-toggle aria-expanded="false" aria-haspopup="true">Projects <span class="nav-caret" aria-hidden="true">▾</span></button>
+      <div class="nav-dropdown-menu" data-dropdown-menu>
+        <a href="projects.html">Main projects</a>
+        <a href="sub-projects.html">Sub projects</a>
+      </div>
+    </div>
+    <a href="refer.html">Refer a friend</a>
+    <a href="pricing.html">Pricing</a>
+    <a class="nav-cta btn primary" href="signup.html">Enrol Now</a>
+    <a class="nav-login" href="login.html">Login</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Articles</p>
+    <h1>Articles</h1>
+    <p class="lead">Articles published by KaiSync Institution.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap" id="ksi-articles" style="max-width:760px">
+    <p>Loading articles…</p>
+  </div>
+</section>
+
+<footer class="ksi-footer">
+  <div class="ksi-footer-wrap">
+    <div class="ksi-footer-brand">
+      <img src="assets/kaisync-logo-transparent.png" alt="KaiSync Institution" width="144" height="96">
+      <p>Learn AI. Build Products. Change Your Future.</p>
+    </div>
+    <div class="ksi-footer-cols">
+      <div>
+        <h4>Platform</h4>
+        <a href="about.html">About</a>
+        <a href="courses.html">Courses</a>
+        <a href="tools.html">AI Tools</a>
+        <a href="articles.html">Articles</a>
+        <a href="projects.html">Main projects</a>
+        <a href="sub-projects.html">Sub projects</a>
+        <a href="refer.html">Refer a friend</a>
+        <a href="pricing.html">Pricing</a>
+      </div>
+      <div>
+        <h4>Enrol</h4>
+        <a href="signup.html">Get started</a>
+        <a href="login.html">Student login</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#" data-footer-whatsapp>WhatsApp</a>
+        <a href="#" data-footer-instagram>Instagram</a>
+        <a href="#" data-footer-tiktok>TikTok</a>
+        <a href="#" data-footer-discord>Discord</a>
+      </div>
+    </div>
+  </div>
+  <div class="ksi-footer-bar">
+    <span>© 2026 KaiSync Institution. All rights reserved.</span>
+    <span>AI education for the next generation of African builders.</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

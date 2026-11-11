@@ -9,6 +9,7 @@ export const PORTAL_FEATURE_KEYS = [
   "projects",
   "referrals",
   "broker",
+  "articles",
 ] as const;
 
 export type PortalFeatureKey = (typeof PORTAL_FEATURE_KEYS)[number];
@@ -106,6 +107,14 @@ export const PORTAL_FEATURE_CATALOG: readonly PortalFeatureDefinition[] = [
     mentorHref: "/dashboard/referrals",
   },
   {
+    key: "articles",
+    label: "Articles",
+    description: "Morning market notes on the public website and in the student portal.",
+    defaultEnabled: false,
+    mentorHref: "/dashboard/articles",
+    studentNav: [{ hrefSuffix: "/articles", label: "Articles" }],
+  },
+  {
     key: "broker",
     label: "Broker / Open account",
     description:
@@ -123,6 +132,7 @@ export const MENTOR_NAV_FEATURE_BY_HREF: Record<string, PortalFeatureKey> = {
   "/dashboard/progress": "courses",
   "/dashboard/resources": "resources",
   "/dashboard/projects": "projects",
+  "/dashboard/articles": "articles",
   "/dashboard/referrals": "referrals",
   "/dashboard/live-classes": "live_classes",
   "/dashboard/bookings": "bookings",

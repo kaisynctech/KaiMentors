@@ -353,3 +353,41 @@
   });
 })();
 
+(function () {
+  var root = document.getElementById("ksi-articles");
+  if (!root) return;
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function render(data) {
+    var articles = Array.isArray(data.articles) ? data.articles : [];
+    root.innerHTML = articles.length
+      ? articles.map(function (article) {
+          var when = article.published_at
+            ? new Date(article.published_at).toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })
+            : "";
+          return '<article style="border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:1rem;background:var(--surface,#0A0A0F)">' +
+            (when ? '<p style="margin:0;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted,#9B98B8)">' + escapeHtml(when) + "</p>" : "") +
+            '<h2 style="margin:0.4rem 0 0;font-size:1.25rem">' + escapeHtml(article.title) + "</h2>" +
+            '<h3 style="margin:1rem 0 0.25rem;font-size:0.85rem;color:var(--cyan,#00C4D8)">Yesterday</h3>' +
+            '<p style="margin:0;white-space:pre-wrap;color:var(--text-muted,#9B98B8)">' + escapeHtml(article.yesterday) + "</p>" +
+            '<h3 style="margin:1rem 0 0.25rem;font-size:0.85rem;color:var(--cyan,#00C4D8)">Today</h3>' +
+            '<p style="margin:0;white-space:pre-wrap;color:var(--text-muted,#9B98B8)">' + escapeHtml(article.today) + "</p></article>";
+        }).join("")
+      : '<p style="color:var(--text-muted,#9B98B8)">No articles yet.</p>';
+  }
+
+  fetch("/api/public/market-articles?portal=kaisync-institution")
+    .then(function (response) { return response.json(); })
+    .then(render)
+    .catch(function () {
+      root.textContent = "Articles could not be loaded.";
+    });
+})();
+

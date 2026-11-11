@@ -1,11 +1,30 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { FileText } from 'lucide-react'
-import { getPublishedArticles } from '@/config/articles'
-import { SiteLink } from '@/components/site-link'
-import { assetUrl } from '@/lib/site-url'
+import { PORTAL_SLUG } from '@/config/site'
+
+type Note = {
+  id: string
+  title: string
+  yesterday: string
+  today: string
+  published_at: string | null
+}
+
+type GoldItem = {
+  title: string
+  url: string
+  summary: string | null
+}
+
+type Payload = {
+  articles: Note[]
+  gold: {
+    sourceUrl: string
+    items: GoldItem[]
+  }
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-ZA', {
@@ -16,7 +35,26 @@ function formatDate(iso: string) {
 }
 
 export default function ArticlesPage() {
-  const articles = getPublishedArticles()
+  const [payload, setPayload] = useState<Payload | null>(null)
+  const [tab, setTab] = useState<'notes' | 'news'>('notes')
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/public/market-articles?portal=${PORTAL_SLUG}`)
+      .then((response) => response.json())
+      .then((data: Payload) => {
+        if (!cancelled) setPayload(data)
+      })
+      .catch(() => {
+        if (!cancelled) setPayload({ articles: [], gold: { sourceUrl: 'https://www.fxstreet.com/news/feed', items: [] } })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const articles = payload?.articles ?? []
+  const gold = payload?.gold
 
   return (
     <>
@@ -44,76 +82,85 @@ export default function ArticlesPage() {
             transition={{ delay: 0.2 }}
             className="mx-auto max-w-2xl text-lg text-muted-foreground"
           >
-            Macro views, market updates, and educational notes from Bandi Shares — written to
-            share, not to hype.
+            Bandile's morning notes, and a News tab for what FXStreet is reporting on gold.
           </motion.p>
         </div>
       </section>
 
       <section className="section-padding pt-0">
         <div className="mx-auto max-w-4xl">
-          {articles.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card flex flex-col items-center px-8 py-16 text-center"
+          <div className="mb-8 flex gap-6 border-b border-foreground/10" role="tablist" aria-label="Articles">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'notes'}
+              onClick={() => setTab('notes')}
+              className={`-mb-px border-b-2 pb-3 text-sm font-semibold ${tab === 'notes' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                <FileText className="text-primary" size={28} />
-              </div>
-              <h2 className="mb-3 text-xl font-semibold text-foreground">Articles coming soon</h2>
-              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                Bandile is preparing the first market updates and macro insights. Check back here
-                — each article will be shareable when it goes live.
+              Bandile&apos;s notes
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'news'}
+              onClick={() => setTab('news')}
+              className={`-mb-px border-b-2 pb-3 text-sm font-semibold ${tab === 'news' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}
+            >
+              News
+            </button>
+          </div>
+
+          {tab === 'news' ? (
+            <div className="glass-card p-6 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">FXStreet</p>
+              <h2 className="mt-2 text-2xl font-semibold text-foreground">What FXStreet is reporting</h2>
+              {gold && gold.items.length > 0 ? (
+                <ul className="mt-4 grid gap-3">
+                  {gold.items.map((item) => (
+                    <li key={item.url}>
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary">
+                        {item.title}
+                      </a>
+                      {item.summary ? <p className="mt-1 text-sm text-muted-foreground">{item.summary}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  FXStreet did not return a gold update just now. Their coverage is still one click away.
+                </p>
+              )}
+              <a
+                className="mt-4 inline-block text-sm font-medium text-primary"
+                href={gold?.sourceUrl ?? 'https://www.fxstreet.com/news/feed'}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Read gold coverage on FXStreet →
+              </a>
+            </div>
+          ) : articles.length === 0 ? (
+            <div className="glass-card px-8 py-16 text-center">
+              <h2 className="mb-3 text-xl font-semibold text-foreground">The first morning note is on its way</h2>
+              <p className="text-sm text-muted-foreground">
+                Bandile posts what happened yesterday and what he is watching today.
               </p>
-              <SiteLink href="/" className="btn-ghost-glass mt-8 text-sm">
-                Back to home
-              </SiteLink>
-            </motion.div>
+            </div>
           ) : (
             <div className="grid gap-6">
-              {articles.map((article, i) => (
-                <motion.article
-                  key={article.slug}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="glass-card-hover overflow-hidden"
-                >
-                  <SiteLink href={`/articles/${article.slug}`} className="block p-6 md:p-8">
-                    <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                      {article.coverImage ? (
-                        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-xl md:w-48">
-                          <Image
-                            src={assetUrl(article.coverImage)}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="192px"
-                          />
-                        </div>
-                      ) : null}
-                      <div>
-                        <time
-                          dateTime={article.publishedAt}
-                          className="text-xs uppercase tracking-wider text-muted-foreground"
-                        >
-                          {formatDate(article.publishedAt)}
-                        </time>
-                        <h2 className="mt-2 text-xl font-semibold text-foreground">
-                          {article.title}
-                        </h2>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                          {article.excerpt}
-                        </p>
-                        <span className="mt-4 inline-block text-sm font-medium text-primary">
-                          Read article →
-                        </span>
-                      </div>
-                    </div>
-                  </SiteLink>
-                </motion.article>
+              {articles.map((article) => (
+                <article key={article.id} className="glass-card p-6 md:p-8">
+                  {article.published_at ? (
+                    <time dateTime={article.published_at} className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {formatDate(article.published_at)}
+                    </time>
+                  ) : null}
+                  <h2 className="mt-2 text-xl font-semibold text-foreground">{article.title}</h2>
+                  <h3 className="mt-4 text-sm font-semibold text-primary">Yesterday</h3>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{article.yesterday}</p>
+                  <h3 className="mt-4 text-sm font-semibold text-primary">Today</h3>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{article.today}</p>
+                </article>
               ))}
             </div>
           )}

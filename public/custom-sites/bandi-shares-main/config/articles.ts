@@ -11,7 +11,7 @@ export interface Article {
 /** Satisfies static export when the list is empty — never shown publicly. */
 const STATIC_EXPORT_PLACEHOLDER_SLUG = '__static_export__'
 
-/** Published articles — add entries here, then rebuild export. */
+/** Legacy static list. Live notes come from /api/public/market-articles. */
 export const ARTICLES: Article[] = []
 
 export function getPublishedArticles() {

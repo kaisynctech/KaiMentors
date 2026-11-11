@@ -22,6 +22,7 @@ test("empty portal features keep core academy modules on", () => {
   assert.equal(verification.messages, true);
   assert.equal(verification.resources, true);
   assert.equal(verification.projects, false);
+  assert.equal(verification.articles, false);
   assert.equal(verification.broker, true);
 
   const subscription = resolvePortalFeatures({}, "subscription");
@@ -54,7 +55,9 @@ test("KaiTrades-style full map keeps every catalog module on", () => {
     messages: true,
     resources: true,
     projects: true,
+    referrals: true,
     broker: true,
+    articles: true,
   };
   const resolved = resolvePortalFeatures(kaitrades, "verification");
   assert.deepEqual(resolved, kaitrades);

@@ -2,7 +2,7 @@
 
 ## Multi-Academy Validation
 
-Broker account rows remain owned by `trader_id`; academy provisioning does not clone or share broker connections. KaiTrades has a test Apex Markets row (`manual_review`). Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII / CP714), and Sharesworldwide (BANDISHARES05) each have their own XM Global API connection. Public broker options and student registration continue to resolve the portal server-side, so a custom package or Core Academy Page cannot select another academy's broker connection.
+Broker account rows remain owned by `trader_id`; academy provisioning does not clone or share broker connections. KaiTrades has a test Apex Markets row (`manual_review`). Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII / CP714), and Sharesworldwide (partner code BANDISHARES05) each have their own XM Global API connection. Public broker options and student registration continue to resolve the portal server-side, so a custom package or Core Academy Page cannot select another academy's broker connection.
 
 Last updated: 2026-09-02
 
@@ -29,7 +29,7 @@ This keeps broker-specific logic out of the browser and allows additional broker
 
 ### XM MyPartners (`xm-mypartners-v1`)
 
-Used by Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII local / CP714 international, one affiliate token), and Sharesworldwide (BANDISHARES05). Each academy has its own Vault secret. The Edge Function calls `GET https://mypartners.xm.com/api/traders/{loginId}` with that tenant's concatenated two-part API token (`tokenPart1` + `tokenPart2`).
+Used by Traders Confidence (MD415), Milkers FX (MILKERSFX), PASII (PASSII local / CP714 international, one affiliate token), and Sharesworldwide (partner code BANDISHARES05). Each academy has its own Vault secret. The Edge Function calls `GET https://mypartners.xm.com/api/traders/{loginId}` with that tenant's concatenated two-part API token (`tokenPart1` + `tokenPart2`). Sharesworldwide's XM affiliate account id is A1299170. That id is not a student-facing partner code.
 
 Documented XM statuses:
 
