@@ -86,6 +86,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(destination);
   }
 
+  // Static academy sites live in public/custom-sites. Rewriting their HTML
+  // through /domain-sites makes the iframe show the inactive-domain page.
+  if (path.startsWith("/custom-sites/")) {
+    return NextResponse.next();
+  }
+
   if (
     customDomain &&
     (path.startsWith("/admin") ||
