@@ -10,6 +10,7 @@ const TABS = [
   { value: "branding",   label: "Academy Page"    },
   { value: "student-access", label: "Student access" },
   { value: "features",   label: "Features"        },
+  { value: "integration", label: "Integration"    },
   { value: "billing",    label: "Billing"         },
   { value: "audit-logs", label: "Audit Logs"      },
 ] as const;
@@ -18,12 +19,14 @@ type TabValue = (typeof TABS)[number]["value"];
 
 interface Props {
   activeTab: TabValue;
+  showIntegration?: boolean;
 }
 
-export function SettingsTabs({ activeTab }: Props) {
+export function SettingsTabs({ activeTab, showIntegration = false }: Props) {
+  const tabs = TABS.filter((tab) => tab.value !== "integration" || showIntegration);
   return (
     <div className={styles.tabs}>
-      {TABS.map((t) => (
+      {tabs.map((t) => (
         <Link
           key={t.value}
           href={t.value === "account" ? "/dashboard/settings" : `/dashboard/settings?tab=${t.value}`}

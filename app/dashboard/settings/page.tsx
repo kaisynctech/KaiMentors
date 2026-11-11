@@ -3,6 +3,7 @@ import { headers }                from "next/headers";
 import { DashboardShell }         from "@/components/dashboard-shell";
 import { SettingsTabs }           from "@/components/settings-tabs";
 import { OwnerEmailChangeForm }   from "@/components/owner-email-change-form";
+import { DiscordLinkCard }        from "@/components/discord-link-card";
 import { TeamManager }            from "@/components/team-manager";
 import { BrokerAccountsManager }  from "@/components/broker-accounts-manager";
 import { PortalBrandingForm }     from "@/components/portal-branding-form";
@@ -13,6 +14,7 @@ import type { VerificationMethod } from "@/lib/database.types";
 import { getSubscriptionSummary } from "@/lib/entitlements";
 import { parsePortalAccessPolicy } from "@/lib/student-access";
 import { getMentorWorkspace }     from "@/lib/workspace";
+import { discordConfig, discordNotice, SHARESWORLDWIDE_SLUG } from "@/lib/discord";
 import { createAdminClient }      from "@/lib/supabase/admin";
 import {
   isPlatformHostname,
@@ -21,19 +23,20 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type SettingsTab = "account" | "team" | "brokers" | "branding" | "student-access" | "features" | "billing" | "audit-logs";
-const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "student-access", "features", "billing", "audit-logs"]);
+type SettingsTab = "account" | "team" | "brokers" | "branding" | "student-access" | "features" | "integration" | "billing" | "audit-logs";
+const VALID_TABS = new Set<string>(["account", "team", "brokers", "branding", "student-access", "features", "integration", "billing", "audit-logs"]);
 
 export default async function WorkspaceSettingsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ tab?: string }>;
+  searchParams?: Promise<{ tab?: string; discord?: string }>;
 }) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
   const { supabase, traderId, displayName, user, portal } = workspace;
 
-  const rawTab = (await searchParams)?.tab ?? "account";
+  const params = await searchParams;
+  const rawTab = params?.tab ?? "account";
   const tab: SettingsTab = VALID_TABS.has(rawTab) ? (rawTab as SettingsTab) : "account";
 
   // ── Account tab ───────────────────────────────────────────────────────────
@@ -48,8 +51,30 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="account" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="account" />
         <OwnerEmailChangeForm currentEmail={user.email ?? ""} />
+      </DashboardShell>
+    );
+  }
+
+  if (tab === "integration") {
+    if (portal.slug !== SHARESWORLDWIDE_SLUG) redirect("/dashboard/settings");
+    return (
+      <DashboardShell
+        activePath="/dashboard/settings"
+        description="Connect Discord for this academy."
+        title="Settings"
+        userLabel={displayName}
+        traderId={traderId}
+        portalName={portal.portal_name}
+        portalSlug={portal.slug}
+      >
+        <SettingsTabs activeTab="integration" showIntegration />
+        <SharesworldwideDiscordSettings
+          notice={discordNotice(params?.discord)}
+          supabase={supabase}
+          traderId={traderId}
+        />
       </DashboardShell>
     );
   }
@@ -91,7 +116,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="team" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="team" />
         <TeamManager
           callerRole={membership?.role ?? "mentor"}
           callerUserId={user.id}
@@ -158,7 +183,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="brokers" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="brokers" />
         <BrokerAccountsManager accounts={accounts} />
       </DashboardShell>
     );
@@ -204,7 +229,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="branding" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="branding" />
         <PortalBrandingForm
           currentRequestHostname={currentRequestHostname}
           initialPortal={portalData}
@@ -237,7 +262,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="student-access" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="student-access" />
         <StudentAccessSettings
           initial={parsePortalAccessPolicy(portalPolicy ?? {})}
         />
@@ -257,7 +282,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="features" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="features" />
         <PortalFeaturesSettings
           accessModel={workspace.accessModel}
           initial={workspace.studentPortalFeatures}
@@ -281,7 +306,7 @@ export default async function WorkspaceSettingsPage({
         portalName={portal.portal_name}
         portalSlug={portal.slug}
       >
-        <SettingsTabs activeTab="billing" />
+        <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="billing" />
         {summary ? (
           <MentorBillingPanel eftInstructions={eftInstructions} summary={summary} />
         ) : (
@@ -307,7 +332,7 @@ export default async function WorkspaceSettingsPage({
       userLabel={displayName}
       traderId={traderId}
     >
-      <SettingsTabs activeTab="audit-logs" />
+      <SettingsTabs showIntegration={portal.slug === SHARESWORLDWIDE_SLUG} activeTab="audit-logs" />
       <AuditLogsPanel logs={logs ?? []} />
     </DashboardShell>
   );
@@ -382,5 +407,54 @@ function AuditLogsPanel({
         </div>
       )}
     </section>
+  );
+}
+
+async function SharesworldwideDiscordSettings({
+  notice,
+  supabase,
+  traderId,
+}: {
+  notice: string | null;
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>;
+  traderId: string;
+}) {
+  if (!supabase) return null;
+  const [{ data: server }, { data: links }] = await Promise.all([
+    supabase
+      .from("academy_discord_servers")
+      .select("guild_name, discord_username")
+      .eq("trader_id", traderId)
+      .maybeSingle(),
+    supabase
+      .from("student_discord_links")
+      .select("student_user_id, discord_username")
+      .eq("trader_id", traderId)
+      .order("linked_at", { ascending: false }),
+  ]);
+
+  const studentIds = (links ?? []).map((link) => link.student_user_id);
+  const { data: applications } = studentIds.length
+    ? await supabase
+        .from("student_applications")
+        .select("student_user_id, full_name")
+        .eq("trader_id", traderId)
+        .in("student_user_id", studentIds)
+    : { data: [] };
+  const names = new Map((applications ?? []).map((row) => [row.student_user_id, row.full_name]));
+
+  return (
+    <DiscordLinkCard
+      accountName={server?.discord_username ?? null}
+      audience="mentor"
+      configured={discordConfig().configured}
+      connectHref={`/api/discord/connect?returnTo=${encodeURIComponent("/dashboard/settings?tab=integration")}`}
+      notice={notice}
+      serverName={server?.guild_name ?? null}
+      students={(links ?? []).map((link) => ({
+        name: names.get(link.student_user_id)?.trim() || "Student",
+        discord: link.discord_username,
+      }))}
+    />
   );
 }

@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { PwaInstallCard } from "@/components/pwa-install-card";
 import { SignalAlertsPrompt } from "@/components/signal-alerts-prompt";
 import { BrokerGuideCard } from "@/components/broker-guide-card";
+import { DiscordLinkCard } from "@/components/discord-link-card";
 import { MySubscriptionCard } from "@/components/my-subscription-card";
 import { StudentShell } from "@/components/student-shell";
 import { SubscriptionPaywall } from "@/components/subscription-paywall";
@@ -29,12 +30,13 @@ import { affiliateMismatchMessage, isAffiliateMismatchReason, isXmBrokerName } f
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getStudentAcademyContext, getStudentLoginHref } from "@/lib/student-routing";
+import { discordConfig, discordNotice, SHARESWORLDWIDE_SLUG } from "@/lib/discord";
 import styles from "./student.module.css";
 
 export const dynamic = "force-dynamic";
 
 interface StudentPageProps {
-  searchParams?: Promise<{ portal?: string; subscribed?: string; cancelled?: string }>;
+  searchParams?: Promise<{ portal?: string; subscribed?: string; cancelled?: string; discord?: string }>;
 }
 
 export default async function StudentPage({ searchParams }: StudentPageProps) {
@@ -320,6 +322,16 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
       : (statusConfig[status as keyof typeof statusConfig] ??
         statusConfig.processing_default);
 
+  const { data: discordLink } = portal.slug === SHARESWORLDWIDE_SLUG
+    ? await supabase
+        .from("student_discord_links")
+        .select("discord_username")
+        .eq("trader_id", application.trader_id)
+        .eq("student_user_id", user.id)
+        .maybeSingle()
+    : { data: null };
+  const discordAccountName = discordLink?.discord_username ?? null;
+
   return (
     <StudentShell
       academyName={academyName}
@@ -357,6 +369,17 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
               <p className={styles.statusBody}>{statusDisplay.body}</p>
             </div>
           </div>
+        ) : null}
+
+        {portal.slug === SHARESWORLDWIDE_SLUG ? (
+          <DiscordLinkCard
+            accountName={discordAccountName}
+            audience="student"
+            configured={discordConfig().configured}
+            connectHref={`/api/discord/connect?returnTo=${encodeURIComponent(`${basePath}${querySuffix}`)}`}
+            notice={discordNotice(query?.discord)}
+            serverName={null}
+          />
         ) : null}
 
         {isSubscriptionPortal && hasModuleAccess && activeSubscription ? (
