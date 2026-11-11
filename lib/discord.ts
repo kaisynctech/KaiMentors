@@ -81,8 +81,8 @@ export function canManageDiscordGuild(guild: { owner?: boolean; permissions?: st
   if (guild.owner) return true;
   try {
     const permissions = BigInt(guild.permissions ?? "0");
-    const administrator = 8n;
-    const manageGuild = 32n;
+    const administrator = BigInt(8);
+    const manageGuild = BigInt(32);
     return (permissions & administrator) === administrator || (permissions & manageGuild) === manageGuild;
   } catch {
     return false;
