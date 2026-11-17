@@ -6,8 +6,6 @@
 <title>Pricing | KaiSync Institution</title>
 <meta name="description" content="Simple monthly pricing for KaiSync Institution — Library R99, Scholar R249, Studio R499. Cancel anytime. International students welcome.">
 <link href="styles.css" rel="stylesheet">
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
-<link href="styles-additions.css" rel="stylesheet">
 </head>
 <body>
 
@@ -22,6 +20,7 @@
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
     <a href="courses.html">Courses</a>
+    <a href="business.html">For Business</a>
     <a href="tools.html">AI Tools</a>
     <a href="articles.html">Articles</a>
     <div class="nav-dropdown" data-dropdown>
@@ -89,7 +88,7 @@
         <a class="btn ghost" href="signup.html">Enrol — Studio →</a>
       </div>
     </div>
-    <p class="pricing-note">All plans are monthly and cancel anytime. Prices in ZAR. Two AI seminars a week on every plan. Extra one on one sessions are R49 per 45 minutes — submit your problem when you book. Studio includes one free one on one session each month. Companies: email kaisynctech@gmail.com for group seats or workshops.</p>
+    <p class="pricing-note">All plans are monthly and cancel anytime. Prices in ZAR. Two AI seminars a week on every plan. Extra one on one sessions are R49 per 45 minutes — submit your problem when you book. Studio includes one free one on one session each month. Training a team? <a href="business.html">See business pricing →</a></p>
   </div>
 </section>
 
@@ -126,7 +125,7 @@
       </div>
       <div class="faq-item reveal">
         <h3>Can a company train a team?</h3>
-        <p>Yes. Email kaisynctech@gmail.com about group seats or an on-site AI workshop. Student plans stay at R99 / R249 / R499.</p>
+        <p>Yes. Team seats start at R199 per person a month (minimum 5), and workshops start at R3,500. See <a href="business.html">For Business</a> or WhatsApp +27 75 872 7511.</p>
       </div>
     </div>
   </div>
@@ -155,6 +154,7 @@
         <h4>Platform</h4>
         <a href="about.html">About</a>
         <a href="courses.html">Courses</a>
+        <a href="business.html">For Business</a>
         <a href="tools.html">AI Tools</a>
         <a href="articles.html">Articles</a>
         <a href="projects.html">Main projects</a>
@@ -169,7 +169,7 @@
       </div>
       <div>
         <h4>Connect</h4>
-        <a href="#" data-footer-whatsapp>WhatsApp</a>
+        <a href="https://wa.me/27758727511" target="_blank" rel="noopener" data-footer-whatsapp>WhatsApp</a>
         <a href="#" data-footer-instagram>Instagram</a>
         <a href="#" data-footer-tiktok>TikTok</a>
         <a href="#" data-footer-discord>Discord</a>
@@ -182,18 +182,6 @@
   </div>
 </footer>
 
-<link href="styles-additions.css" rel="stylesheet">
 <script src="app.js"></script>
-<script>(function(){
-  var btn=document.getElementById("theme-toggle");
-  var t=localStorage.getItem("ksi-theme")||"dark";
-  if(btn){btn.textContent=t==="dark"?"🌙":"☀️";
-  btn.addEventListener("click",function(){
-    var n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
-    document.documentElement.setAttribute("data-theme",n);
-    btn.textContent=n==="dark"?"🌙":"☀️";
-    localStorage.setItem("ksi-theme",n);
-  });}
-})()</script>
 </body>
 </html>

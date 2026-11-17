@@ -6,8 +6,6 @@
 <title>Refer a friend | KaiSync Institution</title>
 <meta name="description" content="Refer a student to KaiSync Institution and earn 10% of every subscription payment they make.">
 <link href="styles.css" rel="stylesheet">
-<link href="styles-additions.css" rel="stylesheet">
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("ksi-theme")||"dark")</script>
 </head>
 <body>
 
@@ -22,6 +20,7 @@
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
     <a href="courses.html">Courses</a>
+    <a href="business.html">For Business</a>
     <a href="tools.html">AI Tools</a>
     <a href="articles.html">Articles</a>
     <div class="nav-dropdown" data-dropdown>
@@ -101,6 +100,7 @@
         <h4>Platform</h4>
         <a href="about.html">About</a>
         <a href="courses.html">Courses</a>
+        <a href="business.html">For Business</a>
         <a href="tools.html">AI Tools</a>
         <a href="articles.html">Articles</a>
         <a href="projects.html">Main projects</a>
@@ -115,7 +115,7 @@
       </div>
       <div>
         <h4>Connect</h4>
-        <a href="#" data-footer-whatsapp>WhatsApp</a>
+        <a href="https://wa.me/27758727511" target="_blank" rel="noopener" data-footer-whatsapp>WhatsApp</a>
         <a href="#" data-footer-instagram>Instagram</a>
         <a href="#" data-footer-tiktok>TikTok</a>
         <a href="#" data-footer-discord>Discord</a>
@@ -129,18 +129,5 @@
 </footer>
 
 <script src="app.js"></script>
-<script>
-(function(){
-  var btn = document.getElementById("theme-toggle");
-  var t = localStorage.getItem("ksi-theme") || "dark";
-  if (btn) { btn.textContent = t === "dark" ? "🌙" : "☀️"; }
-  if (btn) btn.addEventListener("click", function(){
-    var n = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", n);
-    btn.textContent = n === "dark" ? "🌙" : "☀️";
-    localStorage.setItem("ksi-theme", n);
-  });
-})();
-</script>
 </body>
 </html>

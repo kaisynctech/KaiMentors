@@ -391,3 +391,155 @@
     });
 })();
 
+// ════════════════════════════════════════════════════════════════════
+// Moved from inline <script> tags (2026-11-17).
+// The platform's custom-site renderer strips every inline <script> and
+// only loads this file, so these features never ran on the live site.
+// Every block is guarded, so it is safe on pages without the markup.
+// ════════════════════════════════════════════════════════════════════
+
+/* ── Dark / light mode (all pages) ── */
+(function(){
+  var KEY = 'ksi-theme';
+  function read(){ try { return localStorage.getItem(KEY) || 'dark'; } catch (e) { return 'dark'; } }
+  function save(t){ try { localStorage.setItem(KEY, t); } catch (e) {} }
+  var btn = document.getElementById('theme-toggle');
+  function apply(t){
+    document.documentElement.setAttribute('data-theme', t);
+    if (btn) {
+      btn.textContent = t === 'dark' ? '🌙' : '☀️';
+      btn.setAttribute('aria-pressed', String(t === 'light'));
+    }
+  }
+  apply(read());
+  if (btn) btn.addEventListener('click', function(){
+    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    apply(next); save(next);
+  });
+})();
+
+/* ── Hero word morph ── */
+(function(){
+  var words=['Products','Websites','Automations','Apps']; // 'Your Future' removed: line 3 already says it
+  var i=0;
+  var el=document.getElementById('ksi-morph-word');
+  if(!el)return;
+  setInterval(function(){
+    i=(i+1)%words.length;
+    el.style.opacity='0';
+    el.style.transform='translateY(6px)';
+    setTimeout(function(){
+      el.textContent=words[i];
+      el.style.opacity='1';
+      el.style.transform='translateY(0)';
+    },280);
+  },2500);
+})();
+
+/* ── Sticky CTA bar ── */
+(function(){
+  var bar = document.getElementById('sticky-cta');
+  if (!bar) return;
+  var hero = document.querySelector('.hero');
+  function onScroll(){
+    var heroBottom = hero ? hero.getBoundingClientRect().bottom : 400;
+    if (heroBottom < 0) {
+      bar.classList.add('sticky-cta--visible');
+      bar.removeAttribute('aria-hidden');
+    } else {
+      bar.classList.remove('sticky-cta--visible');
+      bar.setAttribute('aria-hidden', 'true');
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
+
+/* ── Course preview modal ── */
+(function(){
+  var COURSES = {
+    'Basic AI': { tag: 'Start here', desc: 'How models work, prompting, and the languages of building with AI — a little Python, a little JavaScript, and how to talk to the tools. Optional, not a gate.', outcomes: ['Prompt with intent', 'Know when to use which model', 'Write small scripts with AI help', 'Move into any other course'], meta: 'Open catalog · Optional first course · Self-paced' },
+    'Build a website, beginning to end': { tag: 'Web', desc: 'Plan, design, and ship a live multi-page site — pages, forms, hosting, and a domain — using AI-assisted builders and code tools.', outcomes: ['Ship a live multi-page site', 'Wire a form that actually sends', 'Host it and point a domain', 'Hand it to a client or keep it'], meta: 'Open catalog · Join any time · Self-paced' },
+    'Automation': { tag: 'Automation', desc: 'Connect a website or form to the tools a business already uses, with Zapier, n8n, or Power Automate.', outcomes: ['Pick Zapier, n8n, or Power Automate', 'Connect a form to email and a sheet', 'Trigger a workflow from a website', 'Document the flow for a client'], meta: 'Open catalog · Join any time · Self-paced' },
+    'Marketing with AI': { tag: 'Marketing', desc: 'Posters, short videos, and AI video you can actually post — the content pack around a real product.', outcomes: ['A poster set for one offer', 'Short-form video you can post', 'AI video for a product page', 'A simple content calendar'], meta: 'Open catalog · Join any time · Self-paced' },
+    'Applications': { tag: 'Apps', desc: 'A web app or a downloadable app. Frontend, backend, and a real login — not a mockup.', outcomes: ['Choose web app or downloadable app', 'Build a frontend people can use', 'Add a backend and login', 'Put a working build in your portfolio'], meta: 'Open catalog · Join any time · Self-paced' },
+  };
+  var overlay = document.getElementById('course-modal');
+  var closeBtn = document.getElementById('modal-close');
+  if (!overlay) return;
+  function openModal(title) {
+    var d = COURSES[title]; if (!d) return;
+    document.getElementById('modal-tag').textContent = d.tag;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = d.desc;
+    var ul = document.getElementById('modal-outcomes');
+    ul.innerHTML = d.outcomes.map(function(o){ return '<li>✓ ' + o + '</li>'; }).join('');
+    document.getElementById('modal-meta').textContent = d.meta;
+    overlay.hidden = false; document.body.style.overflow = 'hidden';
+  }
+  function closeModal() { overlay.hidden = true; document.body.style.overflow = ''; }
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+  document.querySelectorAll('.card h3').forEach(function(h){
+    if (!COURSES[h.textContent.trim()]) return;
+    h.parentElement.style.cursor = 'pointer';
+    h.parentElement.setAttribute('role', 'button');
+    h.parentElement.setAttribute('tabindex', '0');
+    h.parentElement.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(h.textContent.trim()); } });
+    h.parentElement.addEventListener('click', function(){ openModal(h.textContent.trim()); });
+  });
+})();
+
+/* ── AI quiz ── */
+(function(){
+  var openBtn = document.getElementById('open-quiz');
+  var overlay = document.getElementById('quiz-modal');
+  var closeBtn = document.getElementById('quiz-close');
+  if (!openBtn || !overlay) return;
+  var QUESTIONS = [
+    { q: 'What describes you best?', opts: ['I\'m completely new to tech', 'I know the basics, want to go deeper', 'I\'m technical and want to build seriously'] },
+    { q: 'How much time can you commit per week?', opts: ['1–3 hours (evenings only)', '4–8 hours (part-time)', '10+ hours (I\'m serious)'] },
+    { q: 'What do you want to build first?', opts: ['A website or Basic AI', 'Marketing or automation', 'A full application'] },
+    { q: 'What\'s your main goal?', opts: ['Learn skills for employment', 'Launch a side income', 'Build a full product or startup'] },
+  ];
+  function joinHref() {
+    var a = document.querySelector('a[href*="join-academy"]');
+    return a ? a.getAttribute('href') : 'join-academy';
+  }
+  var answers = [];
+  var current = 0;
+  function render() {
+    var container = document.getElementById('quiz-steps');
+    if (current >= QUESTIONS.length) {
+      var score = answers.reduce(function(s,a){ return s+a; }, 0);
+      var plan = score <= 3 ? 'Library' : score <= 6 ? 'Scholar' : 'Studio';
+      var price = plan === 'Library' ? 'R99' : plan === 'Scholar' ? 'R249' : 'R499';
+      container.innerHTML = '<div class="quiz-result"><div class="quiz-result-plan">We recommend: <strong>' + plan + '</strong></div><div class="quiz-result-price">' + price + '/month</div><p class="quiz-result-note">Based on your answers, ' + plan + ' is the best fit to get started. You can always upgrade as you grow.</p><a class="btn primary" href="' + joinHref() + '" style="margin-top:16px;">Start ' + plan + ' →</a><button class="btn ghost" id="quiz-restart" style="margin-top:8px;margin-left:8px;">Retake quiz</button></div>';
+      document.getElementById('quiz-restart').addEventListener('click', function(){ answers=[]; current=0; render(); });
+      return;
+    }
+    var q = QUESTIONS[current];
+    container.innerHTML = '<div class="quiz-progress"><div class="quiz-progress-bar" style="width:' + ((current/QUESTIONS.length)*100) + '%"></div></div><p class="quiz-question">' + q.q + '</p><div class="quiz-opts">' + q.opts.map(function(o,i){ return '<button class="quiz-opt" data-i="'+i+'">'+o+'</button>'; }).join('') + '</div>';
+    container.querySelectorAll('.quiz-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){ answers.push(parseInt(btn.dataset.i)); current++; render(); });
+    });
+  }
+  function openQuiz(){ overlay.hidden=false; document.body.style.overflow='hidden'; answers=[]; current=0; render(); }
+  function closeQuiz(){ overlay.hidden=true; document.body.style.overflow=''; }
+  openBtn.addEventListener('click', openQuiz);
+  closeBtn.addEventListener('click', closeQuiz);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeQuiz(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeQuiz(); });
+})();
+
+/* ── FAQ accordion ── */
+(function(){
+  document.querySelectorAll('.faq-q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.parentElement;
+      var open = item.classList.contains('faq-item--open');
+      document.querySelectorAll('.faq-item--open').forEach(function(i){ i.classList.remove('faq-item--open'); i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });
+      if (!open) { item.classList.add('faq-item--open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+})();
