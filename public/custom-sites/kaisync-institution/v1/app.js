@@ -767,13 +767,10 @@
   var links=document.getElementById('nx-links'),pill=document.getElementById('nx-pill'),hover=document.getElementById('nx-hover'),
       dot=document.getElementById('nx-dot'),prog=document.getElementById('nx-progress'),sheet=document.getElementById('nx-sheet'),burger=document.getElementById('nx-burger');
   var current=nx.getAttribute('data-current')||'';
-  var mq2=window.matchMedia('(max-width:1400px)'),mq1=window.matchMedia('(max-width:1260px)');
 
   /* which visible top-level item stands for this page */
   function groupFor(page){
     if(page==='projects'||page==='sub-projects')return'projects';
-    if(page==='refer'&&mq2.matches)return'more';
-    if((page==='tools'||page==='articles')&&mq1.matches)return'more';
     return null;
   }
   function visible(el){return !!(el&&el.offsetParent)}
@@ -820,17 +817,13 @@
   if(burger)burger.addEventListener('click',function(e){e.stopPropagation();setSheet(!sheet.classList.contains('open'))});
   if(sheet)sheet.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setSheet(false)})});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDropdowns();setSheet(false)}});
-  window.addEventListener('resize',function(){if(window.innerWidth>960)setSheet(false)});
+  window.addEventListener('resize',function(){if(window.innerWidth>1060)setSheet(false)});
 
-  /* scroll: float, hide going down, show going up, progress line */
+  /* scroll: floats as a glass capsule (always visible) with a reading-progress line */
   var lastY=window.scrollY,ticking=false;
   function onScroll(){
     var y=window.scrollY,max=document.documentElement.scrollHeight-window.innerHeight;
     nx.classList.toggle('is-floating',y>40);
-    if(!nx.classList.contains('menu-open')){
-      if(y>lastY+6&&y>320){nx.classList.add('is-hidden');closeDropdowns()}
-      else if(y<lastY-4||y<320)nx.classList.remove('is-hidden');
-    }
     if(prog)prog.style.transform='scaleX('+(max>0?Math.min(1,y/max):0)+')';
     lastY=y;ticking=false;
   }

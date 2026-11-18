@@ -1590,12 +1590,11 @@ p { margin: 0; line-height: 1.6; }
 .nx-sheet .cta-row a{padding:15px;border-radius:14px;text-align:center;font-weight:700;border:1px solid rgba(255,255,255,.15);color:#F2F0FA;text-decoration:none}
 .nx-sheet .cta-row a.p{background:linear-gradient(135deg,#2D1B8E 0%,#00C4D8 100%);border:0;color:#fff}
 
-/* priority collapse: never wrap, tuck items into "More" as the screen narrows */
-.nx-narrow,.nx-in-more,.nx-in-more1{display:none!important}
-@media (max-width:1400px){.nx-wide2{display:none!important}.nx-narrow{display:block!important}.nx-in-more{display:flex!important}}
-@media (max-width:1260px){.nx-wide{display:none!important}.nx-in-more1{display:flex!important}.nx-name span{display:none}}
-@media (max-width:1100px){.nx-link{padding:8px 10px}.nx-login{padding:9px 6px}.nx-name{display:none}}
-@media (max-width:960px){
+/* all nine links always stay in the bar; spacing tightens as the screen narrows, phones get the sheet */
+@media (max-width:1400px){.nx-link{padding:8px 11px;font-size:.82rem}.nx-name span{display:none}}
+@media (max-width:1260px){.nx-bar{gap:10px}.nx-link{padding:7px 9px;font-size:.8rem}.nx-login{padding:9px 6px}.nx-name{display:none}}
+@media (max-width:1150px){.nx-link{padding:7px 7px;font-size:.78rem}.nx-icon{width:34px;height:34px}.nx-cta{padding:9px 13px}.nx-brand img{height:36px}}
+@media (max-width:1060px){
   .nx-links,.nx-login,.nx-actions .nx-cta{display:none!important}
   .nx-burger{display:block}
   .nx-name{display:flex}
