@@ -84,49 +84,70 @@
   </div>
 </section>
 
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-track">
-    <span>KaiSync Institution</span><span>Basic AI</span><span>Build a website</span><span>Automation</span>
-    <span>Marketing with AI</span><span>Applications</span><span>Pick any course</span><span>Join more than one</span>
-    <span>Library R99</span><span>Scholar R249</span><span>Studio R499</span><span>Studio showcase</span>
-    <span>KaiSync Institution</span><span>Basic AI</span><span>Build a website</span><span>Automation</span>
-    <span>Marketing with AI</span><span>Applications</span><span>Pick any course</span><span>Join more than one</span>
-    <span>Library R99</span><span>Scholar R249</span><span>Studio R499</span><span>Studio showcase</span>
+<!-- Stats cards + tool marquee (2026-11-18) -->
+<section class="ks-stats" aria-label="KaiSync Institution at a glance">
+  <div class="wrap">
+    <div class="ks-stat-grid">
+      <div class="ks-stat reveal">
+        <div class="ks-stat-top"><span class="ks-stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span><span class="ks-stat-chip">Open catalog</span></div>
+        <div class="ks-stat-num"><span data-count="5">0</span></div>
+        <div class="ks-stat-label">Recorded courses</div>
+      </div>
+      <div class="ks-stat reveal delay-1">
+        <div class="ks-stat-top"><span class="ks-stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg></span><span class="ks-stat-chip">Cancel anytime</span></div>
+        <div class="ks-stat-num"><span data-count="3">0</span></div>
+        <div class="ks-stat-label">Monthly plans</div>
+      </div>
+      <div class="ks-stat reveal delay-2">
+        <div class="ks-stat-top"><span class="ks-stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg></span><span class="ks-stat-chip">per month</span></div>
+        <div class="ks-stat-num"><span class="ks-r">R</span><span data-count="99">0</span></div>
+        <div class="ks-stat-label">Library starts at</div>
+      </div>
+      <div class="ks-stat reveal delay-3">
+        <div class="ks-stat-top"><span class="ks-stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="ks-stat-chip">Builder keeps 90%</span></div>
+        <div class="ks-stat-num"><span data-count="100">0</span><span class="ks-plus">+</span></div>
+        <div class="ks-stat-label">Projects sold</div>
+      </div>
+    </div>
+    <p class="ks-quiz-line reveal">Not sure which plan is right for you? <button type="button" id="open-quiz">Take the 30-second quiz →</button></p>
   </div>
-</div>
+  <div class="ks-marquee" aria-label="Tools you will learn">
+    <div class="ks-marquee-track">
+      <span><i></i>Claude</span><span><i></i>ChatGPT</span><span><i></i>Cursor</span><span><i></i>Lovable</span><span><i></i>n8n</span><span><i></i>Zapier</span><span><i></i>Power Automate</span><span><i></i>Runway</span><span><i></i>ElevenLabs</span><span><i></i>Higgsfield</span><span><i></i>GitHub Copilot</span><span><i></i>Python</span>
+      <span aria-hidden="true"><i></i>Claude</span><span aria-hidden="true"><i></i>ChatGPT</span><span aria-hidden="true"><i></i>Cursor</span><span aria-hidden="true"><i></i>Lovable</span><span aria-hidden="true"><i></i>n8n</span><span aria-hidden="true"><i></i>Zapier</span><span aria-hidden="true"><i></i>Power Automate</span><span aria-hidden="true"><i></i>Runway</span><span aria-hidden="true"><i></i>ElevenLabs</span><span aria-hidden="true"><i></i>Higgsfield</span><span aria-hidden="true"><i></i>GitHub Copilot</span><span aria-hidden="true"><i></i>Python</span>
+    </div>
+  </div>
+</section>
 
-<!-- Quiz CTA strip -->
-<div class="quiz-strip">
-  <div class="quiz-strip-inner">
-    <span>Not sure which plan is right for you?</span>
-    <button class="btn primary" id="open-quiz">Take the 30-second quiz →</button>
-  </div>
-</div>
-
-<!-- Stats band -->
-<div class="stats-band">
-  <div class="stats-band-inner">
-    <div class="stat-item reveal">
-      <span class="stat-num" data-count="5">0</span>
-      <span class="stat-label">Recorded courses</span>
+<!-- Live Build demo (2026-11-18) -->
+<section class="ks-lb">
+  <div class="wrap ks-lb-grid">
+    <div class="reveal">
+      <p class="eyebrow">See it in action</p>
+      <h2>One sentence in.<br><span class="grad">A live website out.</span></h2>
+      <p class="lead">This is the skill you'll learn at KaiSync Institution: describe what you want, guide the AI, and ship something real.</p>
+      <ol class="ks-lb-steps" id="ks-lb-steps">
+        <li><b>1</b>Describe the idea</li>
+        <li><b>2</b>AI designs and builds it</li>
+        <li><b>3</b>Publish it to the web</li>
+      </ol>
+      <a class="btn primary" href="courses.html">See the courses →</a>
     </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item reveal delay-1">
-      <span class="stat-num" data-count="3">0</span>
-      <span class="stat-label">Monthly plans</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item reveal delay-2">
-      <span class="stat-prefix">R</span><span class="stat-num" data-count="99">0</span>
-      <span class="stat-label">Library starts at</span>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item reveal delay-3">
-      <span class="stat-num" data-count="100">0</span><span class="stat-suffix">+</span>
-      <span class="stat-label">Projects sold</span>
+    <div class="ks-studio reveal delay-2" id="ks-lb-studio" role="img" aria-label="Animated demo: AI builds a website from one sentence">
+      <div class="ks-studio-bar"><i></i><i></i><i></i><span>kaisync studio</span></div>
+      <div class="ks-prompt"><div class="ks-who">You</div><div><span id="ks-lb-type"></span><span class="ks-caret"></span></div></div>
+      <div class="ks-status"><span id="ks-lb-step">Waiting for a prompt…</span><span class="ks-bar"><b id="ks-lb-bar"></b></span></div>
+      <div class="ks-canvas">
+        <div class="ks-site" id="ks-lb-site">
+          <div class="ks-s-nav"><span class="l"></span><span class="m"><i></i><i></i><i></i></span></div>
+          <div class="ks-s-hero"><div><h4 id="ks-lb-h"></h4><p id="ks-lb-p"></p><span class="b" id="ks-lb-b"></span></div><div class="ks-s-img"></div></div>
+          <div class="ks-s-cards"><div><i></i><b></b></div><div><i></i><b></b></div><div><i></i><b></b></div></div>
+        </div>
+        <div class="ks-live" id="ks-lb-live">● Live at <span id="ks-lb-url"></span></div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <section class="section audience-section">
   <div class="wrap">
@@ -408,13 +429,25 @@
   </div>
 </section>
 
-<!-- Student work section -->
-<section class="section" style="background: var(--surface); text-align: center;">
-  <div class="wrap reveal" style="max-width: 600px;">
-    <p class="eyebrow">Student work</p>
-    <h2>Real projects, built by our students.</h2>
-    <p class="lead" style="margin-bottom: 2rem;">The public gallery is for Studio students. Up to two projects are featured each month. Companies can enquire from the page.</p>
-    <a class="btn primary" href="projects.html">View student projects →</a>
+<!-- Student work: project galaxy (2026-11-18) -->
+<section class="ks-pg">
+  <div class="wrap ks-pg-grid">
+    <div class="reveal">
+      <p class="eyebrow">Student work</p>
+      <h2>Our students build<br><span class="ks-rot" id="ks-pg-rot"><span class="grad on">websites.</span><span class="grad">apps.</span><span class="grad">automations.</span><span class="grad">campaigns.</span></span></h2>
+      <p class="lead">Every card here is the kind of project you'll finish in a course. Studio students can sell theirs: companies enquire, and the builder keeps 90%.</p>
+      <div class="ks-pg-facts"><div><b>90%</b><span>to the builder</span></div><div><b>2 a month</b><span>featured projects</span></div></div>
+      <a class="btn primary" href="projects.html">View student projects →</a>
+    </div>
+    <div class="ks-stage reveal delay-2" id="ks-pg-stage" aria-hidden="true">
+      <div class="ks-scene" id="ks-pg-scene">
+        <div class="ks-gc ks-g1"><span class="tag">Website</span><h5>Coffee brand site</h5><div class="mini"></div></div>
+        <div class="ks-gc ks-g2"><span class="tag">App</span><h5>Budget app</h5><div class="phone"><i></i><i></i><i></i><i></i></div></div>
+        <div class="ks-gc ks-g3"><span class="tag">Automation</span><h5>Lead → CRM → WhatsApp</h5><div class="flow"><span>Form</span><em></em><span>n8n</span><em></em><span>CRM</span><em></em><span>WA</span></div></div>
+        <div class="ks-gc ks-g4"><span class="tag">AI marketing</span><h5>Launch poster</h5><div class="poster">SUMMER<br>DROP</div></div>
+        <div class="ks-gc ks-g5"><span class="tag">Claude</span><p>Build me a booking page for my salon.</p><p>Done. Live at glowsalon.co.za ✓</p></div>
+      </div>
+    </div>
   </div>
 </section>
 
