@@ -933,3 +933,32 @@
   }
   }catch(err){if(window.console)console.warn('KSI learn:',err)}
 })();
+
+/* ════════ Social links: read from the platform contact bar (Site Settings) (2026-11-18) ════════ */
+(function(){
+  "use strict";
+  try{
+  var LABELS={'WhatsApp':'whatsapp','Instagram':'instagram','TikTok':'tiktok','Facebook':'facebook','LinkedIn':'linkedin','X':'x','YouTube':'youtube','Telegram':'telegram'};
+  function collect(){
+    var found={};
+    [].slice.call(document.querySelectorAll('a[href]')).forEach(function(a){
+      if(a.closest('.ks-social')||a.closest('.ksi-footer')||a.closest('.nx-sheet'))return;
+      var span=a.querySelector('span');if(!span)return;
+      var key=LABELS[span.textContent.trim()];var href=a.getAttribute('href');
+      if(key&&href&&href!=='#'&&!found[key])found[key]=href;
+    });
+    return found;
+  }
+  function apply(){
+    var found=collect();
+    [].slice.call(document.querySelectorAll('[data-social]')).forEach(function(el){
+      var href=found[el.getAttribute('data-social')];
+      if(href){el.setAttribute('href',href);el.classList.add('has-link')}
+    });
+  }
+  apply();
+  /* the platform contact bar can render a moment after this script */
+  window.addEventListener('load',apply);
+  setTimeout(apply,1500);
+  }catch(err){if(window.console)console.warn('KSI social:',err)}
+})();

@@ -1836,3 +1836,24 @@ p { margin: 0; line-height: 1.6; }
 .ks-learn,[data-theme="light"] .ks-learn{background:var(--bg)}
 .ks-learn-grid > *{min-width:0}
 @media (max-width:960px){.ks-learn-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* ════════ Social icons under "Start today" + footer Connect (2026-11-18) ════════
+   Only platforms with a saved link show; links come from Admin → Site Settings. */
+.ks-social{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:28px}
+.ks-soc-btn{width:44px;height:44px;border-radius:14px;display:none;place-items:center;color:#E9E7F5;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);transition:transform .2s,background .2s,border-color .2s,box-shadow .2s,color .2s}
+.ks-soc-btn.has-link{display:grid}
+.ks-soc-btn svg{width:19px;height:19px}
+.ks-soc-btn:hover{transform:translateY(-3px);color:#fff;border-color:transparent}
+.ks-soc-btn[data-social="whatsapp"]:hover{background:#25D366;box-shadow:0 10px 24px rgba(37,211,102,.35)}
+.ks-soc-btn[data-social="instagram"]:hover{background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);box-shadow:0 10px 24px rgba(221,42,123,.35)}
+.ks-soc-btn[data-social="tiktok"]:hover{background:#111;box-shadow:0 10px 24px rgba(37,244,238,.25)}
+.ks-soc-btn[data-social="facebook"]:hover{background:#1877F2;box-shadow:0 10px 24px rgba(24,119,242,.35)}
+.ks-soc-btn[data-social="linkedin"]:hover{background:#0A66C2;box-shadow:0 10px 24px rgba(10,102,194,.35)}
+.ks-soc-btn[data-social="x"]:hover{background:#000;box-shadow:0 10px 24px rgba(255,255,255,.12)}
+.ks-soc-btn[data-social="youtube"]:hover{background:#FF0000;box-shadow:0 10px 24px rgba(255,0,0,.3)}
+.ks-soc-btn[data-social="telegram"]:hover{background:#229ED9;box-shadow:0 10px 24px rgba(34,158,217,.35)}
+.ks-soc-btn:focus-visible{outline:2px solid #00C4D8;outline-offset:3px}
+/* the "Start today" band is dark navy in both themes, so the icons stay light */
+.ksi-footer .ks-soc-link{display:none}
+.ksi-footer .ks-soc-link.has-link{display:block}
