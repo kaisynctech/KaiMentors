@@ -38,74 +38,31 @@
   </nav>
 </header>
 
-<section class="hero">
-  <div class="hero-bg" aria-hidden="true">
-    <div class="orb orb--purple"></div>
-    <div class="orb orb--cyan"></div>
-    <svg class="hero-circuit" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g stroke="#8B5CF6" stroke-width="1" opacity="0.06">
-        <line x1="0" y1="80" x2="800" y2="80"/>
-        <line x1="0" y1="200" x2="800" y2="200"/>
-        <line x1="0" y1="320" x2="800" y2="320"/>
-        <line x1="0" y1="440" x2="800" y2="440"/>
-        <line x1="0" y1="560" x2="800" y2="560"/>
-        <line x1="100" y1="0" x2="100" y2="600"/>
-        <line x1="240" y1="0" x2="240" y2="600"/>
-        <line x1="380" y1="0" x2="380" y2="600"/>
-        <line x1="520" y1="0" x2="520" y2="600"/>
-        <line x1="660" y1="0" x2="660" y2="600"/>
-      </g>
-      <g fill="#00C4D8" opacity="0.12">
-        <circle cx="100" cy="80" r="3"/>
-        <circle cx="240" cy="80" r="3"/>
-        <circle cx="380" cy="80" r="3"/>
-        <circle cx="520" cy="200" r="3"/>
-        <circle cx="660" cy="200" r="3"/>
-        <circle cx="100" cy="320" r="3"/>
-        <circle cx="380" cy="320" r="3"/>
-        <circle cx="520" cy="440" r="3"/>
-        <circle cx="240" cy="440" r="3"/>
-        <circle cx="660" cy="560" r="3"/>
-        <circle cx="100" cy="560" r="3"/>
-        <circle cx="380" cy="560" r="3"/>
-      </g>
-    </svg>
-  </div>
-
-  <!-- World map background image -->
-  <div class="hero-canvas-bg" aria-hidden="true">
-    <img src="assets/world-map-bg.jpg" alt="" class="hero-map-img">
-  </div>
-
-  <div class="hero-inner">
-    <div class="hero-copy reveal">
-      <div class="hero-live-badge"><span class="hero-live-dot"></span>KaiSync Institution</div>
+<section class="gx-hero" id="gx-hero">
+  <canvas class="gx-sky" id="gx-sky" aria-hidden="true"></canvas>
+  <div class="gx-layout">
+    <div class="gx-copy">
+      <div class="hero-live-badge"><span class="hero-live-dot"></span>AI school · South Africa</div>
       <h1>Learn AI.<br>Build <span id="ksi-morph-word">Products</span>.<br><span class="grad">Change Your Future.</span></h1>
-      <p class="lead">
-        KaiSync Institution is an AI academy of recorded courses.
-        Pick the course you want. Join more than one. Build real projects.
-      </p>
+      <p class="lead">Learn to build with the tools the world is using right now — Claude, ChatGPT, Lovable and Cursor. Recorded courses, live seminars, real projects.</p>
       <div class="btn-row">
         <a class="btn primary" href="signup.html">Enrol Now</a>
         <a class="btn ghost" href="pricing.html">View Plans</a>
       </div>
       <a class="hero-biz-link" href="business.html">Training a team? See AI training for business →</a>
-      <div class="hero-stats">
-        <span><b>5</b> Courses</span>
-        <span class="hero-stats-sep">·</span>
-        <span><b>3</b> Plans</span>
-        <span class="hero-stats-sep">·</span>
-        <span><b>Open</b> catalog</span>
-      </div>
       <p class="hero-note">Library R99 · Scholar R249 · Studio R499 · Cancel anytime</p>
     </div>
-    <div class="hero-visual reveal delay-2" aria-hidden="true"></div>
+    <div class="gx-stage" aria-hidden="true">
+      <canvas id="gx-galaxy"></canvas>
+      <div class="gx-caption" id="gx-caption">Where builders are made</div>
+      <div class="gx-logos">
+        <img src="assets/tools/anthropic.png" data-planet="Claude" alt="">
+        <img src="assets/tools/openai.png" data-planet="ChatGPT" alt="">
+        <img src="assets/tools/lovable.png" data-planet="Lovable" alt="">
+        <img src="assets/tools/cursor.svg" data-planet="Cursor" alt="">
+      </div>
+    </div>
   </div>
-  <!-- Chips: absolutely positioned over the map, relative to .hero -->
-  <div class="hero-chip hero-chip--1 reveal delay-1">Basic AI</div>
-  <div class="hero-chip hero-chip--2 reveal delay-2">Automation</div>
-  <div class="hero-chip hero-chip--3 reveal delay-3">Marketing</div>
-  <div class="hero-chip hero-chip--4 reveal delay-4">Websites</div>
 </section>
 
 <div class="ticker" aria-hidden="true">

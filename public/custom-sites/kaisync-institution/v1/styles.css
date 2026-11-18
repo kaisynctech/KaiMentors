@@ -1461,3 +1461,36 @@ p { margin: 0; line-height: 1.6; }
 [data-theme="light"] .biz-step p { color: #5A5A80; }
 [data-theme="light"] .biz-note { color: #5A5A80; }
 .biz-hero h1 { text-wrap: balance; }
+
+/* ════════ Galaxy hero (2026-11-18) — always deep space, in both themes ════════ */
+.gx-hero{position:relative;overflow:hidden;isolation:isolate;background:#03030A;color:#F2F0FA;padding-top:96px;
+  background-image:radial-gradient(60% 70% at 72% 50%,rgba(91,45,191,.20),transparent 70%),radial-gradient(40% 50% at 10% 100%,rgba(0,196,216,.07),transparent 70%)}
+.gx-sky{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.gx-layout{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 24px 48px;min-height:calc(100vh - 96px);min-height:calc(100svh - 96px);
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:24px}
+.gx-copy{max-width:600px}
+.gx-copy h1{font-size:clamp(2.4rem,3.9vw,3.8rem);line-height:1.04;letter-spacing:-.045em;margin:22px 0;white-space:nowrap;color:#F2F0FA}
+.gx-copy #ksi-morph-word{color:var(--cyan);display:inline-block;transition:opacity .28s ease,transform .28s ease}
+.gx-copy .lead{color:#A9A6C4;font-size:1.1rem;line-height:1.65;margin:0 0 30px;max-width:480px}
+.gx-copy .hero-note{color:#A9A6C4}
+.gx-stage{position:relative;width:100%;aspect-ratio:1/1;max-height:calc(100svh - 140px);justify-self:center;
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 58%,transparent 72%);mask-image:radial-gradient(circle at 50% 50%,#000 58%,transparent 72%)}
+.gx-stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.gx-logos{display:none}
+.gx-caption{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:#A9A6C4;opacity:0;transition:opacity .8s;white-space:nowrap}
+.gx-caption.on{opacity:1}
+@media (max-width:900px){
+  .gx-hero{padding-top:84px}
+  .gx-layout{grid-template-columns:1fr;gap:0;min-height:0;padding:0 20px 44px}
+  .gx-stage{order:-1;width:min(100%,460px);max-height:none;margin:-6px auto 4px}
+  .gx-caption{display:none}
+  .gx-copy{max-width:none}
+  .gx-copy h1{white-space:normal;font-size:clamp(2.2rem,9.4vw,2.8rem)}
+}
+/* light theme: the hero stays a night sky, so keep its text light */
+[data-theme="light"] .gx-hero{background-color:#03030A}
+[data-theme="light"] .gx-copy h1{color:#F2F0FA}
+[data-theme="light"] .gx-copy .lead,[data-theme="light"] .gx-copy .hero-note{color:#A9A6C4}
+[data-theme="light"] .gx-copy .btn.ghost{color:#fff;border-color:rgba(255,255,255,.3)}
+[data-theme="light"] .gx-copy .hero-biz-link{color:#00C4D8}
+[data-theme="light"] .gx-copy .hero-live-badge{color:#00C4D8}
