@@ -1791,3 +1791,48 @@ p { margin: 0; line-height: 1.6; }
 .ks-stat-label{margin-top:6px;font-size:.82rem}
 @media (max-width:560px){.ks-stat{padding:14px}.ks-stat-num{font-size:1.75rem}}
 .ks-stats > .wrap{padding-left:20px;padding-right:20px}
+
+/* ════════ Homepage v2 layout (2026-11-18): who we are, learn & build, pricing notes ════════ */
+.audience-section .section-head .lead{max-width:640px;margin:14px auto 0}
+.audience-section{padding-top:90px;padding-bottom:90px}
+
+.ks-learn{padding:110px 24px;position:relative;overflow:hidden;background:var(--surface)}
+[data-theme="light"] .ks-learn{background:#FFFFFF}
+.ks-learn::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(40% 50% at 72% 50%,rgba(91,45,191,.16),transparent 70%)}
+[data-theme="light"] .ks-learn::before{background:radial-gradient(40% 50% at 72% 50%,rgba(139,92,246,.08),transparent 70%)}
+.ks-learn-grid{position:relative;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:48px;align-items:center}
+.ks-learn h2{font-size:clamp(1.9rem,3.4vw,2.7rem);line-height:1.1;letter-spacing:-.035em;margin:0 0 14px}
+.ks-courses{display:grid;gap:8px;margin:26px 0 28px}
+.ks-course{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--ks-text);font:inherit;transition:background .3s,border-color .3s,transform .3s}
+.ks-course:hover{background:var(--ks-card);border-color:var(--ks-border)}
+.ks-course[aria-selected="true"]{background:var(--ks-card);border-color:rgba(0,196,216,.38);box-shadow:0 8px 24px var(--ks-glow)}
+.ks-course-ico{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--ks-muted);background:var(--ks-s2);border:1px solid var(--ks-border);transition:all .3s}
+.ks-course-ico svg{width:17px;height:17px}
+.ks-course[aria-selected="true"] .ks-course-ico{color:#fff;background:linear-gradient(135deg,#2D1B8E,#00C4D8);border-color:transparent}
+.ks-course-txt b{display:block;font-size:.95rem;font-weight:700}
+.ks-course-txt small{display:block;margin-top:2px;font-size:.8rem;color:var(--ks-muted)}
+.ks-course:focus-visible{outline:2px solid var(--ks-accent);outline-offset:2px}
+/* the project card for the selected course comes forward; the others step back */
+.ks-learn .ks-gc{transition:opacity .45s,filter .45s,box-shadow .45s,border-color .45s}
+.ks-learn .ks-scene.has-active .ks-gc{opacity:.38;filter:saturate(.6)}
+.ks-learn .ks-scene.has-active .ks-gc.is-active{opacity:1;filter:none;border-color:rgba(0,196,216,.55);box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(0,196,216,.35),0 0 40px rgba(0,196,216,.22);z-index:5}
+[data-theme="light"] .ks-learn .ks-scene.has-active .ks-gc.is-active{box-shadow:0 26px 60px rgba(13,13,43,.16),0 0 0 1px rgba(0,151,178,.35),0 0 30px rgba(0,151,178,.16)}
+
+/* pricing: two short notes instead of whole sections */
+.ks-notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:980px;margin:26px auto 0}
+.ks-note{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:14px;background:var(--ks-card);border:1px solid var(--ks-border)}
+.ks-note-ico{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,rgba(91,45,191,.8),rgba(0,196,216,.6))}
+.ks-note-ico svg{width:15px;height:15px}
+.ks-note p{margin:0;flex:1;font-size:.86rem;line-height:1.55;color:var(--ks-muted)}
+.ks-note p b{color:var(--ks-text)}
+.ks-note a{flex:none;align-self:center;font-size:.84rem;font-weight:700;color:var(--ks-accent);white-space:nowrap}
+.ks-note a:hover{text-decoration:underline}
+
+@media (max-width:960px){.ks-learn-grid{grid-template-columns:1fr;gap:28px}.ks-notes{grid-template-columns:1fr}}
+@media (max-width:560px){.ks-learn{padding:80px 20px}.ks-note{flex-wrap:wrap}.ks-note a{align-self:auto;margin-left:42px}}
+/* alternate section backgrounds so neighbours never share a colour */
+.ks-lb{background:var(--surface)}
+.ks-learn,[data-theme="light"] .ks-learn{background:var(--bg)}
+.ks-learn-grid > *{min-width:0}
+@media (max-width:960px){.ks-learn-grid{grid-template-columns:minmax(0,1fr)}}

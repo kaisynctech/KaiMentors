@@ -898,3 +898,38 @@
     if(sp.length&&!REDUCED)setInterval(function(){sp[k].classList.remove('on');k=(k+1)%sp.length;sp[k].classList.add('on')},2300);
   })();
 })();
+
+/* ════════ Learn & build: course list drives the project cards (2026-11-18) ════════ */
+(function(){
+  "use strict";
+  try{
+  var list=document.getElementById('ks-courses'),scene=document.getElementById('ks-pg-scene');
+  if(!list||!scene)return;
+  var tabs=[].slice.call(list.querySelectorAll('.ks-course')),i=0,auto=null,userPicked=false;
+  var REDUCED=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function select(n,fromUser){
+    i=n;
+    tabs.forEach(function(t,k){t.setAttribute('aria-selected',String(k===n));t.tabIndex=k===n?0:-1});
+    scene.classList.add('has-active');
+    [].slice.call(scene.querySelectorAll('.ks-gc')).forEach(function(c){c.classList.remove('is-active')});
+    var card=scene.querySelector('.'+tabs[n].getAttribute('data-card'));
+    if(card){card.classList.add('is-active');
+      /* phones: the cards are a swipe row, so slide the matching card into view (sideways only) */
+      if(window.innerWidth<=560){scene.scrollTo({left:card.offsetLeft-20,behavior:REDUCED?'auto':'smooth'})}}
+    if(fromUser){userPicked=true;if(auto){clearInterval(auto);auto=null}}
+  }
+  tabs.forEach(function(t,k){
+    t.addEventListener('click',function(){select(k,true)});
+    t.addEventListener('keydown',function(e){var d=e.key==='ArrowDown'||e.key==='ArrowRight'?1:e.key==='ArrowUp'||e.key==='ArrowLeft'?-1:0;
+      if(d){e.preventDefault();var n=(i+d+tabs.length)%tabs.length;select(n,true);tabs[n].focus()}});
+  });
+  select(0,false);
+  /* gentle auto-tour while visible, until the visitor picks a course */
+  if(!REDUCED&&'IntersectionObserver' in window){
+    new IntersectionObserver(function(en){
+      if(en[0].isIntersecting&&!userPicked&&!auto)auto=setInterval(function(){select((i+1)%tabs.length,false)},3800);
+      else if(!en[0].isIntersecting&&auto){clearInterval(auto);auto=null}
+    },{threshold:.4}).observe(list);
+  }
+  }catch(err){if(window.console)console.warn('KSI learn:',err)}
+})();
