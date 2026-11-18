@@ -1774,3 +1774,20 @@ p { margin: 0; line-height: 1.6; }
 .nx-sheet{top:0;right:0;bottom:0;left:0}
 .gx-sky,.gx-stage canvas{top:0;left:0}
 @supports not (aspect-ratio:1/1){.gx-stage{height:0;padding-bottom:100%}}
+
+/* Stats cards v2 (2026-11-18): smaller, and one glow only.
+   The top gradient line and the mouse-follow glow are removed; hover keeps a single soft cyan edge glow. */
+.ks-stats{padding-top:44px}
+.ks-stat-grid{max-width:980px;margin:0 auto;gap:12px}
+.ks-stat{padding:16px 18px;border-radius:14px}
+.ks-stat::before,.ks-stat::after{display:none}
+.ks-stat:hover{transform:translateY(-3px);border-color:rgba(0,196,216,.4);box-shadow:0 10px 28px var(--ks-glow)}
+.ks-stat-top{margin-bottom:12px}
+.ks-stat-ico{width:30px;height:30px;border-radius:9px}
+.ks-stat-ico svg{width:15px;height:15px}
+.ks-stat-chip{font-size:.62rem;padding:3px 7px}
+.ks-stat-num{font-size:2rem}
+.ks-stat-num .ks-r,.ks-stat-num .ks-plus{font-size:1.1rem}
+.ks-stat-label{margin-top:6px;font-size:.82rem}
+@media (max-width:560px){.ks-stat{padding:14px}.ks-stat-num{font-size:1.75rem}}
+.ks-stats > .wrap{padding-left:20px;padding-right:20px}
