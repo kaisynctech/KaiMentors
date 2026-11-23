@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { chartFocusHref } from "@/lib/chart-markets";
 import { createClient } from "@/lib/supabase/browser";
 import styles from "./notification-bell.module.css";
 
@@ -15,16 +16,18 @@ interface Notification {
   created_at: string;
   booking_id: string | null;
   conversation_id: string | null;
-  metadata: { path?: string; conversationId?: string } | null;
+  metadata: { path?: string; conversationId?: string; symbol?: string; date?: string } | null;
 }
 
 interface NotificationBellProps {
   messagesBasePath?: string;
+  chartsBasePath?: string;
   querySuffix?: string;
 }
 
 export function NotificationBell({
   messagesBasePath = "/dashboard/messages",
+  chartsBasePath = "/dashboard/charts",
   querySuffix = "",
 }: NotificationBellProps) {
   const router = useRouter();
@@ -61,6 +64,20 @@ export function NotificationBell({
   }
 
   function handleNotificationClick(n: Notification) {
+    if (n.type === "chart_signal" && n.metadata?.symbol && n.metadata.date) {
+      void markRead(n.id);
+      setOpen(false);
+      router.push(
+        chartFocusHref(
+          `${chartsBasePath}${querySuffix}`,
+          n.metadata.symbol,
+          n.metadata.date,
+          !chartsBasePath.startsWith("/dashboard"),
+        ),
+      );
+      return;
+    }
+
     if (
       (n.type === "new_message" || n.type === "daily_signal") &&
       (n.conversation_id || n.metadata?.conversationId)
@@ -92,11 +109,12 @@ export function NotificationBell({
   // Realtime: prepend new notifications as they arrive
   useEffect(() => {
     const supabase = createClient();
+    let active = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     void supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+      if (!active || !user) return;
       channel = supabase
-        .channel(`notifications:${user.id}`)
+        .channel(`notifications:${user.id}:${crypto.randomUUID()}`)
         .on(
           "postgres_changes",
           {
@@ -112,6 +130,7 @@ export function NotificationBell({
         .subscribe();
     });
     return () => {
+      active = false;
       if (channel) void supabase.removeChannel(channel);
     };
   }, []);

@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AcademyUnavailable } from "@/components/academy-unavailable";
 import { isAcademyActive } from "@/lib/entitlements";
+import { academyChartConfig, academyChartsEnabled } from "@/lib/academy-charts";
 import { resolvePortalFeatures } from "@/lib/portal-features";
 import { getStudentAcademyContext } from "@/lib/student-routing";
 import { StudentShellClient } from "./student-shell-client";
@@ -57,6 +58,10 @@ export async function StudentShell({
       logoUrl={logoUrl}
       portalFeatures={portalFeatures}
       portalSlug={portalSlug}
+      showCharts={
+        academyChartsEnabled(academy.studentPortalFeatures) &&
+        Boolean(academyChartConfig(academy.portalSlug ?? portalSlug))
+      }
       primaryColor={primaryColor}
       querySuffix={querySuffix}
       traderId={traderId}

@@ -21,6 +21,9 @@ import { MySubscriptionCard } from "@/components/my-subscription-card";
 import { StudentShell } from "@/components/student-shell";
 import { SubscriptionPaywall } from "@/components/subscription-paywall";
 import { VerifyAccountForm } from "@/components/verify-account-form";
+import { academyChartConfig, academyChartsEnabled } from "@/lib/academy-charts";
+import { ChartSignalCards } from "@/components/chart-signal-cards";
+import { loadLatestChartSignals, type ChartSignalPost } from "@/lib/chart-signal-feed";
 import { loadTodaySignal } from "@/lib/community-server";
 import { loadStudentSessionContext } from "@/lib/student-access-server";
 import { isOpenWithOptionalBrokerVerify } from "@/lib/student-access";
@@ -131,6 +134,10 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     session_type: { name: string; duration_minutes: number } | null;
   } | null = null;
   let todaySignal: Awaited<ReturnType<typeof loadTodaySignal>> = null;
+  const chartsOn =
+    academyChartsEnabled(academy.studentPortalFeatures) &&
+    Boolean(academyChartConfig(portal.slug));
+  let chartSignals: ChartSignalPost[] = [];
 
   if (hasModuleAccess) {
     const now = new Date().toISOString();
@@ -214,6 +221,9 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
     } | null;
     todaySignal = signalResult;
     certificateCount = certificatesResult.count ?? 0;
+    if (chartsOn) {
+      chartSignals = await loadLatestChartSignals(supabase, application.trader_id);
+    }
   }
 
   const continueLearning = lessonProgress.find(
@@ -628,6 +638,14 @@ export default async function StudentPage({ searchParams }: StudentPageProps) {
                   </a>
                 </div>
               </section>
+            ) : null}
+
+            {chartsOn ? (
+              <ChartSignalCards
+                href={`${basePath}/charts${querySuffix}`}
+                openDaily
+                signals={chartSignals}
+              />
             ) : null}
 
             {featuresOn.messages && todaySignal ? (

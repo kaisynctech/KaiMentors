@@ -1,10 +1,34 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { LiveClassManager } from "@/components/live-class-manager";
+import { academyCanConnectGoogleMeet } from "@/lib/academy-charts";
+import { googleOAuthConfigured } from "@/lib/google-meet";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
 
-export default async function LiveClassesPage() {
+function googleNotice(status?: string, reason?: string) {
+  if (status === "connected") {
+    return "Google account connected. You can create a Meet link when you schedule a class, or paste one.";
+  }
+  if (status === "disconnected") {
+    return "Google account disconnected. Pasted Meet links still work.";
+  }
+  if (status !== "error") return null;
+  if (reason === "denied") return "Google connection was cancelled.";
+  if (reason === "not_configured") {
+    return "Google Meet creation is not configured yet. Paste a Meet link instead.";
+  }
+  if (reason === "no_refresh") {
+    return "Google did not grant offline access. Remove this app in the Google account's security settings and connect again.";
+  }
+  return "Google could not be connected. Paste a Meet link, or try connecting again.";
+}
+
+export default async function LiveClassesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ google?: string; reason?: string }>;
+}) {
   const workspace = await getMentorWorkspace();
   if (!workspace) redirect("/login");
   if (
@@ -16,7 +40,21 @@ export default async function LiveClassesPage() {
   ) {
     redirect("/dashboard");
   }
-  const { supabase, traderId, displayName, portal } = workspace;
+  const { supabase, traderId, displayName, portal, studentPortalFeatures } = workspace;
+  const query = await searchParams;
+  const googleMeetEnabled = academyCanConnectGoogleMeet(studentPortalFeatures);
+  let googleEmail: string | null = null;
+  let googleConnected = false;
+  if (googleMeetEnabled) {
+    const { data: connection } = await supabase
+      .from("academy_integrations")
+      .select("external_email")
+      .eq("trader_id", traderId)
+      .eq("provider", "google_calendar")
+      .maybeSingle();
+    googleConnected = Boolean(connection);
+    googleEmail = connection?.external_email ?? null;
+  }
 
   const [{ data: classes }, { data: groupRows }, { data: grantRows }] = await Promise.all([
     supabase
@@ -63,7 +101,21 @@ export default async function LiveClassesPage() {
       portalName={portal.portal_name}
       portalSlug={portal.slug}
     >
-      <LiveClassManager classes={classesWithGrants} groups={groupRows ?? []} />
+      <LiveClassManager
+        classes={classesWithGrants}
+        googleMeet={
+          googleMeetEnabled
+            ? {
+                enabled: true,
+                configured: googleOAuthConfigured(),
+                connected: googleConnected,
+                email: googleEmail,
+                notice: googleNotice(query?.google, query?.reason),
+              }
+            : undefined
+        }
+        groups={groupRows ?? []}
+      />
     </DashboardShell>
   );
 }

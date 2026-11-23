@@ -1,3 +1,72 @@
+.page {
+  display: grid;
+  gap: 16px;
+}
+
+.googleCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.googleTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.googleHint,
+.googleNotice {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #343a3f;
+}
+
+.googleNotice {
+  margin-bottom: 4px;
+  color: #0f6b3c;
+}
+
+.googleButton,
+.googleInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #111315;
+  color: white;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.googleButton {
+  padding: 10px 16px;
+}
+
+.googleInline {
+  justify-self: start;
+  padding: 8px 12px;
+  margin-bottom: 2px;
+}
+
+.googleButton:disabled,
+.googleInline:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -777,6 +846,11 @@
 
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 900px) {
+  .googleCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
   }

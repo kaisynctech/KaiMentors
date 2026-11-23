@@ -1,0 +1,320 @@
+.desk {
+  display: grid;
+  gap: 16px;
+  padding: 36px 40px 64px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #697178;
+}
+
+.desk h1,
+.journal h2 {
+  margin: 0 0 8px;
+}
+
+.intro,
+.meta,
+.empty,
+.hint {
+  margin: 0;
+  max-width: 68ch;
+  color: #343a3f;
+}
+
+.toolbar,
+.group,
+.formActions,
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.desk h2,
+.form h2 {
+  margin: 0 0 8px;
+}
+
+.panel {
+  display: grid;
+  gap: 16px;
+}
+
+.marketRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: end;
+}
+
+.search,
+.dayPick {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #343a3f;
+}
+
+.marketRow .dayPick,
+.search {
+  flex: 1 1 220px;
+  max-width: 280px;
+}
+
+.search input,
+.dayPick select {
+  width: 100%;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: white;
+  font: inherit;
+  font-weight: 500;
+}
+
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.priceNote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 0;
+  max-width: 72ch;
+  color: #343a3f;
+  font-size: 13px;
+}
+
+.priceNote button,
+.signal button {
+  border: 1px solid #dce1e4;
+  border-radius: 999px;
+  background: white;
+  color: #111315;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.levelEdit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.levelEdit input {
+  width: 140px;
+  border: 1px solid #dce1e4;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  font-weight: 500;
+}
+
+.buy a,
+.sell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.toolbar button,
+.group button,
+.results button,
+.noteForm button,
+.form button,
+.rowActions button {
+  border: 1px solid #dce1e4;
+  border-radius: 999px;
+  background: white;
+  color: #111315;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.toolbar .active,
+.group .active,
+.form button[type="submit"] {
+  background: #111315;
+  border-color: #111315;
+  color: white;
+}
+
+.saveState {
+  margin-left: auto;
+  font-size: 13px;
+  color: #0f6b3c;
+}
+
+.chart {
+  height: 480px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.noteForm,
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.form label,
+.noteForm {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #343a3f;
+}
+
+.notes {
+  grid-column: 1 / -1;
+}
+
+.form input,
+.form select,
+.noteForm input {
+  width: 100%;
+  border: 1px solid #dce1e4;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 500;
+}
+
+.formActions {
+  grid-column: 1 / -1;
+}
+
+.marks,
+.tradeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.marks li,
+.tradeList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
+
+.tradeList li div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.tradeList span {
+  color: #343a3f;
+  font-size: 13px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stats article {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+}
+
+.stats span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #697178;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stats strong {
+  font-size: 1.25rem;
+}
+
+.journal {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.error {
+  margin: 0;
+  color: #b42318;
+}
+
+.signal {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.buy {
+  color: #0f6b3c;
+}
+
+.sell {
+  color: #b42318;
+}
+
+@media (max-width: 800px) {
+  .desk {
+    padding: 24px 16px 48px;
+  }
+
+  .chart {
+    height: 380px;
+  }
+
+  .form,
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .saveState {
+    margin-left: 0;
+  }
+}

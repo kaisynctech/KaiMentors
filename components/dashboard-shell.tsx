@@ -12,6 +12,7 @@ import {
   Gift,
   Layers3,
   LayoutDashboard,
+  LineChart,
   LogOut,
   Menu,
   MessageCircle,
@@ -24,6 +25,7 @@ import {
   Users,
   WandSparkles,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { MessagesUnreadDot } from "@/components/messages-unread-dot";
@@ -45,7 +47,9 @@ interface DashboardShellProps {
   portalSlug?: string;
 }
 
-const traderNavigation = [
+type NavEntry = readonly [label: string, href: string, icon: LucideIcon];
+
+const traderNavigation: NavEntry[] = [
   ["Overview", "/dashboard", LayoutDashboard],
   ["Students", "/dashboard/students", Users],
   ["Student Groups", "/dashboard/groups", Layers3],
@@ -60,9 +64,9 @@ const traderNavigation = [
   ["Live classes", "/dashboard/live-classes", CalendarDays],
   ["Bookings", "/dashboard/bookings", CalendarCheck],
   ["Settings", "/dashboard/settings", Settings],
-] as const;
+];
 
-const adminNavigation = [
+const adminNavigation: NavEntry[] = [
   ["Overview", "/admin", LayoutDashboard],
   ["Mentors", "/admin/traders", Users],
   ["Custom sites", "/admin/custom-sites", WandSparkles],
@@ -72,7 +76,7 @@ const adminNavigation = [
   ["Audit logs", "/admin/audit-logs", ScrollText],
   ["Platform settings", "/admin/settings", Settings],
   ["My mentor workspace", "/dashboard", LayoutDashboard],
-] as const;
+];
 
 export function DashboardShell({
   children,
@@ -85,15 +89,20 @@ export function DashboardShell({
   portalName,
   portalSlug,
 }: DashboardShellProps) {
-  const { features } = usePortalFeatures();
-  const navigation = (
+  const { features, showLiveChart } = usePortalFeatures();
+  const mentorNavigation = traderNavigation.filter(([, href]) => {
+    const featureKey = MENTOR_NAV_FEATURE_BY_HREF[href];
+    return !featureKey || features[featureKey] === true;
+  });
+  const liveChart: NavEntry = ["Live chart", "/dashboard/charts", LineChart];
+  const navigation: NavEntry[] =
     mode === "admin"
       ? adminNavigation
-      : traderNavigation.filter(([, href]) => {
-          const featureKey = MENTOR_NAV_FEATURE_BY_HREF[href];
-          return !featureKey || features[featureKey] === true;
-        })
-  );
+      : showLiveChart
+        ? mentorNavigation.flatMap((item) =>
+            item[1] === "/dashboard/live-classes" ? [item, liveChart] : [item],
+          )
+        : mentorNavigation;
   const [mobileOpen, setMobileOpen] = useState(false);
   const signOutReturnTo =
     mode === "admin"

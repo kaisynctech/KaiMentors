@@ -11,6 +11,7 @@ import {
   CalendarClock,
   Landmark,
   LayoutDashboard,
+  LineChart,
   LogOut,
   LockKeyhole,
   Menu,
@@ -38,6 +39,7 @@ interface StudentShellClientProps {
   portalSlug?: string;
   primaryColor?: string;
   portalFeatures: Record<PortalFeatureKey, boolean>;
+  showCharts?: boolean;
   children: React.ReactNode;
 }
 
@@ -60,6 +62,7 @@ export function StudentShellClient({
   portalSlug,
   primaryColor,
   portalFeatures,
+  showCharts = false,
   children,
 }: StudentShellClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -86,6 +89,16 @@ export function StudentShellClient({
       locked: !hasModuleAccess,
       featureKey: "live_classes",
     },
+    ...(showCharts
+      ? [
+          {
+            href: `${basePath}/charts${querySuffix}`,
+            label: "Live chart",
+            icon: LineChart,
+            locked: false,
+          },
+        ]
+      : []),
     {
       href: `${basePath}/bookings${querySuffix}`,
       label: "Book a session",
@@ -219,6 +232,7 @@ export function StudentShellClient({
             <span className={styles.userAvatar} aria-hidden="true">{avatarLetter}</span>
             <span className={styles.userName} aria-hidden="true">{displayName}</span>
             <NotificationBell
+              chartsBasePath={`${basePath}/charts`}
               messagesBasePath={`${basePath}/messages`}
               querySuffix={querySuffix}
             />

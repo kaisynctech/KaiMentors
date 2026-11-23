@@ -56,6 +56,7 @@ export async function sendWebPushToTraderStudents(params: {
   portalSlug: string | null;
   iconUrl?: string;
   payload: WebPushPayload;
+  resolveUrl?: (origin: string) => string;
 }) {
   if (!configureWebPush()) {
     console.warn("Web push skipped: VAPID keys are not configured.");

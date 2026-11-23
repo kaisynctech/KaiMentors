@@ -1,0 +1,56 @@
+.section {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 28px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+
+.head h2,
+.head p,
+.list p {
+  margin: 0;
+}
+
+.head p,
+.list p {
+  color: #343a3f;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.list article {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border, #dce1e4);
+  border-radius: 14px;
+  background: white;
+}
+
+.buy,
+.sell {
+  font-size: 15px;
+}
+
+.buy a,
+.sell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.buy {
+  color: #0f6b3c;
+}
+
+.sell {
+  color: #b42318;
+}

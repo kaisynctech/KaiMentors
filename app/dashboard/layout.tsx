@@ -35,6 +35,7 @@ export default async function DashboardLayout({
   return (
     <PortalFeaturesProvider
       accessModel={workspace.accessModel}
+      portalSlug={workspace.portal.slug}
       stored={workspace.studentPortalFeatures}
     >
       <Suspense fallback={<>{children}</>}>

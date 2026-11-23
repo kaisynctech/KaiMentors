@@ -4,6 +4,9 @@ import { DashboardAnnouncementsPanel } from "@/components/dashboard-announcement
 import { DashboardShell } from "@/components/dashboard-shell";
 import { PwaInstallCard } from "@/components/pwa-install-card";
 import { MetricCard } from "@/components/metric-card";
+import { academyChartConfig, academyChartsEnabled } from "@/lib/academy-charts";
+import { ChartSignalCards } from "@/components/chart-signal-cards";
+import { loadLatestChartSignals } from "@/lib/chart-signal-feed";
 import { loadAcademyProgressPulse } from "@/lib/academy-progress-server";
 import { isPortalFeatureEnabled } from "@/lib/portal-features";
 import { getMentorWorkspace } from "@/lib/workspace";
@@ -120,6 +123,17 @@ export default async function TraderDashboard() {
         <MetricCard icon={Clock3} label="Needs attention" note="Pending or manual review" value={stats.pending} />
         <MetricCard icon={BookOpen} label="Courses" note="Draft and published" value={stats.courses} />
       </section>
+
+      {workspace &&
+      academyChartsEnabled(workspace.studentPortalFeatures) &&
+      academyChartConfig(workspace.portal.slug) &&
+      supabase &&
+      traderId ? (
+        <ChartSignalCards
+          href="/dashboard/charts"
+          signals={await loadLatestChartSignals(supabase, traderId)}
+        />
+      ) : null}
 
       {pulse ? (
         <section className={styles.pulse}>

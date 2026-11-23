@@ -32,9 +32,18 @@ interface GroupOption {
   color: string;
 }
 
+interface GoogleMeetConnection {
+  enabled: boolean;
+  configured: boolean;
+  connected: boolean;
+  email: string | null;
+  notice: string | null;
+}
+
 interface Props {
   classes: LiveClass[];
   groups?: GroupOption[];
+  googleMeet?: GoogleMeetConnection;
 }
 
 const PROVIDER_LABELS: Record<Provider, string> = {
@@ -88,7 +97,7 @@ function combineStartAndEndTime(startsAtIso: string, endTimeVal: string) {
   return base.toISOString();
 }
 
-export function LiveClassManager({ classes: initial, groups = [] }: Props) {
+export function LiveClassManager({ classes: initial, groups = [], googleMeet }: Props) {
   const router = useRouter();
   const [classes, setClasses] = useState<LiveClass[]>(initial);
   const [selected, setSelected] = useState<LiveClass | null>(null);
@@ -110,6 +119,8 @@ export function LiveClassManager({ classes: initial, groups = [] }: Props) {
 
   // async state
   const [saving, setSaving] = useState(false);
+  const [creatingMeet, setCreatingMeet] = useState(false);
+  const [disconnectingGoogle, setDisconnectingGoogle] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // delete confirmation
@@ -321,9 +332,95 @@ export function LiveClassManager({ classes: initial, groups = [] }: Props) {
     }
   }
 
+  async function createMeetLink() {
+    setError(null);
+    if (!title.trim() || !startsAt) {
+      setError("Add a title and start time before creating the Meet link.");
+      return;
+    }
+    const startsAtIso = localDatetimeToISO(startsAt);
+    const endsAtIso = endsAtTime ? combineStartAndEndTime(startsAtIso, endsAtTime) : null;
+    setCreatingMeet(true);
+    try {
+      const res = await fetch("/api/integrations/google/meet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+          startsAt: startsAtIso,
+          endsAt: endsAtIso,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || typeof json.joinUrl !== "string") {
+        setError(json.error ?? "Could not create the Meet link.");
+        return;
+      }
+      setJoinUrl(json.joinUrl);
+    } finally {
+      setCreatingMeet(false);
+    }
+  }
+
+  async function disconnectGoogle() {
+    setDisconnectingGoogle(true);
+    try {
+      const res = await fetch("/api/integrations/google/disconnect", { method: "POST" });
+      if (!res.ok) {
+        setError("Could not disconnect Google.");
+        return;
+      }
+      router.push("/dashboard/live-classes?google=disconnected");
+      router.refresh();
+    } finally {
+      setDisconnectingGoogle(false);
+    }
+  }
+
   const showForm = creating || selected !== null;
 
   return (
+    <div className={styles.page}>
+      {googleMeet?.enabled ? (
+        <section className={styles.googleCard}>
+          <div>
+            <p className={styles.googleTitle}>Google Meet</p>
+            {googleMeet.notice ? <p className={styles.googleNotice}>{googleMeet.notice}</p> : null}
+            {googleMeet.connected ? (
+              <p className={styles.googleHint}>
+                Connected{googleMeet.email ? ` as ${googleMeet.email}` : ""}. Create a Meet link
+                while scheduling a class, or paste one.
+              </p>
+            ) : googleMeet.configured ? (
+              <p className={styles.googleHint}>
+                Connect the academy Google account to create Meet links from here. Pasting a link
+                still works.
+              </p>
+            ) : (
+              <p className={styles.googleHint}>
+                Pasting a Meet link already works. Creating links from the dashboard needs Google
+                app credentials on the server. In Google Cloud, allow this academy&apos;s
+                /api/integrations/google/callback redirect.
+              </p>
+            )}
+          </div>
+          {googleMeet.configured && googleMeet.connected ? (
+            <button
+              className={styles.googleButton}
+              disabled={disconnectingGoogle}
+              onClick={disconnectGoogle}
+              type="button"
+            >
+              {disconnectingGoogle ? "Disconnecting…" : "Disconnect"}
+            </button>
+          ) : googleMeet.configured ? (
+            <a className={styles.googleButton} href="/api/integrations/google/start">
+              Connect Google
+            </a>
+          ) : null}
+        </section>
+      ) : null}
     <div className={styles.workspace}>
       {/* ── Left panel ─────────────────────────────────── */}
       <div className={styles.listPanel}>
@@ -485,6 +582,16 @@ export function LiveClassManager({ classes: initial, groups = [] }: Props) {
               {provider !== "zoom" && (
                 <label className={styles.fieldLabel}>
                   Join URL <span className={styles.required}>*</span>
+                  {provider === "google_meet" && googleMeet?.enabled && googleMeet.connected ? (
+                    <button
+                      className={styles.googleInline}
+                      disabled={creatingMeet}
+                      onClick={createMeetLink}
+                      type="button"
+                    >
+                      {creatingMeet ? "Creating Meet link…" : "Create Meet link"}
+                    </button>
+                  ) : null}
                   <input
                     className={styles.input}
                     onChange={(e) => setJoinUrl(e.target.value)}
@@ -693,6 +800,7 @@ export function LiveClassManager({ classes: initial, groups = [] }: Props) {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
