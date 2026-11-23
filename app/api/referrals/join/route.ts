@@ -202,7 +202,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       code: partner.code,
       signedIn,
-      dashboardUrl: urls.dashboardUrl,
       ...urls,
     });
   } catch (error) {
