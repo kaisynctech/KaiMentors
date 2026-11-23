@@ -42,6 +42,27 @@ export async function loadReferralPortal(admin: AdminClient, slug: string) {
   return data as ReferralPortal;
 }
 
+export const AFFILIATE_TERMS_VERSION = "2026-11-23";
+
+export class ReferralDuplicateError extends Error {
+  constructor(message = "That phone number is already linked to an affiliate account.") {
+    super(message);
+  }
+}
+
+/** Keeps "+" and digits only. Numbers without a country code are treated as South African. */
+export function normalizeAffiliatePhone(raw: string | null | undefined) {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return null;
+  const digits = trimmed.replace(/[^0-9]/g, "");
+  let e164: string;
+  if (trimmed.startsWith("+")) e164 = `+${digits}`;
+  else if (digits.startsWith("00")) e164 = `+${digits.slice(2)}`;
+  else if (digits.startsWith("0")) e164 = `+27${digits.slice(1)}`;
+  else e164 = `+${digits}`;
+  return /^\+[0-9]{7,15}$/.test(e164) ? e164 : null;
+}
+
 export async function findPartnerByUser(
   admin: AdminClient,
   portalId: string,
@@ -59,7 +80,16 @@ export async function findPartnerByUser(
 export async function createReferralPartner(
   admin: AdminClient,
   portal: ReferralPortal,
-  input: { userId: string; fullName: string; email: string },
+  input: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phone?: string | null;
+    country?: string | null;
+    promoChannel?: string | null;
+    promoLink?: string | null;
+    termsVersion?: string | null;
+  },
 ) {
   const existing = await findPartnerByUser(admin, portal.id, input.userId);
   if (existing) return existing;
@@ -75,12 +105,26 @@ export async function createReferralPartner(
         full_name: input.fullName.trim(),
         email: input.email.trim().toLowerCase(),
         code,
+        phone: input.phone ?? null,
+        country: input.country ?? null,
+        promo_channel: input.promoChannel ?? null,
+        promo_link: input.promoLink ?? null,
+        terms_version: input.termsVersion ?? null,
+        terms_accepted_at: input.termsVersion ? new Date().toISOString() : null,
+        status: "active",
       })
       .select("id,code,full_name,email,user_id,portal_id,trader_id")
       .single();
     if (!error && data) return data;
     if (error?.code !== "23505") {
       throw new Error("The referral code could not be created.");
+    }
+    // A unique clash on phone or user is not a code clash: stop retrying.
+    if (error.message.includes("phone")) throw new ReferralDuplicateError();
+    if (error.message.includes("user_id") || error.message.includes("email")) {
+      const again = await findPartnerByUser(admin, portal.id, input.userId);
+      if (again) return again;
+      throw new ReferralDuplicateError("That email is already linked to an affiliate account.");
     }
   }
   throw new Error("The referral code could not be created.");
@@ -96,11 +140,11 @@ export async function resolveReferralPartner(
   if (!code) return { ok: true as const, partner: null };
   const { data: partner } = await admin
     .from("referral_partners")
-    .select("id,user_id,email,code")
+    .select("id,user_id,email,code,status")
     .eq("portal_id", portal.id)
     .eq("code", code)
     .maybeSingle();
-  if (!partner) {
+  if (!partner || partner.status === "suspended") {
     return { ok: false as const, error: "That referral code is not valid." };
   }
   if (partner.email.toLowerCase() === studentEmail.trim().toLowerCase()) {
@@ -191,4 +235,41 @@ export async function recordReferralCommission(
       code: error.code,
     });
   }
+}
+
+/**
+ * Counts one visit from an affiliate link. Repeat visits from the same visitor
+ * within 30 minutes are ignored so refreshes do not inflate the count.
+ */
+export async function recordReferralClick(
+  admin: AdminClient,
+  portal: ReferralPortal,
+  input: { code: string; visitorHash: string; landingPath: string },
+) {
+  const code = normalizeReferralCode(input.code);
+  if (!code) return false;
+  const { data: partner } = await admin
+    .from("referral_partners")
+    .select("id,status")
+    .eq("portal_id", portal.id)
+    .eq("code", code)
+    .maybeSingle();
+  if (!partner || partner.status === "suspended") return false;
+  const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { data: recent } = await admin
+    .from("referral_clicks")
+    .select("id")
+    .eq("referral_partner_id", partner.id)
+    .eq("visitor_hash", input.visitorHash)
+    .gte("created_at", since)
+    .limit(1);
+  if (recent && recent.length > 0) return true;
+  await admin.from("referral_clicks").insert({
+    trader_id: portal.trader_id,
+    portal_id: portal.id,
+    referral_partner_id: partner.id,
+    visitor_hash: input.visitorHash,
+    landing_path: input.landingPath.slice(0, 200),
+  });
+  return true;
 }

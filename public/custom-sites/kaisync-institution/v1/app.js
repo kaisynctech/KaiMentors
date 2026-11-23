@@ -378,59 +378,90 @@
 })();
 
 (function () {
+  // Affiliate registration (refer.html)
   var form = document.querySelector("[data-refer-join]");
   if (!form) return;
   var message = document.querySelector("[data-refer-message]");
+  function say(text, kind) {
+    if (!message) return;
+    message.textContent = text;
+    message.className = "af-msg" + (kind ? " is-" + kind : "");
+  }
   form.addEventListener("submit", function (event) {
     event.preventDefault();
     var data = new FormData(form);
+    var get = function (k) { return String(data.get(k) || "").trim(); };
     var password = String(data.get("password") || "");
-    var confirm = String(data.get("passwordConfirm") || "");
-    if (password !== confirm) {
-      if (message) message.textContent = "The passwords do not match.";
-      return;
-    }
+    if (get("fullName").length < 2) return say("Enter your full name.", "error");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(get("email"))) return say("Enter a valid email address.", "error");
+    if (get("phone").replace(/[^0-9]/g, "").length < 7) return say("Enter a valid phone number.", "error");
+    if (!get("country")) return say("Choose your country.", "error");
+    if (!get("promoChannel")) return say("Choose how you will promote KaiSync Institution.", "error");
+    if (password.length < 10) return say("Use a password of at least 10 characters.", "error");
+    if (password !== String(data.get("passwordConfirm") || "")) return say("The passwords do not match.", "error");
+    if (!data.get("acceptTerms")) return say("Accept the affiliate terms to continue.", "error");
     var button = form.querySelector("button[type=submit]");
     if (button) button.disabled = true;
-    if (message) message.textContent = "Creating your code…";
+    say("Creating your affiliate account…");
     fetch("/api/referrals/join", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         portalSlug: form.getAttribute("data-portal"),
-        fullName: String(data.get("fullName") || ""),
-        email: String(data.get("email") || ""),
+        fullName: get("fullName"),
+        email: get("email"),
         password: password,
+        phone: get("phone"),
+        country: get("country"),
+        promoChannel: get("promoChannel"),
+        promoLink: get("promoLink") || undefined,
+        acceptTerms: true,
       }),
     })
       .then(function (response) {
-        return response.json().then(function (payload) {
-          return { ok: response.ok, payload: payload };
-        });
+        return response.json().then(function (payload) { return { ok: response.ok, payload: payload }; });
       })
       .then(function (result) {
-        if (!result.ok) throw new Error(result.payload.error || "Could not create a code.");
-        form.hidden = true;
-        if (message) {
-          var shareUrl = result.payload.shareUrl;
-          try {
-            var parsed = new URL(shareUrl, window.location.origin);
-            shareUrl = window.location.origin + parsed.pathname + parsed.search;
-          } catch (ignore) {}
-          message.replaceChildren();
-          var strong = document.createElement("strong");
-          strong.textContent = "Your code is " + result.payload.code + ".";
-          var link = document.createElement("a");
-          link.href = shareUrl;
-          link.textContent = shareUrl;
-          message.append(strong, " Share this link: ", link, ". Sign in later to see what you are owed.");
-        }
+        if (!result.ok) throw new Error(result.payload.error || "Could not create your affiliate account.");
+        say("Your code is " + result.payload.code + ". Opening your dashboard…", "good");
+        var target = "/portal/" + form.getAttribute("data-portal") + "/referrals";
+        try { if (result.payload.dashboardUrl) target = new URL(result.payload.dashboardUrl).pathname; } catch (ignore) {}
+        window.setTimeout(function () { window.location.href = target; }, 900);
       })
       .catch(function (error) {
-        if (message) message.textContent = error.message || "Could not create a code.";
+        say(error.message || "Could not create your affiliate account.", "error");
         if (button) button.disabled = false;
       });
   });
+})();
+
+(function () {
+  // Affiliate links: remember ?ref=CODE for 60 days, count the visit, and carry it to enrolment.
+  try {
+    var slug = "kaisync-institution";
+    var cookieName = "km_ref_" + slug;
+    var params = new URLSearchParams(window.location.search);
+    var fresh = (params.get("ref") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+    if (fresh.length >= 4) {
+      document.cookie = cookieName + "=" + fresh + "; Max-Age=" + 60 * 24 * 60 * 60 + "; Path=/; SameSite=Lax" + (location.protocol === "https:" ? "; Secure" : "");
+      fetch("/api/referrals/click", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ portalSlug: slug, code: fresh, path: window.location.pathname }),
+        keepalive: true,
+      }).catch(function () {});
+    }
+    var match = document.cookie.match(new RegExp("(?:^|; )" + cookieName + "=([A-Z0-9]{4,16})"));
+    var code = fresh.length >= 4 ? fresh : match ? match[1] : "";
+    if (!code) return;
+    var links = document.querySelectorAll('a[href*="join-academy"]');
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute("href") || "";
+      if (href.indexOf("ref=") !== -1) continue;
+      links[i].setAttribute("href", href + (href.indexOf("?") === -1 ? "?" : "&") + "ref=" + code);
+    }
+  } catch (ignore) {}
 })();
 
 (function () {

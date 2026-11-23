@@ -60,39 +60,63 @@
 <section class="page-hero">
   <div class="wrap reveal">
     <p class="eyebrow">Affiliate Program</p>
-    <h1>Refer someone. Earn 10% of what they pay.</h1>
-    <p class="lead">Share your code. When they enrol and PayFast confirms a subscription, you earn 10% of that payment every month they stay subscribed.</p>
+    <h1>Share AI education. Earn 10% every month.</h1>
+    <p class="lead">Join the KaiSync Institution affiliate program from anywhere in the world. You get your own code, a live dashboard, and 10% of every payment from the students you refer, for as long as they stay subscribed.</p>
+    <div class="btn-row">
+      <a class="btn primary" href="#af-join">Become an affiliate</a>
+      <a class="btn ghost" href="/portal/kaisync-institution/referrals">Affiliate login</a>
+    </div>
   </div>
 </section>
 
 <section class="section">
-  <div class="wrap" style="max-width: 760px;">
-    <div class="reveal">
-      <p class="eyebrow">The commission</p>
-      <h2>Library R9.90. Scholar R24.90. Studio R49.90.</h2>
-      <p class="lead" style="max-width: none; margin-top: 18px;">
-        That is 10% of R99, R249, and R499. It is earned again on each monthly renewal.
-        KaiSync Institution pays the balance to you. It is not deposited automatically.
-        You cannot use your own code.
-      </p>
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">How it works</p>
+      <h2>Three steps. Paid monthly.</h2>
     </div>
-    <form class="reveal" data-refer-join data-portal="kaisync-institution" style="margin-top: 28px; display: grid; gap: 14px; max-width: 480px;">
-      <label>Full name
-        <input name="fullName" required minlength="2" autocomplete="name" class="ks-input">
-      </label>
-      <label>Email
-        <input name="email" type="email" required autocomplete="email" class="ks-input">
-      </label>
-      <label>Password
-        <input name="password" type="password" required minlength="10" autocomplete="new-password" class="ks-input">
-      </label>
-      <label>Confirm password
-        <input name="passwordConfirm" type="password" required minlength="10" autocomplete="new-password" class="ks-input">
-      </label>
-      <button class="btn primary" type="submit">Get my referral code</button>
-      <p>Already joined? <a href="login.html">Sign in</a> and open your referral balance.</p>
+    <ol class="ab-path cx-how">
+      <li class="reveal"><span class="ab-step">01</span><h3>Join in a minute</h3><p>Create your affiliate account below. Your code and dashboard are ready straight away.</p></li>
+      <li class="reveal delay-1"><span class="ab-step">02</span><h3>Share your link</h3><p>Anyone who visits through your link is linked to you for 60 days.</p></li>
+      <li class="reveal delay-2"><span class="ab-step">03</span><h3>Earn 10% monthly</h3><p>On every payment, for as long as they stay. Paid monthly by EFT or PayPal once you reach R200.</p></li>
+    </ol>
+    <div class="af-rates reveal">
+      <div><span>Library</span><b>R9.90</b><small>per month, per student</small></div>
+      <div><span>Scholar</span><b>R24.90</b><small>per month, per student</small></div>
+      <div><span>Studio</span><b>R49.90</b><small>per month, per student</small></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="af-join" style="background: var(--surface);">
+  <div class="wrap af-join">
+    <div class="af-join-copy reveal">
+      <p class="eyebrow">Create your account</p>
+      <h2>Become an affiliate.</h2>
+      <p class="lead">You are approved instantly. Add your payout details in the dashboard before your first payout.</p>
+      <ul class="af-list">
+        <li>Live dashboard: visits, sign-ups, paying students and earnings</li>
+        <li>Commission held 30 days for refunds, then available</li>
+        <li>EFT in South Africa, PayPal everywhere else</li>
+        <li>One account per person. Self-referrals are not allowed</li>
+      </ul>
+      <p class="af-small">Already an affiliate? <a href="/portal/kaisync-institution/referrals">Open your dashboard</a></p>
+    </div>
+    <form class="af-form reveal delay-1" data-refer-join data-portal="kaisync-institution" novalidate>
+      <div class="af-grid">
+        <label>Full name<input name="fullName" required minlength="2" autocomplete="name" class="ks-input"></label>
+        <label>Email<input name="email" type="email" required autocomplete="email" class="ks-input"></label>
+        <label>Phone<input name="phone" type="tel" required autocomplete="tel" placeholder="+27 …" class="ks-input"></label>
+        <label>Country<select name="country" required class="ks-input"><option value="" disabled selected>Choose…</option><option>South Africa</option><option>Botswana</option><option>Namibia</option><option>Zimbabwe</option><option>Zambia</option><option>Mozambique</option><option>Lesotho</option><option>Eswatini</option><option>Nigeria</option><option>Ghana</option><option>Kenya</option><option>Uganda</option><option>Tanzania</option><option>Rwanda</option><option>Egypt</option><option>Morocco</option><option>United Kingdom</option><option>Ireland</option><option>United States</option><option>Canada</option><option>Australia</option><option>New Zealand</option><option>Germany</option><option>France</option><option>Netherlands</option><option>Belgium</option><option>Spain</option><option>Portugal</option><option>Italy</option><option>Sweden</option><option>Norway</option><option>Denmark</option><option>Switzerland</option><option>Poland</option><option>United Arab Emirates</option><option>Saudi Arabia</option><option>Qatar</option><option>India</option><option>Pakistan</option><option>Philippines</option><option>Singapore</option><option>Malaysia</option><option>Brazil</option><option>Mexico</option><option>Other</option></select></label>
+        <label>Main promotion channel<select name="promoChannel" required class="ks-input"><option value="" disabled selected>Choose…</option><option>Instagram</option><option>TikTok</option><option>Facebook</option><option>LinkedIn</option><option>X (Twitter)</option><option>YouTube</option><option>WhatsApp</option><option>Website or blog</option><option>Email list</option><option>Friends and family</option><option>Other</option></select></label>
+        <label>Website or profile link <span class="af-opt">(optional)</span><input name="promoLink" type="url" placeholder="https://" class="ks-input"></label>
+        <label>Password<input name="password" type="password" required minlength="10" autocomplete="new-password" class="ks-input"></label>
+        <label>Confirm password<input name="passwordConfirm" type="password" required minlength="10" autocomplete="new-password" class="ks-input"></label>
+      </div>
+      <label class="af-check"><input name="acceptTerms" type="checkbox" required> <span>I agree to the <a href="affiliate-terms.html" target="_blank" rel="noopener">affiliate terms</a>, including no self-referrals and no misleading promotion.</span></label>
+      <button class="btn primary" type="submit">Create my affiliate account</button>
+      <p class="af-msg" data-refer-message role="status" aria-live="polite"></p>
     </form>
-    <p data-refer-message style="min-height: 1.4em; margin-top: 14px;"></p>
   </div>
 </section>
 

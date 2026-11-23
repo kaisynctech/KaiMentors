@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { AcademyJoinPage } from "@/components/academy-join-page";
 import { loadAcademyEntryBySlug } from "@/lib/academy-entry";
 import { portalTitle } from "@/lib/metadata";
+import { normalizeReferralCode, referralCookieName } from "@/lib/referral-math";
 
 interface PortalJoinPageProps {
   params: Promise<{ slug: string }>;
@@ -25,6 +27,9 @@ export default async function PortalJoinPage({ params, searchParams }: PortalJoi
   const { ref } = await searchParams;
   const data = await loadAcademyEntryBySlug(slug);
   if (!data) notFound();
-  const referralCode = (ref ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+  const cookieStore = await cookies();
+  const referralCode = normalizeReferralCode(
+    ref || cookieStore.get(referralCookieName(slug))?.value,
+  );
   return <AcademyJoinPage data={data} referralCode={referralCode} />;
 }

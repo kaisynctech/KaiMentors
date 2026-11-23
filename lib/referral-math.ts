@@ -27,3 +27,8 @@ export function referralCommissionCents(paymentAmountCents: number) {
 export function formatZarFromCents(cents: number) {
   return `R${(cents / 100).toFixed(2)}`;
 }
+
+/** Cookie the academy website sets when a visitor arrives through an affiliate link. */
+export function referralCookieName(portalSlug: string) {
+  return `km_ref_${portalSlug.toLowerCase().replace(/[^a-z0-9-]/g, "")}`;
+}
