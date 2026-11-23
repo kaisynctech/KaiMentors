@@ -27,7 +27,7 @@ const DEFAULT_CHART: AcademyChartConfig = {
 };
 
 /**
- * Live chart is for forex academies only (not Sharesworldwide or KaiSync Institution).
+ * Live chart academies. KaiSync Institution stays off.
  * A portal still needs student_portal_features.charts = true to show it.
  */
 const CHARTS_BY_SLUG: Record<string, AcademyChartConfig> = {
@@ -38,6 +38,7 @@ const CHARTS_BY_SLUG: Record<string, AcademyChartConfig> = {
   kaitrades: DEFAULT_CHART,
   "milkers-fx": DEFAULT_CHART,
   "traders-confidence": DEFAULT_CHART,
+  "bandi-shares": DEFAULT_CHART,
 };
 
 export function academyChartConfig(
