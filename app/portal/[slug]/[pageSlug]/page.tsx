@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CustomSiteJoinPage } from "@/components/custom-site-join-page";
 import { CustomSiteRenderer } from "@/components/custom-site-renderer";
 import { WebsiteRenderer } from "@/components/website/website-renderer";
@@ -9,9 +9,11 @@ import {
 } from "@/lib/custom-sites";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
 import { portalTitle } from "@/lib/metadata";
+import { customDomainUrlForPortal } from "@/lib/domains/portal-domain";
 
 interface WebsitePageProps {
   params: Promise<{ slug: string; pageSlug: string }>;
+  searchParams: Promise<{ ref?: string }>;
 }
 
 export async function generateMetadata({
@@ -43,8 +45,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function WebsitePage({ params }: WebsitePageProps) {
+export default async function WebsitePage({
+  params,
+  searchParams,
+}: WebsitePageProps) {
   const { slug, pageSlug } = await params;
+  // Academies with a live custom domain are only served there.
+  const { ref } = await searchParams;
+  const domainUrl = await customDomainUrlForPortal(slug, `/${pageSlug}`, { ref });
+  if (domainUrl) redirect(domainUrl);
   if (pageSlug === "join-academy") {
     const joinData = await loadCustomSiteJoinBySlug(slug);
     if (joinData) return <CustomSiteJoinPage data={joinData} />;

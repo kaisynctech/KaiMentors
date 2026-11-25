@@ -9,7 +9,12 @@ import styles from "./auth-form.module.css";
 
 type Step = "email" | "code" | "password" | "complete" | "sign_in" | "expired" | "support";
 
-export function AccountSetupFlow() {
+export function AccountSetupFlow({
+  showWorkspaceLink = true,
+}: {
+  /** Off on academy custom domains, where creating a mentor workspace does not belong. */
+  showWorkspaceLink?: boolean;
+} = {}) {
   const cooldown = useOtpCooldown();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -142,7 +147,7 @@ export function AccountSetupFlow() {
       {message ? <p className={styles.error}>{message}</p> : null}
       <button disabled={loading} type="submit">{loading ? <Loader2 className={styles.spin} size={18} /> : null}{step === "email" ? "Continue account setup" : step === "code" ? "Verify code" : "Complete setup"}</button>
       {step === "code" ? <button className={styles.backButton} disabled={loading || cooldown.seconds > 0} onClick={resend} type="button"><RotateCcw size={15} /> {cooldown.seconds > 0 ? `Resend in ${cooldown.seconds}s` : "Resend code"}</button> : null}
-      {step === "email" ? <><Link href="/onboarding">Create a new mentor workspace</Link><Link href="/login">Return to sign in</Link></> : null}
+      {step === "email" ? <>{showWorkspaceLink ? <Link href="/onboarding">Create a new mentor workspace</Link> : null}<Link href="/login">Return to sign in</Link></> : null}
     </form>
   );
 }

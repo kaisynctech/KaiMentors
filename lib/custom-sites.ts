@@ -202,16 +202,32 @@ function safePackageFilePath(assetBasePath: string, fileName: string) {
   return resolved;
 }
 
+// Package HTML stores titles and descriptions entity-encoded. Next.js encodes
+// metadata again, so decode first or tabs show "&amp;" literally.
+function decodeHtmlEntities(value: string) {
+  return value
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) =>
+      String.fromCodePoint(parseInt(code, 16)),
+    )
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, "\u00a0")
+    .replace(/&amp;/g, "&");
+}
+
 function extractTitle(html: string, fallback: string) {
-  return html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || fallback;
+  const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim();
+  return title ? decodeHtmlEntities(title) : fallback;
 }
 
 function extractDescription(html: string) {
-  return (
-    html
-      .match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)?.[1]
-      ?.trim() ?? null
-  );
+  const description = html
+    .match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)?.[1]
+    ?.trim();
+  return description ? decodeHtmlEntities(description) : null;
 }
 
 function extractBody(html: string) {

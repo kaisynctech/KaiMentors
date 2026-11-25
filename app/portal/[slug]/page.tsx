@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CoreAcademyPage } from "@/components/core-academy-page";
 import { CustomSiteRenderer } from "@/components/custom-site-renderer";
 import { WebsiteRenderer } from "@/components/website/website-renderer";
@@ -7,6 +7,7 @@ import { loadAcademyEntryBySlug } from "@/lib/academy-entry";
 import { loadCustomSiteBySlug } from "@/lib/custom-sites";
 import { loadWebsiteBySlug } from "@/lib/website-builder";
 import { portalTitle } from "@/lib/metadata";
+import { customDomainUrlForPortal } from "@/lib/domains/portal-domain";
 
 interface PortalPageProps { params: Promise<{ slug: string }> }
 
@@ -36,6 +37,9 @@ export async function generateMetadata({ params }: PortalPageProps): Promise<Met
 
 export default async function PortalPage({ params }: PortalPageProps) {
   const { slug } = await params;
+  // Academies with a live custom domain are only served there.
+  const domainUrl = await customDomainUrlForPortal(slug, "/");
+  if (domainUrl) redirect(domainUrl);
   const customSite = await loadCustomSiteBySlug(slug);
   if (customSite) return <CustomSiteRenderer site={customSite} />;
   const website = await loadWebsiteBySlug(slug);

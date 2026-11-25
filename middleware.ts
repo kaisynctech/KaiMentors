@@ -92,12 +92,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // A custom domain serves one academy at its root, so platform-style
+  // /portal/<slug>/... links (for example from a static export before it
+  // hydrates) would 404 here. Send them to the same page on this domain.
+  if (customDomain && /^\/portal\/[^/]+(?:\/|$)/.test(path)) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = path.replace(/^\/portal\/[^/]+/, "") || "/";
+    return NextResponse.redirect(destination, 308);
+  }
+
+  // Account setup and password recovery are served in the academy's own
+  // branding on custom domains (see app/domain-sites/[hostname]/).
   if (
     customDomain &&
-    (path.startsWith("/admin") ||
-      path.startsWith("/onboarding") ||
-      path.startsWith("/account-setup") ||
-      path.startsWith("/recover"))
+    (path.startsWith("/admin") || path.startsWith("/onboarding"))
   ) {
     const platformUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (platformUrl) {

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AcademyLoginPage } from "@/components/academy-login-page";
 import { loadAcademyEntryBySlug } from "@/lib/academy-entry";
 import { portalTitle } from "@/lib/metadata";
+import { customDomainUrlForPortal } from "@/lib/domains/portal-domain";
 
 interface PortalLoginPageProps {
   params: Promise<{ slug: string }>;
@@ -26,6 +27,9 @@ export default async function PortalLoginPage({
 }: PortalLoginPageProps) {
   const { slug } = await params;
   const { next } = await searchParams;
+  // Academies with a live custom domain sign in there.
+  const domainUrl = await customDomainUrlForPortal(slug, "/login", { next });
+  if (domainUrl) redirect(domainUrl);
   const data = await loadAcademyEntryBySlug(slug);
   if (!data) notFound();
   return <AcademyLoginPage data={data} next={next} />;
