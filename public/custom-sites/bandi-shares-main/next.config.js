@@ -10,16 +10,6 @@ const nextConfig = {
     unoptimized: true,
     formats: ['image/avif', 'image/webp'],
   },
-  async redirects() {
-    return [
-      {
-        source: '/apply',
-        destination: '/verify',
-        permanent: false,
-        basePath: false,
-      },
-    ]
-  },
 }
 
 module.exports = nextConfig

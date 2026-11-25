@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { portalSiteHref } from '@/lib/site-url'
+import { resolveSiteHref } from '@/lib/site-url'
 
 export default function VerifyRedirectPage() {
   useEffect(() => {
-    const target = portalSiteHref('/xm#verify')
+    const target = resolveSiteHref('/xm#verify')
     const top = window.top ?? window
     top.location.href = target
   }, [])
