@@ -53,7 +53,8 @@ export async function generateMetadata({
 }: CustomDomainWebsitePageProps): Promise<Metadata> {
   const { hostname, path } = await params;
   const result = await loadCustomDomainWebsite(hostname, path);
-  if (!result) return portalTitle("Academy website");
+  // No page here: keep the layout's "Page not found · <academy>" title.
+  if (!result) return {};
   if ("joinData" in result && result.joinData) {
     return {
       ...portalTitle(`Join ${result.joinData.portal.portal_name}`),

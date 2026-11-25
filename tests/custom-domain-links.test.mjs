@@ -59,6 +59,8 @@ test("a missing page on a live academy domain names the academy, not the platfor
   const layout = await read("app/domain-sites/[hostname]/layout.tsx");
   assert.match(layout, /Page not found · \$\{data\.portal\.portal_name\}/);
   assert.doesNotMatch(layout, /KaiMentors/);
+  const page = await read("app/domain-sites/[hostname]/[[...path]]/page.tsx");
+  assert.doesNotMatch(page, /portalTitle\("Academy website"\)/);
 });
 
 test("Sharesworldwide pages no longer show the discount placeholder", async () => {
