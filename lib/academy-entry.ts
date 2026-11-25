@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import type { PublicBrokerOption } from "@/lib/database.types";
 import type { ResolvedWebsiteDomain } from "@/lib/domains/resolution";
 import { resolveWebsiteDomain } from "@/lib/domains/resolution";
@@ -125,8 +126,12 @@ export async function loadAcademyEntryByResolution(
   };
 }
 
-export async function loadAcademyEntryByHostname(hostname: string) {
-  const resolution = await resolveWebsiteDomain(hostname);
-  if (!resolution) return null;
-  return loadAcademyEntryByResolution(resolution);
-}
+// Cached per request: the custom-domain layout, not-found page and auth
+// pages can all ask for the same academy while rendering one response.
+export const loadAcademyEntryByHostname = cache(
+  async (hostname: string): Promise<AcademyEntryContext | null> => {
+    const resolution = await resolveWebsiteDomain(hostname);
+    if (!resolution) return null;
+    return loadAcademyEntryByResolution(resolution);
+  },
+);

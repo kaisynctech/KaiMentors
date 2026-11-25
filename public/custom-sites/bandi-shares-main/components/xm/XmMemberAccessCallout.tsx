@@ -1,5 +1,5 @@
 import { PortalAuthLink } from '@/components/portal-auth-link'
-import { PARTNER_CODE, xmMemberDiscountLabel, XM_MEMBER_DISCOUNT_PERCENT } from '@/config/site'
+import { PARTNER_CODE, xmMemberDiscountLabel } from '@/config/site'
 import { SiteLink } from '@/components/site-link'
 
 const STEPS = [
@@ -37,11 +37,6 @@ export default function XmMemberAccessCallout({
           Public pages show standard Whop rates.{' '}
           <b className="text-foreground">Sign in + XM verification</b> unlocks discounted checkout
           links inside your student portal.
-          {!XM_MEMBER_DISCOUNT_PERCENT && (
-            <span className="mt-1 block text-xs">
-              Exact discount percentage coming soon from Bandile.
-            </span>
-          )}
         </p>
       </div>
 

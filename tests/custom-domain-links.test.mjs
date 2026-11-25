@@ -41,3 +41,29 @@ test("package titles are decoded before they reach page metadata", async () => {
   assert.match(source, /function decodeHtmlEntities/);
   assert.match(source, /decodeHtmlEntities\(title\)/);
 });
+
+test("academy domains publish robots.txt and a sitemap of their own pages", async () => {
+  const robots = await read("app/robots.ts");
+  assert.match(robots, /academySitemapUrls/);
+  assert.match(robots, /"\/dashboard"/);
+  const seo = await read("lib/seo.ts");
+  assert.match(seo, /isPlatformHostname\(hostname\)/);
+  assert.match(seo, /seenFiles\.has\(page\.file\)/);
+  assert.match(await read("app/sitemap.ts"), /academySitemapUrls/);
+});
+
+test("a missing page on a live academy domain names the academy, not the platform", async () => {
+  const notFound = await read("app/domain-sites/[hostname]/not-found.tsx");
+  assert.match(notFound, /Page not found/);
+  assert.match(notFound, /academy\.portal\.portal_name/);
+  const layout = await read("app/domain-sites/[hostname]/layout.tsx");
+  assert.match(layout, /Page not found · \$\{data\.portal\.portal_name\}/);
+  assert.doesNotMatch(layout, /KaiMentors/);
+});
+
+test("Sharesworldwide pages no longer show the discount placeholder", async () => {
+  for (const page of ["index", "services", "xm"]) {
+    const html = await read(`public/custom-sites/bandi-shares/v1/${page}.html`);
+    assert.doesNotMatch(html, /coming soon from Bandile/, page);
+  }
+});
