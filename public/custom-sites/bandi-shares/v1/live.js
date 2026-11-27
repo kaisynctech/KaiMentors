@@ -5,7 +5,15 @@ function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'
 function day(d){try{return d?new Date(d).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):''}catch(e){return ''}}
 function cut(t,n){t=String(t||'').replace(/\s+/g,' ').trim();return t.length>n?t.slice(0,n).replace(/\s+\S*$/,'')+'…':t}
 var home=document.querySelector('[data-live="home"]'),notesEl=document.querySelector('[data-live="notes"]'),curEl=document.querySelector('[data-live="curated"]');
-if(!home&&!notesEl&&!curEl)return;
+var home3=document.querySelector('[data-live="home3"]');
+if(!home&&!notesEl&&!curEl&&!home3)return;
+function renderHome3(notes,news){
+  var rows=[];notes.forEach(function(a){rows.push({cat:'Morning note',date:day(a.published_at),title:a.title,sum:a.today||a.yesterday,href:P+'/articles',tgt:'_top'})});
+  news.forEach(function(n){rows.push({cat:'Curated read',date:'',title:n.title,sum:n.summary,href:n.url,tgt:'_blank'})});
+  rows=rows.slice(0,3);
+  if(!rows.length){home3.innerHTML='<div class="a3c"><small><b>Morning note</b></small><h3>Bandile\'s latest articles appear here.</h3><p>What happened yesterday and what he is watching today.</p></div>';return}
+  home3.innerHTML=rows.map(function(r){return '<a class="a3c" href="'+esc(r.href)+'" target="'+r.tgt+'"'+(r.tgt==='_blank'?' rel="noopener noreferrer"':'')+'><small><b>'+esc(r.cat)+'</b>'+(r.date?' · '+esc(r.date):'')+'</small><h3>'+esc(r.title)+'</h3><p>'+esc(cut(r.sum,180))+'</p><span class="go">Read article <i>→</i></span></a>'}).join('');
+}
 function renderHome(notes,news){
   var rows=[];notes.slice(0,2).forEach(function(a){rows.push({cat:'Morning note',src:'Bandile',title:a.title,meta:day(a.published_at),href:P+'/articles',tgt:'_top'})});
   news.slice(0,4-rows.length).forEach(function(n){rows.push({cat:'Gold',src:'FXStreet',title:n.title,meta:'',href:n.url,tgt:'_blank'})});
@@ -31,6 +39,6 @@ function renderCurated(news,src){
 function reveal(el){requestAnimationFrame(function(){el.querySelectorAll('[data-r]').forEach(function(x){x.classList.add('in')})})}
 fetch('/api/public/market-articles?portal=bandi-shares').then(function(r){return r.json()}).then(function(d){
   var notes=Array.isArray(d.articles)?d.articles:[],gold=d.gold||{},news=Array.isArray(gold.items)?gold.items:[];
-  if(home)renderHome(notes,news);if(notesEl)renderNotes(notes);if(curEl)renderCurated(news,gold.sourceUrl);
-}).catch(function(){if(home)renderHome([],[]);if(notesEl)renderNotes([]);if(curEl)renderCurated([],'')});
+  if(home)renderHome(notes,news);if(home3)renderHome3(notes,news);if(notesEl)renderNotes(notes);if(curEl)renderCurated(news,gold.sourceUrl);
+}).catch(function(){if(home)renderHome([],[]);if(home3)renderHome3([],[]);if(notesEl)renderNotes([]);if(curEl)renderCurated([],'')});
 })();
