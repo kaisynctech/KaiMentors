@@ -3,7 +3,7 @@
 <title>Insights · Bandi Shares</title>
 
 <script>(function(){var r=document.documentElement,t;try{t=new URLSearchParams(location.search).get('t')}catch(e){}if(t!=='light'&&t!=='dark'){try{t=sessionStorage.getItem('bandi-theme')}catch(e){}}if(t!=='light'&&t!=='dark')t='dark';window.__bt=t;r.dataset.theme=t;try{new MutationObserver(function(){if(r.dataset.theme!==window.__bt)r.dataset.theme=window.__bt}).observe(r,{attributes:true,attributeFilter:['data-theme']})}catch(e){}})()</script>
-<link rel="stylesheet" href="site.css?v=20261127b">
+<link rel="stylesheet" href="site.css?v=20261127c">
 </head>
 <body>
 <header class="nav"><div class="wrap">
@@ -48,7 +48,7 @@ tog.addEventListener('click',()=>{const t=window.__bt==='dark'?'light':'dark';wi
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const h=a.getAttribute('href');if(!/^[a-z-]+\.html(#.*)?$/.test(h))return;if(window.__bt==='light'){e.preventDefault();const [p,hash]=h.split('#');location.href=p+'?t=light'+(hash?'#'+hash:'')}});
 const pr=document.getElementById('prog');const onS=()=>{const h=document.documentElement.scrollHeight-innerHeight;pr.style.transform='scaleX('+(h>0?scrollY/h:0)+')'};addEventListener('scroll',onS,{passive:true});onS();}
 </script>
-<script src="pulse.js?v=20261127b"></script>
-<script src="tv.js?v=20261127b"></script>
-<script src="live.js?v=20261127b"></script>
+<script src="pulse.js?v=20261127c"></script>
+<script src="tv.js?v=20261127c"></script>
+<script src="live.js?v=20261127c"></script>
 </body></html>

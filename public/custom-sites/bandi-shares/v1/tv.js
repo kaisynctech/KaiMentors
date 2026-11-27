@@ -10,10 +10,10 @@ var CFG={
 };
 function render(el){
   var c=CFG[el.dataset.tv];if(!c)return;var o=c(el);
-  el.innerHTML='';var box=document.createElement('div');box.className='tradingview-widget-container';box.style.height='100%';
+  el.innerHTML='';var z=document.createElement('div');z.className='tvz';el.appendChild(z);var box=document.createElement('div');box.className='tradingview-widget-container';box.style.height='100%';
   var w=document.createElement('div');w.className='tradingview-widget-container__widget';w.style.height='100%';box.appendChild(w);
   var s=document.createElement('script');s.src='https://s3.tradingview.com/external-embedding/'+o.src;s.async=true;s.text=JSON.stringify(o.cfg);box.appendChild(s);
-  el.appendChild(box);el._r=1;
+  z.appendChild(box);el._r=1;
 }
 var els=[].slice.call(document.querySelectorAll('[data-tv]'));
 if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){render(e.target);io.unobserve(e.target)}})},{rootMargin:'400px'});els.forEach(function(el){io.observe(el)})}else els.forEach(render);
