@@ -506,3 +506,4 @@ section{padding:84px 0}
 .featart.note{align-items:start}.note h2,.note h3{color:var(--ink)}
 .acard.note{cursor:default}.agrid2 .acard.note.open{grid-column:1/-1}
 .crow.empty{grid-template-columns:1fr}.crow.empty a{color:var(--acc)}
+[data-tv] iframe{color-scheme:light}

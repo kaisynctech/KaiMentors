@@ -3,7 +3,7 @@
 <title>Bandi Shares · Economic Insights</title>
 
 <script>(function(){var r=document.documentElement,t;try{t=new URLSearchParams(location.search).get('t')}catch(e){}if(t!=='light'&&t!=='dark'){try{t=sessionStorage.getItem('bandi-theme')}catch(e){}}if(t!=='light'&&t!=='dark')t='dark';window.__bt=t;r.dataset.theme=t;try{new MutationObserver(function(){if(r.dataset.theme!==window.__bt)r.dataset.theme=window.__bt}).observe(r,{attributes:true,attributeFilter:['data-theme']})}catch(e){}})()</script>
-<link rel="stylesheet" href="site.css?v=20261127">
+<link rel="stylesheet" href="site.css?v=20261127b">
 </head>
 <body>
 <header class="nav"><div class="wrap">
@@ -65,7 +65,7 @@
   <div class="sh"><div><div class="over" data-r>Insights &amp; articles</div><h2 data-r>Our views on the markets.</h2></div><a class="more" data-r href="/portal/bandi-shares/articles" target="_top">All articles →</a></div>
   <div class="tease2">
     <div class="alist" data-r data-live="home"><div class="arow sk"><span class="n">01</span><div><small>&nbsp;</small><h4>&nbsp;</h4></div><span></span></div><div class="arow sk"><span class="n">02</span><div><small>&nbsp;</small><h4>&nbsp;</h4></div><span></span></div><div class="arow sk"><span class="n">03</span><div><small>&nbsp;</small><h4>&nbsp;</h4></div><span></span></div><div class="arow sk"><span class="n">04</span><div><small>&nbsp;</small><h4>&nbsp;</h4></div><span></span></div></div>
-    <div><div class="panel pulse live-pulse " data-r><div class="ph"><span>Market pulse</span><span class="live"><i></i>Live</span></div><div class="tvgrid"><div class="tvmini" data-tv="mini" data-sym="OANDA:XAUUSD"></div><div class="tvmini" data-tv="mini" data-sym="TVC:US10Y"></div><div class="tvmini" data-tv="mini" data-sym="CAPITALCOM:DXY"></div><div class="tvmini" data-tv="mini" data-sym="FX:EURUSD"></div></div></div><a class="more" href="/portal/bandi-shares/insights" target="_top" style="display:inline-block;margin-top:12px">Open market insights →</a></div>
+    <div><div class="panel pulse live-pulse " data-r><div class="ph"><span>Market pulse</span><span class="live"><i></i>Live</span></div><div class="tvgrid"><div class="tvmini" data-tv="mini" data-sym="OANDA:XAUUSD"></div><div class="tvmini" data-tv="mini" data-sym="OANDA:USDZAR"></div><div class="tvmini" data-tv="mini" data-sym="CAPITALCOM:DXY"></div><div class="tvmini" data-tv="mini" data-sym="FX:EURUSD"></div></div></div><a class="more" href="/portal/bandi-shares/insights" target="_top" style="display:inline-block;margin-top:12px">Open market insights →</a></div>
   </div>
 </div></section>
 
@@ -103,9 +103,9 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 const pr=document.getElementById('prog');const onS=()=>{const h=document.documentElement.scrollHeight-innerHeight;pr.style.transform='scaleX('+(h>0?scrollY/h:0)+')'};addEventListener('scroll',onS,{passive:true});onS();}
 </script>
 <script>document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{try{navigator.clipboard.writeText(b.dataset.copy).catch(()=>{})}catch(e){}const k=b.querySelector(".k");k.textContent="Copied";b.classList.add("ok");setTimeout(()=>{k.textContent="XM code";b.classList.remove("ok")},1800)}))</script>
-<script src="land.js?v=20261127"></script>
-<script src="story.js?v=20261127"></script>
-<script src="pulse.js?v=20261127"></script>
-<script src="tv.js?v=20261127"></script>
-<script src="live.js?v=20261127"></script>
+<script src="land.js?v=20261127b"></script>
+<script src="story.js?v=20261127b"></script>
+<script src="pulse.js?v=20261127b"></script>
+<script src="tv.js?v=20261127b"></script>
+<script src="live.js?v=20261127b"></script>
 </body></html>

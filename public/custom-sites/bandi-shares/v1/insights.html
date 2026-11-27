@@ -3,7 +3,7 @@
 <title>Insights · Bandi Shares</title>
 
 <script>(function(){var r=document.documentElement,t;try{t=new URLSearchParams(location.search).get('t')}catch(e){}if(t!=='light'&&t!=='dark'){try{t=sessionStorage.getItem('bandi-theme')}catch(e){}}if(t!=='light'&&t!=='dark')t='dark';window.__bt=t;r.dataset.theme=t;try{new MutationObserver(function(){if(r.dataset.theme!==window.__bt)r.dataset.theme=window.__bt}).observe(r,{attributes:true,attributeFilter:['data-theme']})}catch(e){}})()</script>
-<link rel="stylesheet" href="site.css?v=20261127">
+<link rel="stylesheet" href="site.css?v=20261127b">
 </head>
 <body>
 <header class="nav"><div class="wrap">
@@ -13,7 +13,7 @@
 </div><span class="prog" id="prog"></span></header>
 <main>
 <section class="phero"><div class="wrap"><div class="over" data-r>Insights</div><h1 data-r style="--d:.06s">Know what moves the market before it moves.</h1><p class="sub" data-r style="--d:.12s">Live market data and the economic calendar Bandile watches, in one place.</p></div></section>
-<section style="padding-top:20px"><div class="wrap"><div class="panel pulse live-pulse strip" data-r><div class="ph"><span>Market pulse</span><span class="live"><i></i>Live</span></div><div class="tvgrid"><div class="tvmini" data-tv="mini" data-sym="OANDA:XAUUSD"></div><div class="tvmini" data-tv="mini" data-sym="TVC:US10Y"></div><div class="tvmini" data-tv="mini" data-sym="CAPITALCOM:DXY"></div><div class="tvmini" data-tv="mini" data-sym="FX:EURUSD"></div></div></div><div class="intel" style="margin-top:16px">
+<section style="padding-top:20px"><div class="wrap"><div class="panel pulse live-pulse strip" data-r><div class="ph"><span>Market pulse</span><span class="live"><i></i>Live</span></div><div class="tvgrid"><div class="tvmini" data-tv="mini" data-sym="OANDA:XAUUSD"></div><div class="tvmini" data-tv="mini" data-sym="OANDA:USDZAR"></div><div class="tvmini" data-tv="mini" data-sym="CAPITALCOM:DXY"></div><div class="tvmini" data-tv="mini" data-sym="FX:EURUSD"></div></div></div><div class="intel" style="margin-top:16px">
   <div class="panel desk" data-r><div class="desk-h"><span><b>Market desk</b> · what we're watching</span><span class="live"><i></i>Live</span></div><div class="chart" data-tv="overview"></div></div>
   <div class="panel cal-anim" data-r style="--d:.1s"><div class="ph"><span>Economic calendar · high impact</span><span class="live"><i></i>Live</span></div><div class="cal" data-tv="events"></div></div>
 </div></div></section>
@@ -48,7 +48,7 @@ tog.addEventListener('click',()=>{const t=window.__bt==='dark'?'light':'dark';wi
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const h=a.getAttribute('href');if(!/^[a-z-]+\.html(#.*)?$/.test(h))return;if(window.__bt==='light'){e.preventDefault();const [p,hash]=h.split('#');location.href=p+'?t=light'+(hash?'#'+hash:'')}});
 const pr=document.getElementById('prog');const onS=()=>{const h=document.documentElement.scrollHeight-innerHeight;pr.style.transform='scaleX('+(h>0?scrollY/h:0)+')'};addEventListener('scroll',onS,{passive:true});onS();}
 </script>
-<script src="pulse.js?v=20261127"></script>
-<script src="tv.js?v=20261127"></script>
-<script src="live.js?v=20261127"></script>
+<script src="pulse.js?v=20261127b"></script>
+<script src="tv.js?v=20261127b"></script>
+<script src="live.js?v=20261127b"></script>
 </body></html>
