@@ -3,7 +3,7 @@
 <title>Insights · Bandi Shares</title>
 
 <script>(function(){var r=document.documentElement,t;try{t=new URLSearchParams(location.search).get('t')}catch(e){}if(t!=='light'&&t!=='dark'){try{t=sessionStorage.getItem('bandi-theme')}catch(e){}}if(t!=='light'&&t!=='dark')t='dark';window.__bt=t;r.dataset.theme=t;try{new MutationObserver(function(){if(r.dataset.theme!==window.__bt)r.dataset.theme=window.__bt}).observe(r,{attributes:true,attributeFilter:['data-theme']})}catch(e){}})()</script>
-<link rel="stylesheet" href="site.css?v=20261127d">
+<link rel="stylesheet" href="site.css?v=20261127e">
 </head>
 <body>
 <header class="nav"><div class="wrap">
@@ -49,7 +49,7 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 const bg=document.getElementById('burger'),mn=document.getElementById('mnav');if(bg&&mn){const setM=o=>{document.body.classList.toggle('mopen',o);bg.setAttribute('aria-expanded',o);bg.setAttribute('aria-label',o?'Close menu':'Open menu')};bg.addEventListener('click',()=>setM(!document.body.classList.contains('mopen')));mn.addEventListener('click',e=>{if(e.target.closest('a'))setM(false)});addEventListener('keydown',e=>{if(e.key==='Escape')setM(false)});addEventListener('resize',()=>{if(innerWidth>980)setM(false)})}
 const pr=document.getElementById('prog');const onS=()=>{const h=document.documentElement.scrollHeight-innerHeight;pr.style.transform='scaleX('+(h>0?scrollY/h:0)+')'};addEventListener('scroll',onS,{passive:true});onS();}
 </script>
-<script src="pulse.js?v=20261127d"></script>
-<script src="tv.js?v=20261127d"></script>
-<script src="live.js?v=20261127d"></script>
+<script src="pulse.js?v=20261127e"></script>
+<script src="tv.js?v=20261127e"></script>
+<script src="live.js?v=20261127e"></script>
 </body></html>
